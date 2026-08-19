@@ -1,0 +1,16 @@
+{
+  "name": "code-to-visual-interpreter",
+  "version": "0.1.0",
+  "description": "Translate between generative code and the geometry it produces, keeping output assets lean instead of bloated.",
+  "author": {
+    "name": "Fars Saadeldin"
+  },
+  "license": "UNLICENSED",
+  "keywords": [
+    "creative-coding",
+    "generative-art",
+    "webgl",
+    "svg",
+    "performance"
+  ]
+}

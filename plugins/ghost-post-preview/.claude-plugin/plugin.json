@@ -1,0 +1,16 @@
+{
+  "name": "ghost-post-preview",
+  "version": "0.1.0",
+  "description": "Predict how a post will land before you publish it: a synthetic-audience read on hook strength, scroll-stopping power and the most likely reason it underperforms.",
+  "author": {
+    "name": "Fars Saadeldin"
+  },
+  "license": "UNLICENSED",
+  "keywords": [
+    "social-media",
+    "content",
+    "marketing",
+    "engagement",
+    "copywriting"
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "name": "support-agent-architect",
+  "version": "0.1.0",
+  "description": "Design the knowledge base and escalation rules behind a support agent so it answers accurately instead of confidently guessing.",
+  "author": {
+    "name": "Fars Saadeldin"
+  },
+  "license": "UNLICENSED",
+  "keywords": [
+    "support",
+    "knowledge-base",
+    "ecommerce",
+    "saas",
+    "deflection",
+    "escalation"
+  ]
+}

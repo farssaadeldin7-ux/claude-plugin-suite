@@ -1,0 +1,17 @@
+{
+  "name": "predictive-resource-allocation",
+  "version": "0.1.0",
+  "description": "Predict where a render, simulation or training job will bottleneck, and what to change first.",
+  "author": {
+    "name": "Fars Saadeldin"
+  },
+  "license": "UNLICENSED",
+  "keywords": [
+    "3d",
+    "vfx",
+    "rendering",
+    "gpu",
+    "performance",
+    "data-science"
+  ]
+}

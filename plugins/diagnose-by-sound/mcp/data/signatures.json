@@ -1,0 +1,2095 @@
+{
+ "version": "1.0.0",
+ "signatures": [
+  {
+   "id": "brake-wear-indicator",
+   "label": "Brake pad wear indicator contacting the rotor",
+   "system": "brakes",
+   "match": {
+    "character": [
+     "squeal",
+     "screech",
+     "chirp"
+    ],
+    "pitch": [
+     "high"
+    ],
+    "rhythm": [
+     "continuous",
+     "speed_linked"
+    ],
+    "occurs_when": [
+     "cruising",
+     "decelerating",
+     "braking"
+    ],
+    "location": [
+     "front_axle",
+     "front_left",
+     "front_right",
+     "rear_axle",
+     "wheel_area"
+    ],
+    "changes_with": [
+     "speed"
+    ]
+   },
+   "hint": "Classically loudest when NOT braking and quiets when the pedal is pressed — the tab is pushed away from the disc.",
+   "severity": "moderate",
+   "why": "The wear tab is a deliberate warning: friction material is near its limit but the pad is still working.",
+   "confirm": [
+    "Look through the wheel spokes at pad thickness — under ~3 mm needs replacement",
+    "Check whether the noise stops when the brake pedal is applied",
+    "Inspect both sides of each axle; wear is often uneven"
+   ],
+   "discriminators": [
+    "Does the noise go away when you press the brake pedal?",
+    "Is it there at low speed with the windows down, without braking?"
+   ],
+   "typical_parts": [
+    "brake pads",
+    "brake rotors"
+   ],
+   "labor_hours": 1.5
+  },
+  {
+   "id": "brake-metal-on-metal",
+   "label": "Brake pads worn through to the backing plate",
+   "system": "brakes",
+   "match": {
+    "character": [
+     "grind",
+     "grate",
+     "scrape"
+    ],
+    "pitch": [
+     "low",
+     "medium"
+    ],
+    "rhythm": [
+     "continuous",
+     "speed_linked"
+    ],
+    "occurs_when": [
+     "braking"
+    ],
+    "location": [
+     "front_axle",
+     "front_left",
+     "front_right",
+     "rear_axle",
+     "wheel_area"
+    ],
+    "changes_with": [
+     "brake",
+     "speed"
+    ]
+   },
+   "hint": "Grinding that appears only under braking, often with a vibration through the pedal.",
+   "severity": "critical",
+   "why": "Friction material is gone. Stopping distance is compromised and the rotor is being destroyed.",
+   "confirm": [
+    "Do not road-test further than necessary",
+    "Inspect pads — backing plate visible against the rotor confirms it",
+    "Check rotor surface for deep scoring; it will likely need replacing, not machining"
+   ],
+   "discriminators": [
+    "Does it happen only while braking?",
+    "Do you feel it through the pedal?"
+   ],
+   "typical_parts": [
+    "brake pads",
+    "brake rotors",
+    "caliper hardware"
+   ],
+   "labor_hours": 2.0
+  },
+  {
+   "id": "brake-caliper-sticking",
+   "label": "Sticking caliper or seized slide pin",
+   "system": "brakes",
+   "match": {
+    "character": [
+     "squeal",
+     "grind",
+     "scrape"
+    ],
+    "pitch": [
+     "high",
+     "medium"
+    ],
+    "rhythm": [
+     "continuous",
+     "speed_linked"
+    ],
+    "occurs_when": [
+     "cruising",
+     "decelerating",
+     "braking"
+    ],
+    "location": [
+     "front_left",
+     "front_right",
+     "rear_left",
+     "rear_right",
+     "wheel_area"
+    ],
+    "changes_with": [
+     "speed"
+    ]
+   },
+   "hint": "Usually one corner only, often with a hot wheel and a burning smell after driving.",
+   "severity": "high",
+   "why": "A dragging caliper overheats the rotor and pad, pulls the car under braking and destroys fuel economy.",
+   "confirm": [
+    "After a short drive, compare wheel temperature side to side — carefully",
+    "Jack the corner and check the wheel spins freely",
+    "Inspect slide pins for dry or corroded travel"
+   ],
+   "discriminators": [
+    "Is it just one corner?",
+    "Does the car pull to one side when braking?",
+    "Is one wheel noticeably hotter after a drive?"
+   ],
+   "typical_parts": [
+    "caliper",
+    "slide pins",
+    "brake hose",
+    "pads",
+    "rotor"
+   ],
+   "labor_hours": 2.0
+  },
+  {
+   "id": "brake-rotor-warp",
+   "label": "Rotor thickness variation (commonly called warped rotors)",
+   "system": "brakes",
+   "match": {
+    "character": [
+     "thump",
+     "rumble",
+     "groan"
+    ],
+    "pitch": [
+     "low"
+    ],
+    "rhythm": [
+     "speed_linked",
+     "once_per_event"
+    ],
+    "occurs_when": [
+     "braking"
+    ],
+    "location": [
+     "front_axle",
+     "cabin",
+     "wheel_area"
+    ],
+    "changes_with": [
+     "brake",
+     "speed"
+    ]
+   },
+   "hint": "Pulsing you feel in the pedal or steering wheel, worst braking from high speed.",
+   "severity": "moderate",
+   "why": "Uneven pad deposits or disc thickness variation make braking torque fluctuate once per revolution.",
+   "confirm": [
+    "Measure disc thickness variation with a micrometer at eight points",
+    "Check lateral runout with a dial gauge",
+    "Inspect for uneven pad transfer film"
+   ],
+   "discriminators": [
+    "Do you feel a pulse in the pedal?",
+    "Is it worse braking from motorway speed?"
+   ],
+   "typical_parts": [
+    "brake rotors",
+    "brake pads"
+   ],
+   "labor_hours": 1.5
+  },
+  {
+   "id": "brake-dust-shield-contact",
+   "label": "Bent dust shield touching the rotor",
+   "system": "brakes",
+   "match": {
+    "character": [
+     "scrape",
+     "grate",
+     "chirp"
+    ],
+    "pitch": [
+     "high",
+     "medium"
+    ],
+    "rhythm": [
+     "speed_linked"
+    ],
+    "occurs_when": [
+     "cruising",
+     "decelerating",
+     "reversing"
+    ],
+    "location": [
+     "front_left",
+     "front_right",
+     "rear_left",
+     "rear_right",
+     "wheel_area"
+    ],
+    "changes_with": [
+     "speed"
+    ]
+   },
+   "hint": "Light scraping in step with wheel speed that is unaffected by braking. Cheapest thing on this list.",
+   "severity": "low",
+   "why": "The thin backing plate has been knocked into the disc — usually by a kerb or during a tyre change.",
+   "confirm": [
+    "Spin the wheel off the ground and listen",
+    "Look for a bright rub mark on the shield",
+    "Bend the shield clear with a screwdriver and re-test"
+   ],
+   "discriminators": [
+    "Does braking change the noise at all?",
+    "Has the car been on a kerb or had wheels off recently?"
+   ],
+   "typical_parts": [
+    "dust shield"
+   ],
+   "labor_hours": 0.3
+  },
+  {
+   "id": "wheel-bearing",
+   "label": "Worn wheel bearing",
+   "system": "wheels",
+   "match": {
+    "character": [
+     "hum",
+     "drone",
+     "roar",
+     "growl",
+     "rumble"
+    ],
+    "pitch": [
+     "low",
+     "medium"
+    ],
+    "rhythm": [
+     "speed_linked",
+     "continuous"
+    ],
+    "occurs_when": [
+     "cruising",
+     "highway_speed",
+     "turning_left",
+     "turning_right"
+    ],
+    "location": [
+     "front_left",
+     "front_right",
+     "rear_left",
+     "rear_right",
+     "wheel_area",
+     "cabin"
+    ],
+    "changes_with": [
+     "speed",
+     "steering"
+    ]
+   },
+   "hint": "Rises with road speed, not engine RPM, and changes as you sway the car left and right.",
+   "severity": "high",
+   "why": "The bearing races are pitted. Left long enough a bearing can seize or allow the hub to move.",
+   "confirm": [
+    "Sway test: gentle S-turns at 60-80 km/h — loading the bad side usually makes it louder",
+    "Jack the wheel, rock it at 12 and 6 o'clock for play",
+    "Spin by hand and listen at the hub"
+   ],
+   "discriminators": [
+    "Does it change when you swerve gently left and right?",
+    "Does it track road speed rather than engine speed?",
+    "Is it still there in neutral coasting?"
+   ],
+   "typical_parts": [
+    "wheel bearing",
+    "hub assembly"
+   ],
+   "labor_hours": 2.0
+  },
+  {
+   "id": "tyre-cupping",
+   "label": "Cupped or feathered tyre wear",
+   "system": "wheels",
+   "match": {
+    "character": [
+     "hum",
+     "roar",
+     "drone",
+     "thump"
+    ],
+    "pitch": [
+     "low",
+     "medium"
+    ],
+    "rhythm": [
+     "speed_linked"
+    ],
+    "occurs_when": [
+     "cruising",
+     "highway_speed"
+    ],
+    "location": [
+     "cabin",
+     "front_axle",
+     "rear_axle",
+     "wheel_area"
+    ],
+    "changes_with": [
+     "speed"
+    ]
+   },
+   "hint": "Very close to a bearing noise, but usually unchanged by swerving and often changes after a tyre rotation.",
+   "severity": "moderate",
+   "why": "Irregular tread wear from worn dampers, misalignment or under-inflation makes the tread pattern noisy.",
+   "confirm": [
+    "Run a hand across the tread — cupping feels like scallops",
+    "Rotate the tyres and see whether the noise moves",
+    "Check alignment and damper condition"
+   ],
+   "discriminators": [
+    "Does gentle swerving change it?",
+    "Did the noise change after the last tyre rotation?"
+   ],
+   "typical_parts": [
+    "tyres",
+    "shock absorbers",
+    "alignment"
+   ],
+   "labor_hours": 1.0
+  },
+  {
+   "id": "tyre-flat-spot-belt",
+   "label": "Broken tyre belt or flat-spotted tyre",
+   "system": "wheels",
+   "match": {
+    "character": [
+     "thump",
+     "rumble"
+    ],
+    "pitch": [
+     "low"
+    ],
+    "rhythm": [
+     "speed_linked"
+    ],
+    "occurs_when": [
+     "cruising",
+     "accelerating",
+     "decelerating"
+    ],
+    "location": [
+     "cabin",
+     "wheel_area",
+     "front_axle",
+     "rear_axle"
+    ],
+    "changes_with": [
+     "speed"
+    ]
+   },
+   "hint": "One thump per wheel revolution, often with a visible bulge or a vibration that peaks at a specific speed.",
+   "severity": "high",
+   "why": "A separated belt can fail suddenly at speed.",
+   "confirm": [
+    "Inspect each tyre for bulges or flat spots",
+    "Spin each wheel off the ground and watch for wobble",
+    "Have the tyres road-force balanced"
+   ],
+   "discriminators": [
+    "Is it exactly one thump per wheel turn?",
+    "Is there a bulge visible on any sidewall or tread?"
+   ],
+   "typical_parts": [
+    "tyre"
+   ],
+   "labor_hours": 0.5
+  },
+  {
+   "id": "cv-joint-outer",
+   "label": "Worn outer CV joint",
+   "system": "driveline",
+   "match": {
+    "character": [
+     "click",
+     "tick",
+     "tap"
+    ],
+    "pitch": [
+     "medium",
+     "high"
+    ],
+    "rhythm": [
+     "speed_linked",
+     "once_per_event"
+    ],
+    "occurs_when": [
+     "turning_left",
+     "turning_right",
+     "accelerating",
+     "reversing"
+    ],
+    "location": [
+     "front_left",
+     "front_right",
+     "front_axle",
+     "wheel_area"
+    ],
+    "changes_with": [
+     "steering",
+     "speed"
+    ]
+   },
+   "hint": "Rhythmic clicking on full lock, worse under power. Reversing in a tight circle usually amplifies it.",
+   "severity": "moderate",
+   "why": "The joint has lost grease or taken in water through a split boot, and the bearing cage is worn.",
+   "confirm": [
+    "Drive slow tight circles both directions in an empty car park",
+    "Inspect CV boots for splits and thrown grease",
+    "Check for play by twisting the shaft at the joint"
+   ],
+   "discriminators": [
+    "Is it worse on full lock?",
+    "Does it change between left and right turns?",
+    "Is there grease flung around inside the wheel arch?"
+   ],
+   "typical_parts": [
+    "CV joint",
+    "CV boot",
+    "driveshaft"
+   ],
+   "labor_hours": 2.0
+  },
+  {
+   "id": "cv-joint-inner",
+   "label": "Worn inner CV / tripod joint",
+   "system": "driveline",
+   "match": {
+    "character": [
+     "clunk",
+     "shudder",
+     "knock"
+    ],
+    "pitch": [
+     "low"
+    ],
+    "rhythm": [
+     "once_per_event",
+     "intermittent"
+    ],
+    "occurs_when": [
+     "accelerating",
+     "shifting",
+     "reversing"
+    ],
+    "location": [
+     "front_axle",
+     "under_vehicle"
+    ],
+    "changes_with": [
+     "load"
+    ]
+   },
+   "hint": "A shudder or clunk on hard acceleration from a stop, felt through the floor rather than heard.",
+   "severity": "moderate",
+   "why": "The tripod bearing has worn a groove in its housing, so it binds under torque.",
+   "confirm": [
+    "Accelerate hard from rest in a straight line and feel for shudder",
+    "Inspect the inner boot",
+    "Check for play by pushing and pulling the shaft axially"
+   ],
+   "discriminators": [
+    "Does it happen mostly on hard acceleration from a stop?",
+    "Is it a shudder rather than a click?"
+   ],
+   "typical_parts": [
+    "inner CV joint",
+    "driveshaft"
+   ],
+   "labor_hours": 2.0
+  },
+  {
+   "id": "u-joint",
+   "label": "Worn universal joint in the propshaft",
+   "system": "driveline",
+   "match": {
+    "character": [
+     "clunk",
+     "click",
+     "squeak"
+    ],
+    "pitch": [
+     "low",
+     "medium"
+    ],
+    "rhythm": [
+     "speed_linked",
+     "once_per_event"
+    ],
+    "occurs_when": [
+     "accelerating",
+     "decelerating",
+     "shifting",
+     "reversing"
+    ],
+    "location": [
+     "under_vehicle",
+     "rear_axle"
+    ],
+    "changes_with": [
+     "load",
+     "speed"
+    ]
+   },
+   "hint": "A clunk when taking up drive, sometimes a dry squeak at low speed that tracks road speed.",
+   "severity": "high",
+   "why": "A failed U-joint can drop the propshaft, which is dangerous at speed.",
+   "confirm": [
+    "Grip the propshaft and try to rotate it against the flange — any play is too much",
+    "Look for rust-coloured dust around the bearing caps",
+    "Check for a dry squeak that rises with speed"
+   ],
+   "discriminators": [
+    "Is there a clunk when moving off or changing between drive and reverse?",
+    "Is the vehicle rear- or four-wheel drive?"
+   ],
+   "typical_parts": [
+    "universal joint",
+    "propshaft",
+    "centre bearing"
+   ],
+   "labor_hours": 1.5
+  },
+  {
+   "id": "differential-howl",
+   "label": "Worn differential ring and pinion",
+   "system": "driveline",
+   "match": {
+    "character": [
+     "howl",
+     "whine",
+     "drone"
+    ],
+    "pitch": [
+     "medium"
+    ],
+    "rhythm": [
+     "speed_linked"
+    ],
+    "occurs_when": [
+     "cruising",
+     "accelerating",
+     "decelerating",
+     "highway_speed"
+    ],
+    "location": [
+     "rear_axle",
+     "under_vehicle"
+    ],
+    "changes_with": [
+     "speed",
+     "load"
+    ]
+   },
+   "hint": "A howl that changes character between coasting and pulling at the same speed.",
+   "severity": "moderate",
+   "why": "Gear-set wear or incorrect backlash. Often traceable to low or degraded gear oil.",
+   "confirm": [
+    "Note whether it howls on drive, on coast, or both — this points at the wear pattern",
+    "Check diff oil level and condition for metal",
+    "Listen with the vehicle on a lift under load"
+   ],
+   "discriminators": [
+    "Does the noise differ between accelerating and coasting at the same speed?",
+    "Has the diff oil ever been changed?"
+   ],
+   "typical_parts": [
+    "differential gear set",
+    "pinion bearing",
+    "gear oil"
+   ],
+   "labor_hours": 4.0
+  },
+  {
+   "id": "sway-bar-link",
+   "label": "Worn anti-roll bar link or bush",
+   "system": "suspension",
+   "match": {
+    "character": [
+     "clunk",
+     "rattle",
+     "knock"
+    ],
+    "pitch": [
+     "low",
+     "medium"
+    ],
+    "rhythm": [
+     "once_per_event",
+     "intermittent"
+    ],
+    "occurs_when": [
+     "over_bumps",
+     "turning_left",
+     "turning_right"
+    ],
+    "location": [
+     "front_left",
+     "front_right",
+     "front_axle",
+     "rear_axle"
+    ],
+    "changes_with": [
+     "none"
+    ]
+   },
+   "hint": "The most common cause of a rattle over small bumps at low speed. Often worse on rough surfaces than big potholes.",
+   "severity": "low",
+   "why": "The ball joint in the link has worn loose, so it knocks as the bar twists.",
+   "confirm": [
+    "With the car on the ground, push down hard on each corner and listen",
+    "Grip each link and try to move it — any play is a fail",
+    "Pry-bar test the bushes on a lift"
+   ],
+   "discriminators": [
+    "Is it worse over small, sharp bumps rather than big ones?",
+    "Does it happen when only one wheel hits a bump?"
+   ],
+   "typical_parts": [
+    "anti-roll bar link",
+    "anti-roll bar bush"
+   ],
+   "labor_hours": 0.8
+  },
+  {
+   "id": "strut-mount",
+   "label": "Worn strut top mount or bearing",
+   "system": "suspension",
+   "match": {
+    "character": [
+     "clunk",
+     "groan",
+     "creak",
+     "pop"
+    ],
+    "pitch": [
+     "low"
+    ],
+    "rhythm": [
+     "once_per_event"
+    ],
+    "occurs_when": [
+     "steering_at_standstill",
+     "turning_left",
+     "turning_right",
+     "over_bumps"
+    ],
+    "location": [
+     "front_left",
+     "front_right",
+     "front_axle",
+     "cabin"
+    ],
+    "changes_with": [
+     "steering"
+    ]
+   },
+   "hint": "A clunk or groan you can reproduce standing still, just by turning the wheel lock to lock.",
+   "severity": "moderate",
+   "why": "The bearing that lets the strut rotate with the steering has failed, or the rubber mount has separated.",
+   "confirm": [
+    "Turn the wheel lock to lock while stationary with the window down",
+    "Have someone bounce the corner while you feel the top mount",
+    "Inspect for separated or cracked rubber"
+   ],
+   "discriminators": [
+    "Can you reproduce it standing still by turning the wheel?",
+    "Does the steering feel notchy as it returns to centre?"
+   ],
+   "typical_parts": [
+    "strut mount",
+    "strut bearing",
+    "strut"
+   ],
+   "labor_hours": 2.0
+  },
+  {
+   "id": "ball-joint",
+   "label": "Worn lower ball joint",
+   "system": "suspension",
+   "match": {
+    "character": [
+     "clunk",
+     "knock",
+     "creak"
+    ],
+    "pitch": [
+     "low"
+    ],
+    "rhythm": [
+     "once_per_event",
+     "intermittent"
+    ],
+    "occurs_when": [
+     "over_bumps",
+     "turning_left",
+     "turning_right",
+     "braking"
+    ],
+    "location": [
+     "front_left",
+     "front_right",
+     "front_axle"
+    ],
+    "changes_with": [
+     "none"
+    ]
+   },
+   "hint": "Similar to a sway bar link, but tends to clunk under braking and over larger inputs too.",
+   "severity": "high",
+   "why": "A ball joint that separates drops the wheel out of the arch. This one is worth being conservative about.",
+   "confirm": [
+    "Support the control arm, pry between the arm and knuckle for vertical play",
+    "Check the boot for splits and grease loss",
+    "Compare tyre wear on the inner and outer edges"
+   ],
+   "discriminators": [
+    "Does it also clunk when braking?",
+    "Is the steering vague or wandering?"
+   ],
+   "typical_parts": [
+    "ball joint",
+    "control arm"
+   ],
+   "labor_hours": 1.8
+  },
+  {
+   "id": "control-arm-bush",
+   "label": "Perished control arm bush",
+   "system": "suspension",
+   "match": {
+    "character": [
+     "clunk",
+     "groan",
+     "squeak"
+    ],
+    "pitch": [
+     "low"
+    ],
+    "rhythm": [
+     "once_per_event"
+    ],
+    "occurs_when": [
+     "braking",
+     "over_bumps",
+     "accelerating"
+    ],
+    "location": [
+     "front_left",
+     "front_right",
+     "front_axle"
+    ],
+    "changes_with": [
+     "load"
+    ]
+   },
+   "hint": "Often a dull clunk on braking or a groan as the car rocks fore and aft.",
+   "severity": "moderate",
+   "why": "The rubber has torn or the fluid-filled bush has emptied, so the arm moves before it loads.",
+   "confirm": [
+    "Pry-bar the bush and look for movement or torn rubber",
+    "Look for a bush that has visibly shifted off centre",
+    "Check alignment — worn bushes usually throw camber and caster out"
+   ],
+   "discriminators": [
+    "Is it worst on braking?",
+    "Does the steering pull under braking?"
+   ],
+   "typical_parts": [
+    "control arm bush",
+    "control arm"
+   ],
+   "labor_hours": 2.0
+  },
+  {
+   "id": "power-steering-pump",
+   "label": "Failing power steering pump or low fluid",
+   "system": "steering",
+   "match": {
+    "character": [
+     "whine",
+     "moan",
+     "groan"
+    ],
+    "pitch": [
+     "medium",
+     "high"
+    ],
+    "rhythm": [
+     "rpm_linked",
+     "continuous"
+    ],
+    "occurs_when": [
+     "steering_at_standstill",
+     "turning_left",
+     "turning_right",
+     "idle",
+     "cold_start"
+    ],
+    "location": [
+     "engine_bay"
+    ],
+    "changes_with": [
+     "rpm",
+     "steering"
+    ]
+   },
+   "hint": "Rises as you turn the wheel and peaks at full lock. Worst when cold.",
+   "severity": "moderate",
+   "why": "Aerated or low fluid, or a worn pump, makes the vanes cavitate under load.",
+   "confirm": [
+    "Check fluid level and look for foam or dark colour",
+    "Listen at the pump while someone turns the wheel",
+    "Inspect the low-pressure hose for a leak drawing in air"
+   ],
+   "discriminators": [
+    "Does it peak at full lock?",
+    "Is it loudest when the engine is cold?",
+    "Is the steering heavier than it used to be?"
+   ],
+   "typical_parts": [
+    "power steering pump",
+    "power steering fluid",
+    "return hose"
+   ],
+   "labor_hours": 1.5
+  },
+  {
+   "id": "tie-rod-end",
+   "label": "Worn tie rod end",
+   "system": "steering",
+   "match": {
+    "character": [
+     "knock",
+     "clunk",
+     "rattle"
+    ],
+    "pitch": [
+     "medium"
+    ],
+    "rhythm": [
+     "intermittent",
+     "once_per_event"
+    ],
+    "occurs_when": [
+     "over_bumps",
+     "steering_at_standstill",
+     "turning_left",
+     "turning_right"
+    ],
+    "location": [
+     "front_left",
+     "front_right",
+     "front_axle"
+    ],
+    "changes_with": [
+     "steering"
+    ]
+   },
+   "hint": "A knock felt through the steering wheel over rough surfaces, with vague on-centre feel.",
+   "severity": "high",
+   "why": "Steering play. A separated tie rod means total loss of steering on that wheel.",
+   "confirm": [
+    "Rock the wheel at 3 and 9 o'clock with the car raised",
+    "Have someone rock the steering wheel while you watch the joint",
+    "Check the boot for splits"
+   ],
+   "discriminators": [
+    "Do you feel the knock in the steering wheel itself?",
+    "Does the car wander on the motorway?"
+   ],
+   "typical_parts": [
+    "tie rod end",
+    "alignment"
+   ],
+   "labor_hours": 1.2
+  },
+  {
+   "id": "coil-spring-broken",
+   "label": "Broken coil spring",
+   "system": "suspension",
+   "match": {
+    "character": [
+     "clunk",
+     "scrape",
+     "bang"
+    ],
+    "pitch": [
+     "low"
+    ],
+    "rhythm": [
+     "once_per_event",
+     "intermittent"
+    ],
+    "occurs_when": [
+     "over_bumps",
+     "turning_left",
+     "turning_right"
+    ],
+    "location": [
+     "front_left",
+     "front_right",
+     "rear_left",
+     "rear_right"
+    ],
+    "changes_with": [
+     "none"
+    ]
+   },
+   "hint": "A hard clunk plus one corner sitting lower than the other side.",
+   "severity": "high",
+   "why": "A broken coil can contact the tyre and cut it.",
+   "confirm": [
+    "Measure ride height at each corner and compare side to side",
+    "Inspect the spring visually, especially the bottom two coils",
+    "Look for a bright witness mark where the spring end has moved"
+   ],
+   "discriminators": [
+    "Does one corner sit lower?",
+    "Was there a sharp bang before the noise started?"
+   ],
+   "typical_parts": [
+    "coil spring",
+    "spring seat"
+   ],
+   "labor_hours": 2.0
+  },
+  {
+   "id": "shock-absorber-worn",
+   "label": "Worn shock absorber or strut",
+   "system": "suspension",
+   "match": {
+    "character": [
+     "thump",
+     "clunk",
+     "rattle"
+    ],
+    "pitch": [
+     "low"
+    ],
+    "rhythm": [
+     "once_per_event"
+    ],
+    "occurs_when": [
+     "over_bumps",
+     "highway_speed"
+    ],
+    "location": [
+     "front_axle",
+     "rear_axle",
+     "cabin"
+    ],
+    "changes_with": [
+     "none"
+    ]
+   },
+   "hint": "The car keeps bouncing after a bump, and the noise comes with a floaty ride.",
+   "severity": "moderate",
+   "why": "Loss of damping fluid means the spring is no longer controlled.",
+   "confirm": [
+    "Bounce test each corner — it should settle in one rebound",
+    "Look for oil film down the damper body",
+    "Check for cupped tyre wear as corroborating evidence"
+   ],
+   "discriminators": [
+    "Does the car float or wallow over undulations?",
+    "Is there oil on the damper body?"
+   ],
+   "typical_parts": [
+    "shock absorber",
+    "strut"
+   ],
+   "labor_hours": 2.0
+  },
+  {
+   "id": "valvetrain-tick",
+   "label": "Valvetrain clearance / lifter tick",
+   "system": "engine",
+   "match": {
+    "character": [
+     "tick",
+     "tap",
+     "click"
+    ],
+    "pitch": [
+     "medium",
+     "high"
+    ],
+    "rhythm": [
+     "rpm_linked",
+     "continuous"
+    ],
+    "occurs_when": [
+     "idle",
+     "cold_start",
+     "accelerating"
+    ],
+    "location": [
+     "engine_bay"
+    ],
+    "changes_with": [
+     "rpm"
+    ]
+   },
+   "hint": "Ticks at half engine speed and is often loudest cold, quieting as oil pressure builds.",
+   "severity": "moderate",
+   "why": "Excess clearance, a collapsed hydraulic lifter, or oil that is too thin or too dirty to fill the lifter.",
+   "confirm": [
+    "Note whether it fades as the engine warms — a fading tick points at lifters",
+    "Check oil level and service history",
+    "Use a stethoscope on the valve cover to localise the cylinder"
+   ],
+   "discriminators": [
+    "Does it fade once warm?",
+    "Is the tick at half engine speed rather than engine speed?",
+    "When was the last oil change?"
+   ],
+   "typical_parts": [
+    "hydraulic lifter",
+    "engine oil",
+    "rocker arm"
+   ],
+   "labor_hours": 1.0
+  },
+  {
+   "id": "rod-knock",
+   "label": "Connecting rod bearing knock",
+   "system": "engine",
+   "match": {
+    "character": [
+     "knock",
+     "thump"
+    ],
+    "pitch": [
+     "low"
+    ],
+    "rhythm": [
+     "rpm_linked"
+    ],
+    "occurs_when": [
+     "idle",
+     "accelerating",
+     "decelerating"
+    ],
+    "location": [
+     "engine_bay",
+     "under_vehicle"
+    ],
+    "changes_with": [
+     "rpm",
+     "load"
+    ]
+   },
+   "hint": "A deep knock that gets worse under load and often quietens briefly if you disable that cylinder's injector or plug.",
+   "severity": "critical",
+   "why": "Bearing clearance has opened up. Continued running will destroy the crankshaft.",
+   "confirm": [
+    "Stop driving the vehicle",
+    "Check oil for metallic glitter",
+    "Cylinder cut-out test: the knock usually softens when the offending cylinder is disabled",
+    "Check oil pressure with a mechanical gauge"
+   ],
+   "discriminators": [
+    "Does it get louder under load rather than just with RPM?",
+    "Is there any metallic glitter in the oil?",
+    "Has oil pressure dropped?"
+   ],
+   "typical_parts": [
+    "rod bearings",
+    "crankshaft",
+    "engine"
+   ],
+   "labor_hours": 12.0
+  },
+  {
+   "id": "detonation",
+   "label": "Detonation / pre-ignition (pinking)",
+   "system": "engine",
+   "match": {
+    "character": [
+     "rattle",
+     "tick",
+     "knock"
+    ],
+    "pitch": [
+     "high",
+     "medium"
+    ],
+    "rhythm": [
+     "intermittent",
+     "rpm_linked"
+    ],
+    "occurs_when": [
+     "accelerating",
+     "cruising"
+    ],
+    "location": [
+     "engine_bay"
+    ],
+    "changes_with": [
+     "load"
+    ]
+   },
+   "hint": "Sounds like marbles in a can, only under load — climbing a hill or accelerating in too high a gear.",
+   "severity": "high",
+   "why": "The fuel-air charge is igniting uncontrolled. Sustained detonation holes pistons.",
+   "confirm": [
+    "Try a tank of higher-octane fuel and see whether it disappears",
+    "Scan for knock sensor and timing correction data",
+    "Check for carbon build-up and cooling system function"
+   ],
+   "discriminators": [
+    "Only under load, never at idle?",
+    "Worse on hot days or up hills?",
+    "What octane fuel is being used versus what the manufacturer specifies?"
+   ],
+   "typical_parts": [
+    "spark plugs",
+    "knock sensor",
+    "fuel"
+   ],
+   "labor_hours": 1.0
+  },
+  {
+   "id": "exhaust-manifold-leak",
+   "label": "Exhaust manifold leak or cracked manifold",
+   "system": "exhaust",
+   "match": {
+    "character": [
+     "tick",
+     "puff",
+     "hiss",
+     "tap"
+    ],
+    "pitch": [
+     "medium",
+     "high"
+    ],
+    "rhythm": [
+     "rpm_linked"
+    ],
+    "occurs_when": [
+     "cold_start",
+     "idle",
+     "accelerating"
+    ],
+    "location": [
+     "engine_bay"
+    ],
+    "changes_with": [
+     "rpm",
+     "load"
+    ]
+   },
+   "hint": "A ticking that is loudest on a cold start and quietens as the metal expands and seals.",
+   "severity": "moderate",
+   "why": "A broken stud or cracked manifold lets pulses escape. It can also draw in air and skew fuel trims.",
+   "confirm": [
+    "Listen on a cold start — it should quieten as the engine warms",
+    "Feel carefully for escaping pulses near the manifold flange",
+    "Look for black soot tracks around the gasket"
+   ],
+   "discriminators": [
+    "Is it loudest in the first minute after a cold start?",
+    "Does it fade rather than get worse as the engine warms?"
+   ],
+   "typical_parts": [
+    "exhaust manifold gasket",
+    "manifold studs",
+    "manifold"
+   ],
+   "labor_hours": 3.0
+  },
+  {
+   "id": "timing-chain-rattle",
+   "label": "Stretched timing chain or failing tensioner",
+   "system": "engine",
+   "match": {
+    "character": [
+     "rattle",
+     "grate",
+     "whir"
+    ],
+    "pitch": [
+     "medium"
+    ],
+    "rhythm": [
+     "rpm_linked",
+     "intermittent"
+    ],
+    "occurs_when": [
+     "cold_start",
+     "idle",
+     "decelerating"
+    ],
+    "location": [
+     "engine_bay"
+    ],
+    "changes_with": [
+     "rpm"
+    ]
+   },
+   "hint": "A brief rattle in the first seconds after a cold start, from the front or rear of the engine.",
+   "severity": "high",
+   "why": "A chain that jumps a tooth can destroy an interference engine in one revolution.",
+   "confirm": [
+    "Scan for camshaft/crankshaft correlation codes",
+    "Compare cam timing against spec with a scope or by inspection",
+    "Check oil condition — chain wear is usually an oil-maintenance story"
+   ],
+   "discriminators": [
+    "Is the rattle only for a second or two on a cold start?",
+    "Any check engine light for cam/crank correlation?"
+   ],
+   "typical_parts": [
+    "timing chain",
+    "chain tensioner",
+    "guides"
+   ],
+   "labor_hours": 8.0
+  },
+  {
+   "id": "serpentine-belt-squeal",
+   "label": "Glazed, loose or misaligned serpentine belt",
+   "system": "accessories",
+   "match": {
+    "character": [
+     "squeal",
+     "screech",
+     "chirp"
+    ],
+    "pitch": [
+     "high"
+    ],
+    "rhythm": [
+     "rpm_linked",
+     "intermittent"
+    ],
+    "occurs_when": [
+     "cold_start",
+     "idle",
+     "accelerating",
+     "ac_on",
+     "steering_at_standstill"
+    ],
+    "location": [
+     "engine_bay"
+    ],
+    "changes_with": [
+     "rpm",
+     "load"
+    ]
+   },
+   "hint": "Loudest on a cold, damp start, and when a load is applied — air conditioning on, or steering at full lock.",
+   "severity": "low",
+   "why": "The belt is slipping. Either its tension is gone or the ribs are glazed.",
+   "confirm": [
+    "Spray a little water on the belt: if the noise changes momentarily, it is belt-related",
+    "Inspect ribs for glazing, cracking and missing chunks",
+    "Check tensioner travel and pulley alignment"
+   ],
+   "discriminators": [
+    "Is it worse when cold or damp?",
+    "Does switching the air conditioning on change it?"
+   ],
+   "typical_parts": [
+    "serpentine belt",
+    "belt tensioner",
+    "idler pulley"
+   ],
+   "labor_hours": 0.7
+  },
+  {
+   "id": "idler-pulley-bearing",
+   "label": "Failing idler or tensioner pulley bearing",
+   "system": "accessories",
+   "match": {
+    "character": [
+     "whir",
+     "growl",
+     "rumble",
+     "whine"
+    ],
+    "pitch": [
+     "medium",
+     "high"
+    ],
+    "rhythm": [
+     "rpm_linked",
+     "continuous"
+    ],
+    "occurs_when": [
+     "idle",
+     "accelerating",
+     "cruising"
+    ],
+    "location": [
+     "engine_bay"
+    ],
+    "changes_with": [
+     "rpm"
+    ]
+   },
+   "hint": "Tracks engine RPM and stays when the belt is removed only if the noise is from a driven accessory — not the pulley itself.",
+   "severity": "moderate",
+   "why": "A dry bearing. If it seizes it will shred the belt and take out the water pump drive with it.",
+   "confirm": [
+    "Remove the belt and spin each pulley by hand, feeling for roughness",
+    "Use a stethoscope on each pulley centre with the engine running",
+    "Briefly run the engine without the belt to see if the noise disappears"
+   ],
+   "discriminators": [
+    "Does the noise track engine speed exactly?",
+    "Does it persist in neutral with the engine revved?"
+   ],
+   "typical_parts": [
+    "idler pulley",
+    "tensioner assembly"
+   ],
+   "labor_hours": 1.0
+  },
+  {
+   "id": "alternator-bearing",
+   "label": "Worn alternator bearing",
+   "system": "accessories",
+   "match": {
+    "character": [
+     "whine",
+     "growl",
+     "whir"
+    ],
+    "pitch": [
+     "high",
+     "medium"
+    ],
+    "rhythm": [
+     "rpm_linked",
+     "continuous"
+    ],
+    "occurs_when": [
+     "idle",
+     "accelerating",
+     "cruising"
+    ],
+    "location": [
+     "engine_bay"
+    ],
+    "changes_with": [
+     "rpm",
+     "load"
+    ]
+   },
+   "hint": "A whine that changes when electrical load changes — headlights and rear demister on.",
+   "severity": "moderate",
+   "why": "Bearing wear, or a failing rectifier making an electrical whine.",
+   "confirm": [
+    "Switch on headlights and demister — an electrical whine changes pitch",
+    "Stethoscope the alternator case",
+    "Test charging output and AC ripple"
+   ],
+   "discriminators": [
+    "Does turning on high electrical loads change the noise?",
+    "Any flickering lights or battery warning?"
+   ],
+   "typical_parts": [
+    "alternator",
+    "alternator bearing"
+   ],
+   "labor_hours": 1.5
+  },
+  {
+   "id": "water-pump-bearing",
+   "label": "Failing water pump bearing or seal",
+   "system": "cooling",
+   "match": {
+    "character": [
+     "whine",
+     "growl",
+     "grind"
+    ],
+    "pitch": [
+     "medium"
+    ],
+    "rhythm": [
+     "rpm_linked",
+     "continuous"
+    ],
+    "occurs_when": [
+     "idle",
+     "accelerating",
+     "cruising"
+    ],
+    "location": [
+     "engine_bay"
+    ],
+    "changes_with": [
+     "rpm"
+    ]
+   },
+   "hint": "RPM-linked growl plus a coolant weep from the pump's telltale hole.",
+   "severity": "high",
+   "why": "A seized pump means immediate overheating, and on belt-driven engines it can strip the timing belt.",
+   "confirm": [
+    "Look for crusty coolant residue at the weep hole",
+    "Check for play by rocking the pulley",
+    "Check coolant level and for any sweet smell"
+   ],
+   "discriminators": [
+    "Is there any coolant residue near the pump?",
+    "Has the temperature gauge been higher than normal?"
+   ],
+   "typical_parts": [
+    "water pump",
+    "coolant",
+    "timing belt"
+   ],
+   "labor_hours": 3.0
+  },
+  {
+   "id": "vacuum-leak-hiss",
+   "label": "Vacuum leak",
+   "system": "engine",
+   "match": {
+    "character": [
+     "hiss",
+     "whistle",
+     "flutter"
+    ],
+    "pitch": [
+     "high"
+    ],
+    "rhythm": [
+     "continuous",
+     "rpm_linked"
+    ],
+    "occurs_when": [
+     "idle",
+     "cold_start"
+    ],
+    "location": [
+     "engine_bay"
+    ],
+    "changes_with": [
+     "rpm"
+    ]
+   },
+   "hint": "A steady hiss at idle, usually with an unsteady or high idle and lean fuel trims.",
+   "severity": "moderate",
+   "why": "Unmetered air is entering after the mass airflow sensor, so the mixture goes lean.",
+   "confirm": [
+    "Check long-term fuel trims — lean at idle, normalising at higher RPM, points to a leak",
+    "Smoke-test the intake",
+    "Inspect intake boots and PCV hoses for splits"
+   ],
+   "discriminators": [
+    "Is the idle unsteady?",
+    "Any lean codes stored?"
+   ],
+   "typical_parts": [
+    "intake hose",
+    "PCV valve",
+    "intake manifold gasket"
+   ],
+   "labor_hours": 1.0
+  },
+  {
+   "id": "throwout-bearing",
+   "label": "Worn clutch release (throwout) bearing",
+   "system": "transmission",
+   "match": {
+    "character": [
+     "whir",
+     "whine",
+     "growl",
+     "rumble"
+    ],
+    "pitch": [
+     "medium",
+     "high"
+    ],
+    "rhythm": [
+     "continuous",
+     "rpm_linked"
+    ],
+    "occurs_when": [
+     "clutch_in",
+     "idle"
+    ],
+    "location": [
+     "under_vehicle",
+     "cabin",
+     "engine_bay"
+    ],
+    "changes_with": [
+     "rpm"
+    ]
+   },
+   "hint": "Appears the moment you press the clutch and vanishes when you let it out.",
+   "severity": "moderate",
+   "why": "The bearing that pushes the pressure plate is worn. Replaced with the clutch, since the gearbox has to come out anyway.",
+   "confirm": [
+    "At idle in neutral, press the clutch and listen for the noise appearing",
+    "Compare against the input shaft bearing test (noise with clutch out)",
+    "Check clutch pedal free play"
+   ],
+   "discriminators": [
+    "Does it appear when you press the clutch, or when you release it?",
+    "Is it there in neutral with the clutch up?"
+   ],
+   "typical_parts": [
+    "release bearing",
+    "clutch kit"
+   ],
+   "labor_hours": 5.0
+  },
+  {
+   "id": "input-shaft-bearing",
+   "label": "Worn gearbox input shaft bearing",
+   "system": "transmission",
+   "match": {
+    "character": [
+     "growl",
+     "rumble",
+     "whine"
+    ],
+    "pitch": [
+     "low",
+     "medium"
+    ],
+    "rhythm": [
+     "continuous",
+     "rpm_linked"
+    ],
+    "occurs_when": [
+     "idle",
+     "clutch_out"
+    ],
+    "location": [
+     "under_vehicle",
+     "cabin"
+    ],
+    "changes_with": [
+     "rpm"
+    ]
+   },
+   "hint": "The mirror image of the release bearing: present in neutral with the clutch UP, disappears when you press the clutch.",
+   "severity": "moderate",
+   "why": "The bearing supporting the input shaft is worn.",
+   "confirm": [
+    "In neutral at idle, listen with the clutch up, then press it — if the noise goes, it is the input shaft",
+    "Check gearbox oil level and condition",
+    "Listen for the noise changing in different gears"
+   ],
+   "discriminators": [
+    "Does pressing the clutch make it quieter or louder?"
+   ],
+   "typical_parts": [
+    "input shaft bearing",
+    "gearbox oil"
+   ],
+   "labor_hours": 6.0
+  },
+  {
+   "id": "torque-converter-shudder",
+   "label": "Torque converter lock-up shudder",
+   "system": "transmission",
+   "match": {
+    "character": [
+     "shudder",
+     "rumble",
+     "thump"
+    ],
+    "pitch": [
+     "low"
+    ],
+    "rhythm": [
+     "intermittent"
+    ],
+    "occurs_when": [
+     "cruising",
+     "accelerating"
+    ],
+    "location": [
+     "under_vehicle",
+     "cabin"
+    ],
+    "changes_with": [
+     "load",
+     "speed"
+    ]
+   },
+   "hint": "Feels like driving over rumble strips for a couple of seconds at a steady light-throttle cruise, often 60-80 km/h.",
+   "severity": "moderate",
+   "why": "The lock-up clutch is slipping as it engages, usually from degraded fluid.",
+   "confirm": [
+    "Note the exact speed and throttle position where it happens",
+    "Check transmission fluid level, colour and smell",
+    "Watch lock-up clutch slip rate on a scan tool"
+   ],
+   "discriminators": [
+    "Does it happen at a steady light-throttle cruise around a specific speed?",
+    "Does it stop instantly if you touch the brake or accelerate harder?"
+   ],
+   "typical_parts": [
+    "transmission fluid",
+    "torque converter"
+   ],
+   "labor_hours": 2.0
+  },
+  {
+   "id": "auto-trans-whine",
+   "label": "Automatic transmission pump whine / low fluid",
+   "system": "transmission",
+   "match": {
+    "character": [
+     "whine",
+     "moan"
+    ],
+    "pitch": [
+     "medium",
+     "high"
+    ],
+    "rhythm": [
+     "rpm_linked",
+     "continuous"
+    ],
+    "occurs_when": [
+     "idle",
+     "accelerating",
+     "reversing"
+    ],
+    "location": [
+     "under_vehicle",
+     "engine_bay"
+    ],
+    "changes_with": [
+     "rpm",
+     "load"
+    ]
+   },
+   "hint": "A whine that changes with gear selection — check it in Park, Neutral, Drive and Reverse.",
+   "severity": "high",
+   "why": "Usually low or aerated fluid. Running a transmission low destroys it quickly.",
+   "confirm": [
+    "Check fluid level using the manufacturer's exact procedure and temperature",
+    "Inspect fluid for a burnt smell or dark colour",
+    "Note whether the whine differs between Park, Reverse and Drive"
+   ],
+   "discriminators": [
+    "Does the whine change when you select a gear?",
+    "When was the fluid last changed?"
+   ],
+   "typical_parts": [
+    "transmission fluid",
+    "filter",
+    "pump"
+   ],
+   "labor_hours": 2.0
+  },
+  {
+   "id": "synchro-grind",
+   "label": "Worn synchroniser",
+   "system": "transmission",
+   "match": {
+    "character": [
+     "grind",
+     "grate",
+     "crunch"
+    ],
+    "pitch": [
+     "medium"
+    ],
+    "rhythm": [
+     "once_per_event"
+    ],
+    "occurs_when": [
+     "shifting"
+    ],
+    "location": [
+     "under_vehicle",
+     "cabin"
+    ],
+    "changes_with": [
+     "none"
+    ]
+   },
+   "hint": "Grinding into one specific gear — most often second — while the others are clean.",
+   "severity": "moderate",
+   "why": "The synchro cone can no longer match shaft speeds in the time you give it.",
+   "confirm": [
+    "Establish which gear or gears grind, and whether it happens cold only",
+    "Try double-clutching — if that cures it, the synchro is the suspect",
+    "Check gearbox oil level and specification"
+   ],
+   "discriminators": [
+    "Which gear grinds?",
+    "Is it worse when the gearbox is cold?",
+    "Does slowing the shift down avoid it?"
+   ],
+   "typical_parts": [
+    "synchro ring",
+    "gearbox oil",
+    "clutch"
+   ],
+   "labor_hours": 6.0
+  },
+  {
+   "id": "heat-shield-rattle",
+   "label": "Loose exhaust heat shield",
+   "system": "exhaust",
+   "match": {
+    "character": [
+     "rattle",
+     "buzz"
+    ],
+    "pitch": [
+     "high",
+     "medium"
+    ],
+    "rhythm": [
+     "intermittent",
+     "rpm_linked"
+    ],
+    "occurs_when": [
+     "idle",
+     "accelerating",
+     "over_bumps"
+    ],
+    "location": [
+     "under_vehicle",
+     "exhaust"
+    ],
+    "changes_with": [
+     "rpm"
+    ]
+   },
+   "hint": "A tinny buzz that shows up in a narrow RPM band and disappears above and below it.",
+   "severity": "low",
+   "why": "A corroded mounting tab lets the thin shield resonate.",
+   "confirm": [
+    "Tap along the shields with the engine off — the loose one buzzes",
+    "Hold the shield with a gloved hand while someone holds the RPM",
+    "Fit a large washer and clamp, or a hose clamp, as a permanent fix"
+   ],
+   "discriminators": [
+    "Does it happen only in a narrow RPM range?",
+    "Does it stop if you touch the shield?"
+   ],
+   "typical_parts": [
+    "heat shield clamp"
+   ],
+   "labor_hours": 0.4
+  },
+  {
+   "id": "exhaust-leak-blow",
+   "label": "Blowing exhaust joint or corroded section",
+   "system": "exhaust",
+   "match": {
+    "character": [
+     "roar",
+     "drone",
+     "puff",
+     "hiss"
+    ],
+    "pitch": [
+     "low",
+     "medium"
+    ],
+    "rhythm": [
+     "rpm_linked",
+     "continuous"
+    ],
+    "occurs_when": [
+     "idle",
+     "accelerating",
+     "cruising"
+    ],
+    "location": [
+     "under_vehicle",
+     "exhaust",
+     "cabin"
+    ],
+    "changes_with": [
+     "rpm",
+     "load"
+    ]
+   },
+   "hint": "Volume rises with throttle, and there is often a resonant drone at one cruising speed.",
+   "severity": "high",
+   "why": "Beyond noise, a leak ahead of the cabin can put exhaust gas inside the car.",
+   "confirm": [
+    "With the engine cold, block the tailpipe briefly and listen for escaping gas",
+    "Inspect joints and welds for black soot streaks",
+    "Check for any exhaust smell inside the cabin — treat that as urgent"
+   ],
+   "discriminators": [
+    "Can you smell exhaust inside the car?",
+    "Is it louder under acceleration?"
+   ],
+   "typical_parts": [
+    "exhaust gasket",
+    "exhaust section",
+    "clamps"
+   ],
+   "labor_hours": 1.5
+  },
+  {
+   "id": "ac-compressor-clutch",
+   "label": "Air conditioning compressor or clutch failure",
+   "system": "hvac",
+   "match": {
+    "character": [
+     "grind",
+     "rattle",
+     "squeal",
+     "click"
+    ],
+    "pitch": [
+     "medium"
+    ],
+    "rhythm": [
+     "rpm_linked",
+     "intermittent"
+    ],
+    "occurs_when": [
+     "ac_on",
+     "idle"
+    ],
+    "location": [
+     "engine_bay"
+    ],
+    "changes_with": [
+     "rpm"
+    ]
+   },
+   "hint": "Only present with the air conditioning switched on, and stops the moment you switch it off.",
+   "severity": "moderate",
+   "why": "The clutch bearing or the compressor itself is failing. A seizure will shred the belt.",
+   "confirm": [
+    "Toggle the air conditioning on and off and confirm the noise follows it",
+    "Watch the clutch engage and disengage",
+    "Check refrigerant charge and compressor oil"
+   ],
+   "discriminators": [
+    "Does switching the air conditioning off silence it completely?"
+   ],
+   "typical_parts": [
+    "AC compressor",
+    "compressor clutch",
+    "serpentine belt"
+   ],
+   "labor_hours": 3.0
+  },
+  {
+   "id": "blower-motor-debris",
+   "label": "Blower motor bearing wear or debris in the fan",
+   "system": "hvac",
+   "match": {
+    "character": [
+     "rattle",
+     "whir",
+     "scrape",
+     "squeal"
+    ],
+    "pitch": [
+     "medium",
+     "high"
+    ],
+    "rhythm": [
+     "continuous"
+    ],
+    "occurs_when": [
+     "idle",
+     "cruising"
+    ],
+    "location": [
+     "cabin"
+    ],
+    "changes_with": [
+     "none"
+    ]
+   },
+   "hint": "Changes with fan speed setting and is unaffected by engine RPM or road speed.",
+   "severity": "low",
+   "why": "Leaves or a dry bearing in the heater box.",
+   "confirm": [
+    "Cycle the fan through every speed with the engine off",
+    "Remove the cabin filter and check for debris",
+    "Inspect the blower wheel"
+   ],
+   "discriminators": [
+    "Does the noise change with the fan speed dial?",
+    "Is it there with the engine off?"
+   ],
+   "typical_parts": [
+    "blower motor",
+    "cabin filter"
+   ],
+   "labor_hours": 1.0
+  },
+  {
+   "id": "fuel-pump-whine",
+   "label": "Failing fuel pump",
+   "system": "fuel",
+   "match": {
+    "character": [
+     "whine",
+     "buzz",
+     "hum"
+    ],
+    "pitch": [
+     "high"
+    ],
+    "rhythm": [
+     "continuous"
+    ],
+    "occurs_when": [
+     "idle",
+     "accelerating",
+     "cruising"
+    ],
+    "location": [
+     "rear_axle",
+     "under_vehicle",
+     "cabin"
+    ],
+    "changes_with": [
+     "load"
+    ]
+   },
+   "hint": "A whine from the fuel tank area that gets worse as the tank empties, sometimes with hesitation under load.",
+   "severity": "high",
+   "why": "The pump is straining, often because it is worn or the filter is blocked. Failure leaves you stranded.",
+   "confirm": [
+    "Note whether the noise worsens below a quarter tank",
+    "Test fuel pressure under load, not just at idle",
+    "Check the fuel filter service interval"
+   ],
+   "discriminators": [
+    "Is it worse with a low tank?",
+    "Any hesitation or stumble under hard acceleration?"
+   ],
+   "typical_parts": [
+    "fuel pump",
+    "fuel filter"
+   ],
+   "labor_hours": 2.5
+  },
+  {
+   "id": "engine-mount-failed",
+   "label": "Collapsed engine or gearbox mount",
+   "system": "engine",
+   "match": {
+    "character": [
+     "clunk",
+     "thump",
+     "knock"
+    ],
+    "pitch": [
+     "low"
+    ],
+    "rhythm": [
+     "once_per_event",
+     "intermittent"
+    ],
+    "occurs_when": [
+     "accelerating",
+     "shifting",
+     "decelerating",
+     "reversing"
+    ],
+    "location": [
+     "engine_bay",
+     "cabin",
+     "under_vehicle"
+    ],
+    "changes_with": [
+     "load"
+    ]
+   },
+   "hint": "A clunk when taking up drive or lifting off, with more vibration through the cabin at idle.",
+   "severity": "moderate",
+   "why": "The rubber has torn or the fluid-filled mount has emptied, so the powertrain moves under torque.",
+   "confirm": [
+    "With the handbrake on, gently load the drivetrain in drive and reverse and watch engine movement",
+    "Inspect mounts for torn rubber or leaked fluid",
+    "Check for contact marks where the engine has moved into something"
+   ],
+   "discriminators": [
+    "Is the clunk when you take up drive or change direction?",
+    "Has idle vibration in the cabin got worse?"
+   ],
+   "typical_parts": [
+    "engine mount",
+    "gearbox mount"
+   ],
+   "labor_hours": 1.5
+  },
+  {
+   "id": "catalytic-converter-rattle",
+   "label": "Broken catalytic converter substrate",
+   "system": "exhaust",
+   "match": {
+    "character": [
+     "rattle",
+     "grate"
+    ],
+    "pitch": [
+     "medium"
+    ],
+    "rhythm": [
+     "intermittent",
+     "once_per_event"
+    ],
+    "occurs_when": [
+     "idle",
+     "accelerating",
+     "over_bumps",
+     "engine_off"
+    ],
+    "location": [
+     "under_vehicle",
+     "exhaust"
+    ],
+    "changes_with": [
+     "none"
+    ]
+   },
+   "hint": "Sounds like gravel in a tin. Reproduce it by tapping the converter with a rubber mallet when cold.",
+   "severity": "moderate",
+   "why": "The ceramic honeycomb has broken up. Fragments can block the exhaust and cause serious power loss.",
+   "confirm": [
+    "Tap the converter with a rubber mallet when cold and listen for loose material",
+    "Check for power loss and exhaust back-pressure",
+    "Scan for catalyst efficiency codes"
+   ],
+   "discriminators": [
+    "Does it rattle when you tap the exhaust with the engine off?",
+    "Has the car lost power, especially at higher speeds?"
+   ],
+   "typical_parts": [
+    "catalytic converter"
+   ],
+   "labor_hours": 2.0
+  }
+ ]
+}

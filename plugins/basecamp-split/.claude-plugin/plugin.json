@@ -1,0 +1,17 @@
+{
+  "name": "basecamp-split",
+  "version": "0.1.0",
+  "description": "Plan shared gear, food, weight and cost across a group trip so nothing is carried twice and nothing is forgotten.",
+  "author": {
+    "name": "Fars Saadeldin"
+  },
+  "license": "UNLICENSED",
+  "keywords": [
+    "bushcraft",
+    "expedition",
+    "logistics",
+    "gear",
+    "outdoors",
+    "guiding"
+  ]
+}

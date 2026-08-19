@@ -1,0 +1,10 @@
+{
+  "name": "diagnose-by-sound",
+  "version": "0.1.0",
+  "description": "Turn a described vehicle noise into a ranked, testable differential diagnosis with a safety verdict and a confirmation plan.",
+  "author": {
+    "name": "Fars Saadeldin"
+  },
+  "license": "UNLICENSED",
+  "keywords": ["automotive", "diagnostics", "mechanic", "repair", "workshop", "noise"]
+}

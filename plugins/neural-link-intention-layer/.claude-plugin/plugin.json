@@ -1,0 +1,16 @@
+{
+  "name": "neural-link-intention-layer",
+  "version": "0.1.0",
+  "description": "Learn a designer's repetitive command patterns and surface the next likely action, cutting the hotkey tax out of a creative workflow.",
+  "author": {
+    "name": "Fars Saadeldin"
+  },
+  "license": "UNLICENSED",
+  "keywords": [
+    "design",
+    "workflow",
+    "automation",
+    "ui-ux",
+    "productivity"
+  ]
+}

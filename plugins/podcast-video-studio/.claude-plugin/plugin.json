@@ -1,0 +1,17 @@
+{
+  "name": "podcast-video-studio",
+  "version": "0.1.0",
+  "description": "Find the high-retention moments in a long recording and cut them into clips that hold attention, with titles and hooks that match the segment.",
+  "author": {
+    "name": "Fars Saadeldin"
+  },
+  "license": "UNLICENSED",
+  "keywords": [
+    "podcast",
+    "video",
+    "clips",
+    "retention",
+    "editing",
+    "repurposing"
+  ]
+}

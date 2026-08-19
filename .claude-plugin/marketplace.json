@@ -1,0 +1,27 @@
+{
+  "name": "plugin-suite",
+  "owner": {
+    "name": "Fars Saadeldin",
+    "email": "farssaadeldin7@gmail.com"
+  },
+  "metadata": {
+    "description": "Fourteen domain-expert plugins that encode a specialist's judgement, sharing one licensing service.",
+    "version": "0.1.0"
+  },
+  "plugins": [
+    { "source": "./plugins/diagnose-by-sound", "category": "trades" },
+    { "source": "./plugins/ghost-post-preview", "category": "marketing" },
+    { "source": "./plugins/professor-mind-reader", "category": "education" },
+    { "source": "./plugins/five-minute-fluency", "category": "gaming" },
+    { "source": "./plugins/basecamp-split", "category": "outdoors" },
+    { "source": "./plugins/podcast-video-studio", "category": "media" },
+    { "source": "./plugins/support-agent-architect", "category": "operations" },
+    { "source": "./plugins/sales-enablement-assistant", "category": "sales" },
+    { "source": "./plugins/wellbeing-companion", "category": "health" },
+    { "source": "./plugins/neural-link-intention-layer", "category": "design" },
+    { "source": "./plugins/digital-twin-collaborator", "category": "design" },
+    { "source": "./plugins/emotional-resonance-analyzer", "category": "media" },
+    { "source": "./plugins/code-to-visual-interpreter", "category": "engineering" },
+    { "source": "./plugins/predictive-resource-allocation", "category": "engineering" }
+  ]
+}

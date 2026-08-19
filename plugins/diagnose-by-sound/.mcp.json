@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "diagnose-by-sound": {
+      "command": "node",
+      "args": ["${CLAUDE_PLUGIN_ROOT}/mcp/server.js"],
+      "env": {
+        "PLUGIN_SUITE_BILLING_URL": "${PLUGIN_SUITE_BILLING_URL}",
+        "DIAGNOSE_BY_SOUND_LICENSE_KEY": "${DIAGNOSE_BY_SOUND_LICENSE_KEY}"
+      }
+    }
+  }
+}

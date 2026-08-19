@@ -1,0 +1,17 @@
+{
+  "name": "wellbeing-companion",
+  "version": "0.1.0",
+  "description": "A structured, boundaried support conversation for wellbeing programmes, with explicit escalation protocol and no clinical claims.",
+  "author": {
+    "name": "Fars Saadeldin"
+  },
+  "license": "UNLICENSED",
+  "keywords": [
+    "wellbeing",
+    "support",
+    "telehealth",
+    "hr",
+    "escalation",
+    "triage"
+  ]
+}

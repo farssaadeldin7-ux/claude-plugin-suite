@@ -1,0 +1,16 @@
+{
+  "name": "emotional-resonance-analyzer",
+  "version": "0.1.0",
+  "description": "Map the emotional arc of a cut against expected audience attention, so you know where a film loses people and why.",
+  "author": {
+    "name": "Fars Saadeldin"
+  },
+  "license": "UNLICENSED",
+  "keywords": [
+    "video-editing",
+    "narrative",
+    "pacing",
+    "documentary",
+    "retention"
+  ]
+}

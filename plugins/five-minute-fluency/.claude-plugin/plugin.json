@@ -1,0 +1,16 @@
+{
+  "name": "five-minute-fluency",
+  "version": "0.1.0",
+  "description": "Turn a described gameplay problem into a one-page, personalised cheat sheet you can absorb before the next match.",
+  "author": {
+    "name": "Fars Saadeldin"
+  },
+  "license": "UNLICENSED",
+  "keywords": [
+    "gaming",
+    "esports",
+    "coaching",
+    "matchup",
+    "practice"
+  ]
+}
