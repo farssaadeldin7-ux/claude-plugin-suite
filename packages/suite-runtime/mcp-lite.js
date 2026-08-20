@@ -23,6 +23,8 @@ export class McpServer {
     this.instructions = instructions;
     this.tools = new Map();
     this.buffer = '';
+    this.pending = 0;
+    this.stdinEnded = false;
   }
 
   /**
@@ -44,8 +46,13 @@ export class McpServer {
     process.stdin.setEncoding('utf8');
     process.stdin.on('data', (chunk) => this.#onData(chunk));
     process.stdin.on('error', (err) => logDiagnostic('stdin error:', err.message));
-    // A closed stdin means the host is gone; exit rather than linger.
-    process.stdin.on('end', () => process.exit(0));
+    // A closed stdin means the host is gone; exit rather than linger — but
+    // only once every in-flight request has been answered, or a piped batch
+    // of calls loses whichever responses were still awaiting slow handlers.
+    process.stdin.on('end', () => {
+      this.stdinEnded = true;
+      this.#maybeExit();
+    });
     process.on('uncaughtException', (err) => {
       logDiagnostic('uncaught:', err?.stack || err);
     });
@@ -75,6 +82,7 @@ export class McpServer {
       return;
     }
 
+    this.pending++;
     try {
       const result = await this.#dispatch(message);
       this.#send({ jsonrpc: '2.0', id: message.id, result });
@@ -84,7 +92,14 @@ export class McpServer {
         id: message.id,
         error: { code: err.code ?? -32603, message: err.message || 'Internal error' },
       });
+    } finally {
+      this.pending--;
+      this.#maybeExit();
     }
+  }
+
+  #maybeExit() {
+    if (this.stdinEnded && this.pending === 0) process.exit(0);
   }
 
   async #dispatch(message) {

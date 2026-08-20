@@ -60,6 +60,7 @@ plugins/<id>/                     one directory per plugin
   skills/<id>/references/*.md     tables, taxonomies, worked examples
   .mcp.json, mcp/                 only where a plugin ships a tool server
 packages/suite-runtime/           shared MCP + licensing runtime, vendored into plugins
+services/billing/                 the Stripe-backed licensing service the runtime talks to
 scripts/                          validate, vendor, build
 docs/                             architecture, audiences, licensing
 ```

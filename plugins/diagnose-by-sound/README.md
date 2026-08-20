@@ -24,6 +24,7 @@ fastest. This plugin enforces that order.
 | Component | Purpose |
 | --- | --- |
 | Skill `diagnose-by-sound` | The interview protocol, how to read the results, how to present them |
+| Skill `acoustic-signal-processing` | Filtering background noise and isolating the mechanical signal — rattles, whines, knocks — before diagnosis: capture technique, elimination tests, spectrogram reading, frequency/order arithmetic |
 | MCP server | Vocabulary, signature matching, repair planning, case history, licensing |
 
 ### Tools
@@ -66,11 +67,14 @@ export PLUGIN_SUITE_LICENSE_KEY=PS-DBS-...
 
 ## Plans
 
-| Plan | Price | Includes |
-| --- | --- | --- |
-| Trial | free | `diagnose`, 5 per month |
-| Pro | $29/month | + repair plans, case history, export, 300 per month |
-| Shop | $99/month | + multi-technician, labour guide, 10 seats, 3000 per month |
+Served by `services/billing` in this repo; the catalog lives in its `catalog.js`.
+
+| Plan | Price | Seats | Diagnoses / month | Includes |
+| --- | --- | --- | --- | --- |
+| Free | $0 | — | unmetered | `diagnose`, vocabulary, signature browsing — no key needed |
+| Trial (14 days) | $0 | 1 | 25 | everything below, one trial per email |
+| Pro | $29/month | 2 | unlimited | + `repair_plan`, case history |
+| Team | $79/month | 10 | unlimited | + `repair_plan`, case history, for a multi-technician shop |
 
 ## Privacy
 

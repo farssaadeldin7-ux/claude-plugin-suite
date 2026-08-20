@@ -1,7 +1,8 @@
 # Licensing
 
 One billing service across all fourteen plugins. A user holds a single account; entitlements
-are per plugin, or one suite entitlement covering all of them.
+are per plugin, or one suite entitlement covering all of them. The service itself lives in
+[`services/billing/`](../services/billing/), with the plan catalog in its `catalog.js`.
 
 ## Resolution order
 
