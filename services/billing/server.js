@@ -70,11 +70,38 @@ const escapeHtml = (s) => String(s).replace(/[&<>"']/g, (c) => (
   { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
 ));
 
+// ---- CORS ------------------------------------------------------------------
+
+/**
+ * Browser storefronts (the pricing page on the marketing site) call
+ * /v1/checkout, /v1/trial and /v1/catalog directly, so their origins must be
+ * allowed explicitly. Comma-separated in BILLING_ALLOWED_ORIGINS, e.g.
+ * "https://www.codestudioplugin.com,https://codestudioplugin.com".
+ */
+const ALLOWED_ORIGINS = (process.env.BILLING_ALLOWED_ORIGINS ?? '')
+  .split(',').map((o) => o.trim().replace(/\/$/, '')).filter(Boolean);
+
+function applyCors(req, res) {
+  const origin = req.headers.origin;
+  if (!origin || !ALLOWED_ORIGINS.includes(origin)) return;
+  res.setHeader('access-control-allow-origin', origin);
+  res.setHeader('vary', 'origin');
+  res.setHeader('access-control-allow-methods', 'GET, POST, OPTIONS');
+  res.setHeader('access-control-allow-headers', 'content-type, authorization');
+  res.setHeader('access-control-max-age', '86400');
+}
+
 // ---- routes ----------------------------------------------------------------
 
 async function handle(req, res) {
   const url = new URL(req.url, PUBLIC_URL);
   const route = `${req.method} ${url.pathname}`;
+
+  applyCors(req, res);
+  if (req.method === 'OPTIONS') {
+    res.writeHead(204);
+    return res.end();
+  }
 
   if (route === 'GET /health') {
     return json(res, 200, { ok: true, service: 'plugin-suite-billing' });

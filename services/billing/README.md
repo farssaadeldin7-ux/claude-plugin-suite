@@ -79,9 +79,11 @@ node scripts/build.mjs
 
 `.env.example` lists the variables: `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`,
 `STRIPE_PRICE_DBS_PRO`, `STRIPE_PRICE_DBS_TEAM`, `BILLING_PUBLIC_URL` — all written by
-`setup-stripe.mjs` — plus optional `PORT` (default 8787), `BILLING_STORE_FILE` (default
-`data/store.json` beside the server, `/data/store.json` in the container), and
-`STRIPE_API_BASE` (tests point this at a mock; leave unset in production).
+`setup-stripe.mjs` — plus `BILLING_ALLOWED_ORIGINS` (comma-separated browser origins
+allowed to call checkout/trial/catalog, i.e. the storefront site), optional `PORT`
+(default 8787), `BILLING_STORE_FILE` (default `data/store.json` beside the server,
+`/data/store.json` in the container), and `STRIPE_API_BASE` (tests point this at a mock;
+leave unset in production).
 
 ## Tests
 

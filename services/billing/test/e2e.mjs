@@ -108,6 +108,7 @@ const child = spawn(process.execPath, [serverPath], {
     STRIPE_WEBHOOK_SECRET: WEBHOOK_SECRET,
     STRIPE_PRICE_DBS_PRO: 'price_pro_mock',
     STRIPE_PRICE_DBS_TEAM: 'price_team_mock',
+    BILLING_ALLOWED_ORIGINS: 'https://www.codestudioplugin.com, https://codestudioplugin.com',
   },
   stdio: ['ignore', 'ignore', 'pipe'],
 });
@@ -270,6 +271,23 @@ try {
   const cancelled = (await api('GET', `/v1/entitlement?plugin_id=diagnose-by-sound&device_id=device-a`, { key: proKey })).data;
   assert.deepEqual(cancelled, { active: false, reason: 'inactive' });
   ok('subscription.deleted deactivates the licence');
+
+  // ---- CORS for the storefront -------------------------------------------
+  const SITE = 'https://www.codestudioplugin.com';
+  const preflight = await fetch(`${BASE}/v1/checkout`, {
+    method: 'OPTIONS',
+    headers: { origin: SITE, 'access-control-request-method': 'POST' },
+  });
+  assert.equal(preflight.status, 204);
+  assert.equal(preflight.headers.get('access-control-allow-origin'), SITE);
+  assert.match(preflight.headers.get('access-control-allow-methods'), /POST/);
+
+  const corsGet = await fetch(`${BASE}/v1/catalog/diagnose-by-sound`, { headers: { origin: SITE } });
+  assert.equal(corsGet.headers.get('access-control-allow-origin'), SITE);
+
+  const strangerGet = await fetch(`${BASE}/v1/catalog/diagnose-by-sound`, { headers: { origin: 'https://evil.example' } });
+  assert.equal(strangerGet.headers.get('access-control-allow-origin'), null);
+  ok('CORS allows the storefront origins and nobody else');
 
   // ---- stripe provisioning script ----------------------------------------
   const setupScript = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'scripts', 'setup-stripe.mjs');
