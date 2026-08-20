@@ -22,7 +22,13 @@ const PLUGIN_ID = 'diagnose-by-sound';
 const PLUGIN_NAME = 'Diagnose by Sound';
 const DEFAULT_BILLING_URL = 'https://billing.example.com';
 
-const client = new LicenseClient({ pluginId: PLUGIN_ID, defaultBillingUrl: DEFAULT_BILLING_URL });
+const client = new LicenseClient({
+  pluginId: PLUGIN_ID,
+  defaultBillingUrl: DEFAULT_BILLING_URL,
+  // The free/paid split the README documents: diagnosis is free, repair
+  // planning and case history are paid.
+  freeTier: { features: ['diagnose'] },
+});
 
 const server = new McpServer({
   name: PLUGIN_ID,
@@ -191,7 +197,9 @@ server.tool('diagnose', {
       next_questions: questions,
       safety,
       plan: entitlement.plan,
-      quota_remaining: quota.limit === -1 ? 'unlimited' : Math.max(0, quota.limit - quota.used - 1),
+      quota_remaining: quota.limit == null || quota.limit === -1
+        ? 'unlimited'
+        : Math.max(0, quota.limit - quota.used - 1),
     };
   },
 });

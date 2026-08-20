@@ -20,15 +20,24 @@ import { ToolError } from './mcp-lite.js';
 const CACHE_TTL_MS = 5 * 60 * 1000;
 const REQUEST_TIMEOUT_MS = 8000;
 
+/** Hosts pass .mcp.json env through verbatim, so an unset variable can arrive as
+ *  an empty string or a literal "${VAR}" — both count as absent. */
+const envValue = (name) => {
+  const value = process.env[name]?.trim();
+  return value && !/^\$\{[^}]*\}$/.test(value) ? value : null;
+};
+
 export class LicenseClient {
   /**
-   * @param {{pluginId: string, defaultBillingUrl: string, envPrefix?: string}} options
+   * @param {{pluginId: string, defaultBillingUrl: string, envPrefix?: string,
+   *          freeTier?: {plan?: string, features?: string[], limits?: object}}} options
    */
-  constructor({ pluginId, defaultBillingUrl, envPrefix }) {
+  constructor({ pluginId, defaultBillingUrl, envPrefix, freeTier }) {
     this.pluginId = pluginId;
     this.envPrefix = envPrefix || pluginId.replace(/-/g, '_').toUpperCase();
-    this.billingUrl = (process.env.PLUGIN_SUITE_BILLING_URL || defaultBillingUrl).replace(/\/$/, '');
+    this.billingUrl = (envValue('PLUGIN_SUITE_BILLING_URL') || defaultBillingUrl).replace(/\/$/, '');
     this.configPath = path.join(configDir(), `${pluginId}.json`);
+    this.freeTier = { plan: 'free', features: [], limits: {}, ...freeTier };
     this.cache = null;
   }
 
@@ -36,8 +45,8 @@ export class LicenseClient {
 
   get licenseKey() {
     return (
-      process.env[`${this.envPrefix}_LICENSE_KEY`]?.trim() ||
-      process.env.PLUGIN_SUITE_LICENSE_KEY?.trim() ||
+      envValue(`${this.envPrefix}_LICENSE_KEY`) ||
+      envValue('PLUGIN_SUITE_LICENSE_KEY') ||
       this.#readConfig().license_key ||
       null
     );
@@ -116,17 +125,39 @@ export class LicenseClient {
     return { status: response.status, ok: response.ok, data };
   }
 
+  /** The entitlement a user has with no key, or when the service cannot say. */
+  #freeEntitlement(reason) {
+    return {
+      active: true,
+      free: true,
+      plan: this.freeTier.plan,
+      features: this.freeTier.features,
+      limits: this.freeTier.limits,
+      usage: {},
+      reason,
+    };
+  }
+
   /** Cached entitlement lookup. Set force to bypass the cache after a change. */
   async entitlement({ force = false } = {}) {
     if (!force && this.cache && Date.now() - this.cache.at < CACHE_TTL_MS) {
       return this.cache.value;
     }
     if (!this.licenseKey) {
-      return { active: false, reason: 'missing_license' };
+      return this.#freeEntitlement('missing_license');
     }
 
     const query = new URLSearchParams({ plugin_id: this.pluginId, device_id: this.deviceId });
-    const { data } = await this.#request('GET', `/v1/entitlement?${query}`);
+    let data;
+    try {
+      ({ data } = await this.#request('GET', `/v1/entitlement?${query}`));
+    } catch (err) {
+      // Documented failure behaviour: a previously valid entitlement keeps
+      // working even past its cache TTL, and an unknown state degrades to the
+      // free tier with a clear message — never to an error.
+      if (this.cache) return { ...this.cache.value, stale: true, stale_reason: err.code };
+      return { ...this.#freeEntitlement('billing_unreachable'), degraded: true, note: err.message };
+    }
     this.cache = { at: Date.now(), value: data };
     return data;
   }
@@ -146,11 +177,16 @@ export class LicenseClient {
       });
     }
     if (!entitlement.features?.includes(feature)) {
-      throw new ToolError('upgrade_required', `The "${entitlement.plan}" plan does not include this capability.`, {
+      throw new ToolError('upgrade_required',
+        entitlement.free
+          ? 'This capability is not included in the free tier.'
+          : `The "${entitlement.plan}" plan does not include this capability.`, {
         plan: entitlement.plan,
         required_feature: feature,
         available_features: entitlement.features,
-        next_step: 'Call start_checkout with a higher plan, or list_plans to compare.',
+        next_step: entitlement.free
+          ? 'Call license_activate with an existing key, or start_checkout to buy or trial a plan.'
+          : 'Call start_checkout with a higher plan, or list_plans to compare.',
       });
     }
     return entitlement;
@@ -272,6 +308,18 @@ export function registerLicenseTools(server, client, { pluginName }) {
     inputSchema: { type: 'object', properties: {} },
     handler: async () => {
       const entitlement = await client.entitlement({ force: true });
+      if (entitlement.free) {
+        return {
+          licensed: false,
+          plan: entitlement.plan,
+          free_tier_includes: entitlement.features,
+          ...(entitlement.degraded
+            ? { note: 'The licensing service was unreachable, so this reflects the free tier only.' }
+            : {}),
+          billing_service: client.billingUrl,
+          next_step: 'Use license_activate with an existing key, or start_checkout to buy or trial a plan.',
+        };
+      }
       if (!entitlement.active) {
         return {
           licensed: false,
