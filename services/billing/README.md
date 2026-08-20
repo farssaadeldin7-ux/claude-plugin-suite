@@ -27,43 +27,67 @@ swap in a real database later.
 
 | Plan | Price | Seats | Diagnoses / month | Includes |
 | --- | --- | --- | --- | --- |
-| free (client-side) | $0 | — | unmetered | `diagnose`, vocabulary, signature browsing |
-| `trial` (14 days) | $0 | 1 | 25 | everything |
-| `pro` | $29/mo | 2 | unlimited | `diagnose`, `repair_plan`, `history` |
+| `trial` (14 days) | $0 | 1 | 25 | everything, one per email |
+| `pro` | $40/mo | 2 | unlimited | `diagnose`, `repair_plan`, `history` |
 | `team` | $79/mo | 10 | unlimited | `diagnose`, `repair_plan`, `history` |
 
-The free tier is not a plan the service issues — it is what the client grants on its own when
-no key is configured (see `docs/LICENSING.md`). Plans for the other thirteen plugins are
-added in `catalog.js` as they launch.
+Diagnose by Sound has no free plan — every gated tool needs a trial or paid licence. (A
+plugin that does want client-side free features can declare them via `LicenseClient`'s
+`freeTier` option; see `docs/LICENSING.md`.) Plans for the other thirteen plugins are added
+in `catalog.js` as they launch.
 
-## Configuration
+## Going live — two commands
 
-Copy `.env.example`. Required in production:
+Everything Stripe-side is provisioned by script; nothing is clicked together in the
+dashboard. With the account's secret key and the URL the service will live at:
 
-- `STRIPE_SECRET_KEY` — the account's secret key
-- `STRIPE_WEBHOOK_SECRET` — the endpoint secret for `/v1/stripe/webhook`
-- `STRIPE_PRICE_DBS_PRO`, `STRIPE_PRICE_DBS_TEAM` — Price ids created in the Stripe
-  dashboard for the two paid plans
-- `BILLING_PUBLIC_URL` — the public https URL of this service (used for checkout
-  success/cancel URLs)
+```bash
+STRIPE_SECRET_KEY=sk_live_... BILLING_PUBLIC_URL=https://billing.yourdomain.com \
+  node services/billing/scripts/setup-stripe.mjs
+```
 
-Optional: `PORT` (default 8787), `BILLING_STORE_FILE` (default `data/store.json` beside the
-server), `STRIPE_API_BASE` (tests point this at a mock; leave unset in production).
+Idempotent — it ensures a Product and recurring Price per paid plan (found again by
+deterministic product id and price lookup key; a repriced plan gets a new Price that takes
+over the lookup key), ensures the webhook endpoint subscribed to the three events the
+server handles, and writes the resulting ids and secrets to `.env` (git-ignored, `0600`).
+Re-run it after changing `catalog.js` prices. `--recreate-webhook` rotates a lost signing
+secret.
 
-Once deployed, either bake the URL into `DEFAULT_BILLING_URL` in each plugin's `server.js`
-before building archives, or have users set `PLUGIN_SUITE_BILLING_URL`.
+Then start the service:
 
-## Stripe setup
+```bash
+node --env-file=services/billing/.env services/billing/server.js
+```
 
-1. Create two recurring Prices ($29/mo, $79/mo) and put their ids in the env.
-2. Add a webhook endpoint for `https://<host>/v1/stripe/webhook` subscribed to
-   `checkout.session.completed`, `customer.subscription.updated`,
-   `customer.subscription.deleted`; put its signing secret in `STRIPE_WEBHOOK_SECRET`.
+or as a container on any host (Cloud Run, Fly, Railway, a VPS):
+
+```bash
+docker build -t plugin-suite-billing services/billing
+docker run -p 8787:8787 --env-file services/billing/.env -v billing-data:/data plugin-suite-billing
+```
+
+Finally point the plugins at the deployment — baked into the archives in one command:
+
+```bash
+node scripts/bake-billing-url.mjs https://billing.yourdomain.com
+node scripts/build.mjs
+```
+
+(Users can still override with `PLUGIN_SUITE_BILLING_URL` at runtime.)
+
+## Configuration reference
+
+`.env.example` lists the variables: `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`,
+`STRIPE_PRICE_DBS_PRO`, `STRIPE_PRICE_DBS_TEAM`, `BILLING_PUBLIC_URL` — all written by
+`setup-stripe.mjs` — plus optional `PORT` (default 8787), `BILLING_STORE_FILE` (default
+`data/store.json` beside the server, `/data/store.json` in the container), and
+`STRIPE_API_BASE` (tests point this at a mock; leave unset in production).
 
 ## Tests
 
 `node services/billing/test/e2e.mjs` boots the real server against a mock Stripe and walks
 every flow: trial issue and re-issue refusal, entitlement and seat enforcement, plugin
 scoping, usage idempotency, checkout session creation, webhook signature rejection and
-replay dedupe, key issuance on completed checkout, portal, and cancellation. CI runs it on
-every push.
+replay dedupe, key issuance on completed checkout, portal, cancellation, and the
+`setup-stripe.mjs` provisioning script (including that re-runs create nothing new). CI
+runs it on every push.

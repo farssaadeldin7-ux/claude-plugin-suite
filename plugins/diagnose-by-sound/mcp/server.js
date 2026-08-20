@@ -22,13 +22,10 @@ const PLUGIN_ID = 'diagnose-by-sound';
 const PLUGIN_NAME = 'Diagnose by Sound';
 const DEFAULT_BILLING_URL = 'https://billing.example.com';
 
-const client = new LicenseClient({
-  pluginId: PLUGIN_ID,
-  defaultBillingUrl: DEFAULT_BILLING_URL,
-  // The free/paid split the README documents: diagnosis is free, repair
-  // planning and case history are paid.
-  freeTier: { features: ['diagnose'] },
-});
+// No free tier for this plugin: diagnose, repair_plan and history all
+// require a trial or paid licence. The vocabulary and signature-browsing
+// tools stay open so a noise can be described before a trial starts.
+const client = new LicenseClient({ pluginId: PLUGIN_ID, defaultBillingUrl: DEFAULT_BILLING_URL });
 
 const server = new McpServer({
   name: PLUGIN_ID,

@@ -23,7 +23,7 @@ export const CATALOG = {
         available: true,
       },
       pro: {
-        price: 2900,
+        price: 4000,
         interval: 'month',
         features: ['diagnose', 'repair_plan', 'history'],
         limits: { diagnoses_per_month: -1 },

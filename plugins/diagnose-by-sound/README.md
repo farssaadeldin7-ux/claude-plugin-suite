@@ -29,14 +29,14 @@ fastest. This plugin enforces that order.
 
 ### Tools
 
-**Free tier**
+**Open** — no licence needed, enough to describe a noise before starting a trial
 
 - `sound_vocabulary` — the controlled terms, and which ones matter most
 - `list_signatures` / `describe_signature` — browse and inspect the knowledge base
+
+**Licensed** — requires a trial, pro or team key
+
 - `diagnose` — the main call: ranked candidates, next questions, safety verdict
-
-**Paid**
-
 - `repair_plan` — ordered confirmation sequence, parts, book labour hours
 - `save_case` / `review_cases` / `record_outcome` — local case history
 
@@ -67,14 +67,14 @@ export PLUGIN_SUITE_LICENSE_KEY=PS-DBS-...
 
 ## Plans
 
-Served by `services/billing` in this repo; the catalog lives in its `catalog.js`.
+Served by `services/billing` in this repo; the catalog lives in its `catalog.js`. There is
+no free plan — every diagnosis needs a trial or paid licence.
 
 | Plan | Price | Seats | Diagnoses / month | Includes |
 | --- | --- | --- | --- | --- |
-| Free | $0 | — | unmetered | `diagnose`, vocabulary, signature browsing — no key needed |
-| Trial (14 days) | $0 | 1 | 25 | everything below, one trial per email |
-| Pro | $29/month | 2 | unlimited | + `repair_plan`, case history |
-| Team | $79/month | 10 | unlimited | + `repair_plan`, case history, for a multi-technician shop |
+| Trial (14 days) | $0 | 1 | 25 | `diagnose`, `repair_plan`, case history — one trial per email |
+| Pro | $40/month | 2 | unlimited | `diagnose`, `repair_plan`, case history |
+| Team | $79/month | 10 | unlimited | the same, for a multi-technician shop |
 
 ## Privacy
 

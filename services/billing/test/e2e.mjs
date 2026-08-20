@@ -28,20 +28,64 @@ const ok = (name) => { passed++; console.log(`  ok  ${name}`); };
 // ---- mock Stripe -----------------------------------------------------------
 
 const stripeCalls = [];
+const stripeState = { products: {}, prices: [], webhooks: [] };
 const mockStripe = http.createServer((req, res) => {
   let body = '';
   req.on('data', (c) => { body += c; });
   req.on('end', () => {
-    stripeCalls.push({ path: req.url, body });
-    res.setHeader('content-type', 'application/json');
-    if (req.url === '/v1/checkout/sessions') {
-      res.end(JSON.stringify({ id: 'cs_test_1', url: 'https://checkout.stripe.com/c/pay/cs_test_1' }));
-    } else if (req.url === '/v1/billing_portal/sessions') {
-      res.end(JSON.stringify({ id: 'bps_test_1', url: 'https://billing.stripe.com/p/session/bps_test_1' }));
-    } else {
-      res.statusCode = 404;
-      res.end(JSON.stringify({ error: { message: `mock has no ${req.url}` } }));
+    stripeCalls.push({ method: req.method, path: req.url, body });
+    const url = new URL(req.url, 'http://mock');
+    const route = `${req.method} ${url.pathname}`;
+    const form = Object.fromEntries(new URLSearchParams(body));
+    const reply = (status, payload) => {
+      res.statusCode = status;
+      res.setHeader('content-type', 'application/json');
+      res.end(JSON.stringify(payload));
+    };
+
+    if (route === 'POST /v1/checkout/sessions') {
+      return reply(200, { id: 'cs_test_1', url: 'https://checkout.stripe.com/c/pay/cs_test_1' });
     }
+    if (route === 'POST /v1/billing_portal/sessions') {
+      return reply(200, { id: 'bps_test_1', url: 'https://billing.stripe.com/p/session/bps_test_1' });
+    }
+    if (/^GET \/v1\/products\/[\w-]+$/.test(route)) {
+      const id = url.pathname.split('/').pop();
+      return stripeState.products[id]
+        ? reply(200, stripeState.products[id])
+        : reply(404, { error: { message: 'No such product' } });
+    }
+    if (route === 'POST /v1/products') {
+      stripeState.products[form.id] = { id: form.id, name: form.name };
+      return reply(200, stripeState.products[form.id]);
+    }
+    if (route === 'GET /v1/prices') {
+      const lookup = url.searchParams.get('lookup_keys[0]');
+      return reply(200, { data: stripeState.prices.filter((p) => p.active && p.lookup_key === lookup) });
+    }
+    if (route === 'POST /v1/prices') {
+      const price = {
+        id: `price_mock_${stripeState.prices.length + 1}`,
+        product: form.product,
+        unit_amount: Number(form.unit_amount),
+        recurring: { interval: form['recurring[interval]'] },
+        lookup_key: form.lookup_key,
+        active: true,
+      };
+      // transfer_lookup_key moves the key off any older price, like Stripe does.
+      for (const p of stripeState.prices) if (p.lookup_key === price.lookup_key) p.lookup_key = null;
+      stripeState.prices.push(price);
+      return reply(200, price);
+    }
+    if (route === 'GET /v1/webhook_endpoints') {
+      return reply(200, { data: stripeState.webhooks });
+    }
+    if (route === 'POST /v1/webhook_endpoints') {
+      const endpoint = { id: `we_mock_${stripeState.webhooks.length + 1}`, url: form.url, secret: 'whsec_mock_created' };
+      stripeState.webhooks.push(endpoint);
+      return reply(200, endpoint);
+    }
+    return reply(404, { error: { message: `mock has no ${route}` } });
   });
 });
 await new Promise((resolve) => mockStripe.listen(0, resolve));
@@ -107,7 +151,7 @@ try {
   assert.equal(catalog.name, 'Diagnose by Sound');
   assert.deepEqual(catalog.plans.map((p) => p.id).sort(), ['pro', 'team', 'trial']);
   const pro = catalog.plans.find((p) => p.id === 'pro');
-  assert.equal(pro.price, 2900);
+  assert.equal(pro.price, 4000);
   assert.equal(pro.seats, 2);
   assert.equal(catalog.plans.find((p) => p.id === 'team').seats, 10);
   ok('catalog lists trial, pro and team with correct prices and seats');
@@ -226,6 +270,46 @@ try {
   const cancelled = (await api('GET', `/v1/entitlement?plugin_id=diagnose-by-sound&device_id=device-a`, { key: proKey })).data;
   assert.deepEqual(cancelled, { active: false, reason: 'inactive' });
   ok('subscription.deleted deactivates the licence');
+
+  // ---- stripe provisioning script ----------------------------------------
+  const setupScript = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'scripts', 'setup-stripe.mjs');
+  const envFile = path.join(tmpDir, 'provision.env');
+  const runSetup = () => new Promise((resolve) => {
+    const proc = spawn(process.execPath, [setupScript], {
+      env: {
+        ...process.env,
+        STRIPE_API_BASE: `http://127.0.0.1:${stripePort}`,
+        STRIPE_SECRET_KEY: 'sk_test_mock',
+        BILLING_PUBLIC_URL: 'https://billing.example.test',
+        BILLING_ENV_FILE: envFile,
+      },
+      stdio: ['ignore', 'pipe', 'pipe'],
+    });
+    let out = '';
+    proc.stdout.on('data', (d) => { out += d; });
+    proc.stderr.on('data', (d) => { out += d; });
+    proc.on('close', (code) => resolve({ code, out }));
+  });
+
+  const first = await runSetup();
+  assert.equal(first.code, 0, first.out);
+  const provisioned = fs.readFileSync(envFile, 'utf8');
+  assert.match(provisioned, /STRIPE_PRICE_DBS_PRO=price_mock_\d+/);
+  assert.match(provisioned, /STRIPE_PRICE_DBS_TEAM=price_mock_\d+/);
+  assert.match(provisioned, /STRIPE_WEBHOOK_SECRET=whsec_mock_created/);
+  assert.equal(stripeState.prices.find((p) => p.lookup_key === 'dbs_pro')?.unit_amount, 4000);
+  assert.equal(stripeState.prices.find((p) => p.lookup_key === 'dbs_team')?.unit_amount, 7900);
+  assert.equal(stripeState.webhooks[0].url, 'https://billing.example.test/v1/stripe/webhook');
+  ok('setup-stripe provisions products, $40/$79 prices, webhook, and writes the env file');
+
+  const pricesBefore = stripeState.prices.length;
+  const webhooksBefore = stripeState.webhooks.length;
+  const second = await runSetup();
+  assert.equal(second.code, 0, second.out);
+  assert.equal(stripeState.prices.length, pricesBefore);
+  assert.equal(stripeState.webhooks.length, webhooksBefore);
+  assert.match(second.out, /already correct/);
+  ok('re-running setup-stripe creates nothing new');
 
   console.log(`\n${passed} billing checks passed`);
 } catch (err) {

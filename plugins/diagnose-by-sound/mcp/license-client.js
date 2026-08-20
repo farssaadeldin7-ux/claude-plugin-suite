@@ -168,6 +168,14 @@ export class LicenseClient {
    */
   async requireFeature(feature) {
     const entitlement = await this.entitlement();
+    // A plugin with no free features has no free tier: with no key, every
+    // gated tool is a licensing miss, not an upgrade prompt.
+    if (entitlement.free && !entitlement.features.length) {
+      throw new ToolError('license_required', explainDenial({ reason: 'missing_license' }, this.pluginId), {
+        reason: entitlement.reason,
+        next_step: 'Call license_activate with an existing key, or start_checkout to buy or trial a plan.',
+      });
+    }
     if (!entitlement.active) {
       throw new ToolError('license_required', explainDenial(entitlement, this.pluginId), {
         reason: entitlement.reason,
@@ -311,10 +319,11 @@ export function registerLicenseTools(server, client, { pluginName }) {
       if (entitlement.free) {
         return {
           licensed: false,
-          plan: entitlement.plan,
-          free_tier_includes: entitlement.features,
+          ...(entitlement.features.length
+            ? { plan: entitlement.plan, free_tier_includes: entitlement.features }
+            : { reason: 'missing_license', explanation: explainDenial({ reason: 'missing_license' }, client.pluginId) }),
           ...(entitlement.degraded
-            ? { note: 'The licensing service was unreachable, so this reflects the free tier only.' }
+            ? { note: 'The licensing service was unreachable, so this reflects what works without it.' }
             : {}),
           billing_service: client.billingUrl,
           next_step: 'Use license_activate with an existing key, or start_checkout to buy or trial a plan.',
