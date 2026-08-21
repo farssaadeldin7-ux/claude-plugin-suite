@@ -29,7 +29,11 @@ function readAll() {
 function writeAll(cases) {
   const file = storePath();
   fs.mkdirSync(path.dirname(file), { recursive: true, mode: 0o700 });
-  fs.writeFileSync(file, JSON.stringify({ version: 1, cases }, null, 2), { mode: 0o600 });
+  // Write-then-rename so a crash mid-write can never truncate the shop's
+  // case history: the old file stays intact until the new one is complete.
+  const tmp = `${file}.tmp`;
+  fs.writeFileSync(tmp, JSON.stringify({ version: 1, cases }, null, 2), { mode: 0o600 });
+  fs.renameSync(tmp, file);
 }
 
 export function saveCase({ vehicle, observation, ranked, chosen, outcome, notes }) {
