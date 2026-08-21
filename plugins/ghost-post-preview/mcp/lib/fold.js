@@ -13,6 +13,17 @@ export function platformFor(name) {
 }
 
 /**
+ * A platform's fold is either one spec, or split by part where the title and
+ * the body truncate differently (Reddit, YouTube). Either cap may be null —
+ * no limit of that kind.
+ */
+export function foldSpec(platform, part = 'body') {
+  const fold = platform.fold;
+  if (fold.title || fold.body) return { spec: fold[part] ?? fold.body ?? fold.title, part };
+  return { spec: fold, part: null };
+}
+
+/**
  * Reconstruct what a reader sees before truncation: the character cap and the
  * line cap both apply, whichever bites first. On platforms where a blank line
  * costs a line of the allowance, blank lines are counted against the line cap.
@@ -20,13 +31,16 @@ export function platformFor(name) {
  * Deterministic mechanics only — no judgement of the fragment. Everything is
  * approximate by nature (device, font size, A/B state) and the result says so.
  */
-export function foldTest(platformId, text) {
+export function foldTest(platformId, text, part = 'body') {
   const platform = platformFor(platformId);
   if (!platform) return null;
 
-  const draft = String(text ?? '').replace(/\r\n/g, '\n');
-  const { chars: charCap, lines: lineCap, blank_lines_cost_a_line: blanksCost } = platform.fold;
+  const { spec, part: appliedPart } = foldSpec(platform, part);
+  const charCap = spec.chars ?? Infinity;
+  const lineCap = spec.lines ?? Infinity;
+  const blanksCost = Boolean(spec.blank_lines_cost_a_line);
 
+  const draft = String(text ?? '').replace(/\r\n/g, '\n');
   const lines = draft.split('\n');
   const visibleLines = [];
   let linesUsed = 0;
@@ -41,7 +55,6 @@ export function foldTest(platformId, text) {
     if (charsUsed + line.length > charCap) {
       const remaining = charCap - charsUsed;
       if (remaining > 0) visibleLines.push(line.slice(0, remaining));
-      charsUsed = charCap;
       truncatedBy = 'char_cap';
       break;
     }
@@ -57,8 +70,18 @@ export function foldTest(platformId, text) {
 
   return {
     platform: platform.label,
+    ...(appliedPart ? {
+      applies_to: appliedPart,
+      part_note: appliedPart === 'body'
+        ? `On ${platform.label} the title truncates separately and carries the hook — run fold_test with part "title" on it as well.`
+        : null,
+    } : {}),
     approximate: true,
-    fold_limits: { characters: charCap, lines: lineCap, blank_lines_cost_a_line: blanksCost },
+    fold_limits: {
+      characters: spec.chars ?? null,
+      lines: spec.lines ?? null,
+      blank_lines_cost_a_line: blanksCost,
+    },
     visible_text: visible,
     truncated: hidden.length > 0,
     truncated_by: hidden.length ? truncatedBy ?? 'char_cap' : null,

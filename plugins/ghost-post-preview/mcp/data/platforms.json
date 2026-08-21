@@ -21,7 +21,7 @@
     },
     "x": {
       "label": "X",
-      "fold": { "chars": 280, "lines": 2, "blank_lines_cost_a_line": true },
+      "fold": { "chars": 280, "lines": null, "blank_lines_cost_a_line": true },
       "governing_signal": "Reply velocity in the first ~30 minutes",
       "rewards": [
         "Reply velocity in the first ~30 minutes",
@@ -75,7 +75,10 @@
     },
     "reddit": {
       "label": "Reddit",
-      "fold": { "chars": 300, "lines": 3, "blank_lines_cost_a_line": false },
+      "fold": {
+        "title": { "chars": 300, "lines": null, "blank_lines_cost_a_line": false },
+        "body": { "chars": null, "lines": 3, "blank_lines_cost_a_line": false }
+      },
       "governing_signal": "Subreddit norms and early vote velocity; the title is the entire hook",
       "rewards": [
         "Early upvote velocity in the first hour",
@@ -93,7 +96,10 @@
     },
     "youtube": {
       "label": "YouTube",
-      "fold": { "chars": 60, "lines": 1, "blank_lines_cost_a_line": false },
+      "fold": {
+        "title": { "chars": 60, "lines": 1, "blank_lines_cost_a_line": false },
+        "body": { "chars": 125, "lines": null, "blank_lines_cost_a_line": false }
+      },
       "governing_signal": "CTR multiplied by average view duration — either alone is misleading",
       "rewards": [
         "Click-through rate on the thumbnail and title",

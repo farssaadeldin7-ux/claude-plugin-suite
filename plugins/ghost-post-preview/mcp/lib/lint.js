@@ -1,4 +1,4 @@
-import { platformFor } from './fold.js';
+import { platformFor, foldSpec } from './fold.js';
 
 /**
  * Mechanical draft checks. Every finding is a measurable fact with the
@@ -8,7 +8,7 @@ import { platformFor } from './fold.js';
  */
 
 const THROAT_CLEARING = [
-  /^so[, ]/i,
+  /^so,? (today|i\b|i'|anyway|recently|yeah|basically|as you)/i,
   /^hi (everyone|guys|all|folks)/i,
   /^hope (you('re| are)|everyone('s| is))/i,
   /^i('ve| have) been (thinking|reflecting|meaning)/i,
@@ -39,7 +39,7 @@ const YES_NO_OPENERS = /^(are|do|did|have|has|is|was|were|would|will|can|could|s
 
 const URL_PATTERN = /https?:\/\/[^\s)]+|(?:^|\s)(?:www\.)[^\s)]+|\b[a-z0-9-]+\.(?:com|io|co|net|org|ai|dev)\/[^\s)]+/gi;
 
-const EMOJI_PATTERN = /[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}]/gu;
+const EMOJI_PATTERN = /[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/gu;
 
 const matchAgainst = (line, patterns) => {
   for (const pattern of patterns) {
@@ -53,7 +53,12 @@ export function lintDraft(platformId, text) {
   const platform = platformFor(platformId);
   if (!platform) return null;
 
-  const draft = String(text ?? '').replace(/\r\n/g, '\n');
+  // Typographic quotes normalised so "you're" matches whether the draft was
+  // typed on a phone or pasted from a word processor.
+  const draft = String(text ?? '')
+    .replace(/\r\n/g, '\n')
+    .replace(/[‘’]/g, "'")
+    .replace(/[“”]/g, '"');
   const lines = draft.split('\n');
   const firstLine = lines.find((l) => l.trim()) ?? '';
   const words = firstLine.trim().split(/\s+/).filter(Boolean);
@@ -79,11 +84,15 @@ export function lintDraft(platformId, text) {
 
   // Platform-mechanical issues.
   const links = draft.match(URL_PATTERN) ?? [];
-  if (links.length && ['LinkedIn', 'X', 'Facebook', 'Threads'].includes(platform.label)) {
-    flag('link_in_body', links[0].trim(),
-      platform.label === 'LinkedIn'
-        ? 'LinkedIn suppresses outbound links in the body — move it to the first comment.'
-        : `${platform.label} downranks outbound links, moderately.`);
+  const LINK_WHY = {
+    LinkedIn: 'LinkedIn suppresses outbound links in the body — move it to the first comment.',
+    X: 'X downranks outbound links, moderately.',
+    Facebook: 'Facebook downranks outbound links, moderately.',
+    Threads: 'Threads downranks outbound links, moderately.',
+    Instagram: 'Links in an Instagram caption are not tappable — use the bio link or a story sticker.',
+  };
+  if (links.length && LINK_WHY[platform.label]) {
+    flag('link_in_body', links[0].trim(), LINK_WHY[platform.label]);
   }
   const hashtags = draft.match(/#[\p{L}\d_]+/gu) ?? [];
   if (hashtags.length && platform.label === 'X') {
@@ -105,7 +114,7 @@ export function lintDraft(platformId, text) {
       'LinkedIn format rule: no more than two consecutive lines of prose before a break.');
   }
   const openingBlank = /^\n/.test(draft);
-  if (openingBlank && platform.fold.blank_lines_cost_a_line) {
+  if (openingBlank && foldSpec(platform).spec.blank_lines_cost_a_line) {
     flag('opening_blank_line', '(draft begins with a line break)',
       'A blank first line spends part of the fold allowance on nothing.');
   }

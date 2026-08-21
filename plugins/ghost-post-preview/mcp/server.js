@@ -80,12 +80,19 @@ server.tool('fold_test', {
     properties: {
       platform: { type: 'string', description: 'Platform id, e.g. "linkedin".' },
       text: { type: 'string', description: 'The exact draft, including line breaks.' },
+      part: {
+        type: 'string',
+        description: 'On Reddit and YouTube the title truncates separately from the body: "title" or "body" (default). Ignored elsewhere.',
+      },
     },
     required: ['platform', 'text'],
   },
-  handler: async ({ platform, text }) => {
+  handler: async ({ platform, text, part }) => {
     requirePlatform(platform);
-    return foldTest(platform, text);
+    if (part && !['title', 'body'].includes(part)) {
+      throw new ToolError('invalid_part', `"${part}" is not a part — use "title" or "body".`);
+    }
+    return foldTest(platform, text, part ?? 'body');
   },
 });
 
