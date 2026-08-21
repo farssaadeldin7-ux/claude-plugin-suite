@@ -1,7 +1,7 @@
 {
   "name": "ghost-post-preview",
   "version": "0.1.0",
-  "description": "Predict how a post will land before you publish it: a synthetic-audience read on hook strength, scroll-stopping power and the most likely reason it underperforms.",
+  "description": "Read a draft post the way its audience and its ranking system will: fold test, hook audit, platform mechanics and a stated-assumption persona read, ending in the single most likely reason it underperforms — never a fabricated engagement number.",
   "author": {
     "name": "Fars Saadeldin"
   },
