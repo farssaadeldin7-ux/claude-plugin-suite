@@ -59,7 +59,8 @@ This is not legal advice. Full checklist in `references/drift-and-governance.md`
 
 ### 2. Curate and label the corpus
 
-**15 to 40 pieces.** Below 15 the profile over-fits to whatever happened to be included; above
+**15 to 40 pieces.** Below 10 the profile over-fits to whatever happened to be included,
+and 10 to 14 is workable but provisional; above
 40 the marginal return falls and older work drags the profile toward who they used to be.
 
 Three rules do most of the work; the full set, with a worked 20-piece example, is in

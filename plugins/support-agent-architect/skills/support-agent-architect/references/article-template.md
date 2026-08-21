@@ -35,7 +35,7 @@ contains the answer.
 | Rule | Reason |
 | --- | --- |
 | Title is the customer's question, not a noun phrase | "Why was my card declined?" retrieves; "Payment troubleshooting" does not |
-| Answer in the first two sentences | Retrieved chunks are short; the answer must be in the first one |
+| Answer in the first two sentences | Retrieved chunks are short; the answer must be in the first chunk |
 | One intent per article | Multi-intent articles are retrieved for all and resolve none |
 | Preconditions stated, never implied | An unqualified answer is wrong for somebody |
 | Exact user-facing strings, verbatim | Customers paste them, and that paste is the query |

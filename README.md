@@ -78,8 +78,9 @@ to add a plugin, and [`docs/LICENSING.md`](docs/LICENSING.md) for the free/paid 
 
 ## Status
 
-Version 0.1.0. `diagnose-by-sound` ships a working MCP server; the other thirteen are
-skill-only and are the reference content the tool servers will be built against.
+Version 0.1.0. `diagnose-by-sound` and `ghost-post-preview` ship working MCP servers;
+the other twelve are skill-only and are the reference content the tool servers will be
+built against.
 
 ## Licence
 

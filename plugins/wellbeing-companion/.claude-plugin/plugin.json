@@ -1,7 +1,7 @@
 {
   "name": "wellbeing-companion",
   "version": "0.1.0",
-  "description": "A structured, boundaried support conversation for wellbeing programmes, with explicit escalation protocol and no clinical claims.",
+  "description": "Design the scope, escalation protocol and governance for a boundaried wellbeing support conversation \u2014 a builder's tool for programme teams, with no clinical claims.",
   "author": {
     "name": "Fars Saadeldin"
   },

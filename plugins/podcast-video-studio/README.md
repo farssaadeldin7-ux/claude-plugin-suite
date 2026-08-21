@@ -59,8 +59,9 @@ conversation, and no part of your recording leaves the machine on this plugin's 
   in a transcript predicts performance.
 - **It does not watch the footage.** It reads language and structure — not audio energy,
   laughter, timing, expression, framing or audio quality. A human pass on the actual
-  footage is required before anything is published, and roughly one clip in three that
-  clears the threshold will fail that pass for reasons invisible in text.
+  footage is required before anything is published; budget for a substantial fraction —
+  assume around a third — of threshold-clearing clips failing that pass for reasons
+  invisible in text.
 - **It is not an editor.** It produces a cut list, not a rendered file. Timecodes come from
   ASR and drift by around a second.
 - **It does not fact-check.** Specific numbers make strong clips and carry real liability.

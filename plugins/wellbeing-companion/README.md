@@ -16,7 +16,7 @@ produces the artefacts a wellbeing conversation needs before it is allowed near 
 - A handover specification: what the user is told, where it routes, what the receiving
   human gets, and what the model stops doing
 - A regional crisis-resource configuration format, with verification and expiry built in
-- A red-team suite and the three metrics that govern change control
+- A red-team suite, the metric that gates change control, and the two it deliberately does not
 
 ## Who it is for
 
@@ -61,10 +61,10 @@ trigger to improve containment.
 
 ## Tiers
 
-**Free** — the scope statement, trigger categories and handover format.
-
-**Paid** — the full red-team suite construction, the resource-configuration validator with
-expiry enforcement, incident-review templates, and the governance role pack.
+Everything in this plugin is free — it is a skill and three reference files, with no MCP
+server and nothing gated. (A validator service that enforces resource expiry would be a
+natural companion tool; it does not exist yet, and the reference tells deployers to
+enforce expiry in their own CI meanwhile.)
 
 ## If you are here because you are struggling
 

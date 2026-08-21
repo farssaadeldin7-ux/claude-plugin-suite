@@ -23,8 +23,8 @@ away — a mean of 3.4 with one breach is a reject.
 | Weighted mean | Read as |
 | --- | --- |
 | 3.5+ | On profile. Direct it as you would a good junior draft |
-| 2.8-3.4 | Usable with named corrections on the two weakest dimensions |
-| 2.0-2.7 | The generic-output signature. The preamble is not landing. Do not polish — rebrief |
+| 2.8 to under 3.5 | Usable with named corrections on the two weakest dimensions |
+| 2.0 to under 2.8 | The generic-output signature. The preamble is not landing. Do not polish — rebrief |
 | Under 2.0 | Either the profile is wrong for this brief, or the brief is outside the profile's scope. Say which |
 
 A flat set of 2s across every dimension is diagnostically different from a mix of 4s and 1s.
@@ -62,7 +62,8 @@ Run **every quarter, or every 20 outputs, whichever comes first.**
 ### Baseline
 
 Take the baseline at profile build time by scoring three corpus pieces against the finished
-profile. They should score 3.5 or above. If a corpus piece scores below 3, the profile does not
+profile. They should score 3.5 or above; treat 3.0 to 3.4 as borderline and re-check the piece's
+dimension notes. If a corpus piece scores below 3, the profile does not
 describe the corpus and the extraction is wrong — fix that before generating anything.
 
 ## Rights and provenance checklist

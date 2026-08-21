@@ -25,7 +25,7 @@ land in that range is calorie density:
 | 4.5 kcal/g — deliberately fat-forward | 710 g/day |
 
 Fat carries 9 kcal/g against 4 for carbohydrate and protein: 100 ml of olive oil adds
-~880 kcal for 92 g. The cheapest weight saving on any trip, and routinely ignored.
+~830 kcal for 92 g. The cheapest weight saving on any trip, and routinely ignored.
 
 ## The rationing reserve
 

@@ -92,7 +92,7 @@ constraints:
 | Constraint | Threshold |
 | --- | --- |
 | Total length | Under 120 words, greeting and sign-off included |
-| Ideas | Exactly one. A second idea halves the reply rate of the first |
+| Ideas | Exactly one. A second idea competes with the first for the reply |
 | Links | One at most, and only where the trigger needs evidence |
 | Questions | Exactly one, in the body, at the end |
 | The ask | Answerable in under 15 seconds of the recipient's thought |

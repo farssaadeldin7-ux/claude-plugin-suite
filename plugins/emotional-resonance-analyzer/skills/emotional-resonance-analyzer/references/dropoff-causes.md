@@ -83,7 +83,7 @@ average out to one.
 **Worked example.** A feature doc on bereavement. 34:00 to 41:00 sits at valence −2 to
 −3 throughout, intensity 4. Restoring a 40-second scene of the family arguing about a
 parking space at 37:10 — valence 0, intensity 2 — raises the intensity of everything
-after it. Effort 1.
+after it. Effort 2 — restoring a whole scene ripples the assembly.
 
 ---
 

@@ -182,7 +182,8 @@ actionable. "Could be stronger" is not.
 - **The score is not a view forecast.** It measures whether a clip is comprehensible and
   complete standing alone — a precondition for retention, not a cause of it. Nothing in a
   transcript predicts performance, and a number that claims to is worth nothing.
-- **Expect roughly one in three clips clearing the threshold to fail the footage pass**,
+- **Budget for a substantial fraction — assume around a third — of threshold-clearing
+  clips failing the footage pass**,
   for reasons invisible in text. Budget for that rather than treating it as an error.
 - **Delivery is not in the text.** A flat reading of a brilliant line and a brilliant
   reading of a flat line look identical on the page — the largest single source of both

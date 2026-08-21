@@ -38,7 +38,8 @@ the thresholds and the templates; it cannot supply judgement about what your pol
 which intents your business treats as discretionary, or what a wrong answer costs you.
 Someone who has never maintained a help centre will produce a tidy taxonomy nobody updates.
 
-You also need your own ticket history. Under 500 tickets there is no taxonomy to build, and
+You also need your own ticket history. Under 500 tickets the volume figures are noise —
+the taxonomy still gets built, but nothing is ranked on volumes, and
 the plugin says so rather than inventing volumes.
 
 ## Components
@@ -62,8 +63,9 @@ data leaves your machine.
   need the agent, the retriever and the helpdesk integration.
 - **Not a measurement tool.** Containment, accuracy and false-containment come from running
   your own regression set against your own system. Any number quoted before that is a guess.
-- **Not a containment forecast.** The ceiling depends on your intent mix. The worked examples
-  land between 35% and 55%; the range across businesses is too wide to be a prediction.
+- **Not a containment forecast.** The ceiling depends on your intent mix. The worked
+  e-commerce example lands at 40-60% depending on launch maturity; the range across
+  businesses is too wide to be a prediction.
 - **Not a policy writer.** It tells you where policy must be stated explicitly and owned
   separately. Deciding the policy is yours, and often legal's.
 - **Not retrieval tuning.** Embeddings, chunking and rerankers matter, but they are second

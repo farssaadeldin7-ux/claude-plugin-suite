@@ -74,7 +74,7 @@ unigram baseline 8–15% / 20–28%, bigram 25–35% / 45–58%, trigram with ba
 `P(undo | action)`. Above 0.25 the action's default parameters are wrong. Fix the
 default; do not build a macro around a step that gets reversed a quarter of the time.
 
-**Navigation share.** Zoom, pan, tool toggles and layer-visibility toggles as a
+**Navigation share.** Zoom, pan and layer-visibility toggles as a
 percentage of all actions — commonly 20–35% in retouching and illustration. Usually the
 biggest single cost in the log, and almost never fixable by a macro: the answers are
 hardware (tablet rocker ring, ExpressKeys, the Navigator panel) and habit.
@@ -124,15 +124,17 @@ Navigation share 19.4%. Undo share 6.5% — normal band, no action to take.
 Model: baseline top-1 24.7% including self-transitions, but only **9.1% once
 self-transitions are excluded**. Trigram with backoff reaches **31.4%** excluded, top-3
 58%. That clears the 10 point lift, so the model is usable — and 31% is the honest
-number to quote, not 24.7% or anything above it.
+number to quote, not 24.7% or anything above it. One caveat the size table above
+imposes: 4,812 actions sits just under the 5,000 floor for trigram fitting, so the
+trigram figures are provisional — re-fit once the log crosses it.
 
 Three candidates, showing all three optimisation moves:
 
 **1. The dodge-and-burn layer ritual — automate.**
 `new_layer → fill_50_grey → blend_mode:soft_light → select_tool_brush → set_flow:2`,
-41 occurrences, roughly 48 per week at the observed rate. 14 keystrokes plus two
+41 occurrences, roughly 32 per week at the observed rate. 14 keystrokes plus two
 dialogue round trips, about 11 s. A Photoshop Action costs ~300 s to record.
-Payback = 300 x 1.3 / (48 x 11) = **0.74 weeks**. Build it.
+Payback = 300 x 1.3 / (32 x 11) = **1.1 weeks**. Build it.
 
 **2. The zoom-pan-heal loop — eliminate, do not automate.**
 `navigate_zoom → navigate_pan → heal → navigate_zoom_out`, 187 occurrences. Highest count

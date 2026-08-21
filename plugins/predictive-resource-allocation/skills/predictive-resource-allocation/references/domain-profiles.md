@@ -64,7 +64,7 @@ the time once substeps rise.
 **Usually binds on:** disk read, then single-threaded nodes.
 
 A 4K multi-layer EXR is 150–400 MB per frame, so 24 fps playback needs 3.6–9.6 GB/s
-sustained — beyond NVMe, far beyond any share. Comp playback is an I/O problem in nearly
+sustained — the upper half beyond even NVMe, all of it far beyond any share. Comp playback is an I/O problem in nearly
 every facility.
 
 | Lever | Effect |
@@ -126,14 +126,15 @@ trade against a cliff and should be presented as one.
 container pull — is typically **30–120 seconds**, paid on every task.
 
 **The dispatch rule:** send per-frame only when render time per frame exceeds roughly
-**10x that overhead**, keeping overhead under 10% of the total — in practice **5–10
-minutes per frame minimum**. Below that, batch frames so overhead is paid once.
+**10x that overhead**, keeping overhead under 10% of the total — **5 minutes per frame
+at 30-second overhead, 20 minutes at 2-minute overhead**. Below your own line, batch
+frames so overhead is paid once.
 
 | Per-frame time | Verdict |
 | --- | --- |
 | Under 1 minute | Batch 20–50 frames per task |
 | 1–5 minutes | Batch 5–10 frames per task |
-| 5–30 minutes | Dispatch per frame |
+| 5–30 minutes | Dispatch per frame once frame time exceeds 10x your measured overhead; otherwise batch 2–5 |
 | Over 30 minutes | Dispatch per frame, and consider splitting by tile or sample seed |
 
 **Rendering and batch comp** are frame-parallel and scale near-linearly. **Simulation**
@@ -147,7 +148,7 @@ frame, and are dangerous for long training runs without checkpointing.
 
 Checkpoint interval follows the Young–Daly result:
 `optimal_interval ≈ sqrt( 2 x checkpoint_cost x mean_time_between_interruptions )`.
-With a 60-second checkpoint and a 4-hour mean time to preemption that is about 17
+With a 60-second checkpoint and a 4-hour mean time to preemption that is about 22
 minutes. Every 5 minutes wastes throughput; every 2 hours risks an hour lost per reclaim.
 
 Never move a job to the cloud before the single-machine constraint is known. A

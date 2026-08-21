@@ -1,7 +1,7 @@
 {
   "name": "emotional-resonance-analyzer",
   "version": "0.1.0",
-  "description": "Map the emotional arc of a cut against expected audience attention, so you know where a film loses people and why.",
+  "description": "Map the modelled emotional arc of a cut against the attention its form expects \u2014 a structural reading of where a film is likely to lose people, never a measurement of any audience.",
   "author": {
     "name": "Fars Saadeldin"
   },

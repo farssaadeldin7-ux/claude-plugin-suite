@@ -2,7 +2,7 @@
 
 Plans a group trip as three ledgers that have to reconcile: gear, weight and cost.
 
-Part of a 14-plugin suite sharing one Stripe-backed licensing service.
+Part of a 14-plugin suite. This one is a pure skill — no MCP server, no licensing.
 
 ## What it does
 

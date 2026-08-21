@@ -94,8 +94,8 @@ Generate every change you would recommend — six to ten is normal. Then score e
 
 | Yield | Action |
 | --- | --- |
-| 3.0 and above | Goes on the sheet |
-| 1.5 – 3.0 | Candidate; include only if a slot is unfilled |
+| 3.0 and above | Sheet candidate — take the top three by yield |
+| 1.5 – under 3.0 | Include only if a slot is unfilled |
 | Below 1.5 | Cut, and name it in the cut list |
 
 Two hard constraints on the final three:

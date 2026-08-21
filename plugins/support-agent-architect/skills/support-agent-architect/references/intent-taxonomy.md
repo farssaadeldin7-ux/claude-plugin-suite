@@ -83,8 +83,9 @@ shape, not the numbers.
 | Return not refunded yet | 3% | account | Check receipt scan at warehouse |
 | Tail (60+ intents) | 21% | mixed | Mostly escalation |
 
-Static share: roughly 29%. Automatable account-specific with a live order lookup: roughly
-34%. **Containment ceiling around 55-60%, realistically 40-45% at launch.**
+Static share: 30%. Automatable account-specific with a live order lookup: 34%.
+**Containment ceiling by the step-2 definition: 64%. Discount for retrieval and lookup
+failures to 55-60%, and expect 40-45% realistically at launch.**
 
 ## Worked taxonomy — B2B SaaS
 
