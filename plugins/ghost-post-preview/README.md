@@ -3,8 +3,10 @@
 Reads a draft post the way its audience and its ranking system will read it, then names
 the single most likely reason it will underperform.
 
-Part of a 14-plugin suite. This one is a pure skill — no MCP server, no network calls,
-nothing leaves the machine.
+Part of a 14-plugin suite. A skill carrying the judgement, plus a small deterministic
+MCP server: exact fold reconstruction, mechanical draft lint, the platform data, and a
+local prediction log. Drafts are analysed on your machine and never leave it — the only
+network calls are licence checks.
 
 ## What it does
 
@@ -42,11 +44,37 @@ You also need to be willing to hear "kill this post". That verdict exists becaus
 weak posts are weak for lack of anything to say, and a better hook on an empty post is
 just a better opening to a post nobody needed.
 
-## Free and paid
+## Components and plans
 
-Everything in this plugin is free. There is no server, no licence key and no gated tool
-— it is a skill file and three reference files that load into the conversation. The
-suite's paid tiers apply to plugins that ship an MCP server; this is not one of them.
+| Component | Purpose |
+| --- | --- |
+| Skill `ghost-post-preview` | The judgement: hook audit, persona read, the one named failure, the band |
+| MCP server | The mechanics: fold reconstruction, draft lint, platform data, prediction log, licensing |
+
+**Open** — no licence needed:
+
+- `fold_test` — exactly what survives truncation on a platform, and the first hidden line
+- `platform_mechanics` — what each ranking system rewards and suppresses
+
+**Licensed** — requires a trial, pro or team key:
+
+- `draft_lint` — mechanical failures with the evidence quoted: links where the platform
+  punishes them, hashtags on X, throat-clearing openers, engagement bait, wall-of-text
+  shape, and the counts. Facts only; no scores
+- `log_call` / `record_result` / `review_calls` — the prediction log that gives the
+  review record an error bar, stored only on this machine
+
+There is no free plan. Served by `services/billing` in this repo; the catalog lives in
+its `catalog.js`.
+
+| Plan | Price | Seats | Lint passes / month |
+| --- | --- | --- | --- |
+| Trial (14 days) | $0 | 1 | 25 — one trial per email |
+| Pro | $40/month | 2 | unlimited |
+| Team | $79/month | 10 | unlimited |
+
+The review method itself — the skill — loads as content and needs no licence; a
+licensing miss never blocks the manual review.
 
 ## What this is not
 

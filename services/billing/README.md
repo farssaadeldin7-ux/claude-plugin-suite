@@ -31,9 +31,14 @@ swap in a real database later.
 | `pro` | $40/mo | 2 | unlimited | `diagnose`, `repair_plan`, `history` |
 | `team` | $79/mo | 10 | unlimited | `diagnose`, `repair_plan`, `history` |
 
-Diagnose by Sound has no free plan — every gated tool needs a trial or paid licence. (A
+**Ghost Post Preview** sells the same shape: trial (14 days, 1 seat, 25 lint passes/month)
+· pro $40/mo (2 seats, unlimited) · team $79/mo (10 seats, unlimited), gating the
+`draft_lint` pass and the prediction log; its Stripe prices live in
+`STRIPE_PRICE_GPP_PRO` / `STRIPE_PRICE_GPP_TEAM`.
+
+Neither plugin has a free plan — every gated tool needs a trial or paid licence. (A
 plugin that does want client-side free features can declare them via `LicenseClient`'s
-`freeTier` option; see `docs/LICENSING.md`.) Plans for the other thirteen plugins are added
+`freeTier` option; see `docs/LICENSING.md`.) Plans for the other twelve plugins are added
 in `catalog.js` as they launch.
 
 ## Going live — two commands

@@ -42,6 +42,39 @@ export const CATALOG = {
       },
     },
   },
+  'ghost-post-preview': {
+    name: 'Ghost Post Preview',
+    code: 'GPP',
+    plans: {
+      trial: {
+        price: 0,
+        interval: 'month',
+        trial_days: 14,
+        features: ['lint', 'history'],
+        limits: { previews_per_month: 25 },
+        seats: 1,
+        available: true,
+      },
+      pro: {
+        price: 4000,
+        interval: 'month',
+        features: ['lint', 'history'],
+        limits: { previews_per_month: -1 },
+        seats: 2,
+        available: true,
+        stripe_price_env: 'STRIPE_PRICE_GPP_PRO',
+      },
+      team: {
+        price: 7900,
+        interval: 'month',
+        features: ['lint', 'history'],
+        limits: { previews_per_month: -1 },
+        seats: 10,
+        available: true,
+        stripe_price_env: 'STRIPE_PRICE_GPP_TEAM',
+      },
+    },
+  },
 };
 
 export function plugin(pluginId) {

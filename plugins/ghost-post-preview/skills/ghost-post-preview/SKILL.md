@@ -64,11 +64,14 @@ directions on most platforms, and a post optimised for both is optimised for nei
 
 ### 2. Run the fold test first
 
-Work out how much of the post a reader ever sees. Reconstruct the visible portion using
-the truncation points in `references/platform-mechanics.md`, quote it back verbatim, and
-judge only that fragment. If it carries no reason to keep reading, the rest of the post
-is irrelevant to its performance and every other observation is secondary. The common
-finding, worth stating bluntly: the interesting sentence is below the fold.
+Work out how much of the post a reader ever sees. Call the `fold_test` tool with the
+platform and the exact draft — it returns the visible fragment computed from the
+truncation table, what got cut, and the first hidden line. If the tool is unavailable,
+reconstruct the fragment by hand from `references/platform-mechanics.md`. Quote the
+visible fragment back verbatim and judge only that fragment. If it carries no reason to
+keep reading, the rest of the post is irrelevant to its performance and every other
+observation is secondary. The common finding, worth stating bluntly: the interesting
+sentence is below the fold.
 
 ### 3. Audit the hook
 
@@ -99,8 +102,16 @@ words, and do not soften it.
 
 ### 4. Apply platform mechanics
 
-Read `references/platform-mechanics.md` for the platform in hand and check the draft
-against what that ranking system rewards. Do not carry a LinkedIn instinct onto TikTok.
+Read `references/platform-mechanics.md` (or call `platform_mechanics`) for the platform
+in hand and check the draft against what that ranking system rewards. Do not carry a
+LinkedIn instinct onto TikTok.
+
+Run `draft_lint` for the mechanical failures with evidence quoted — links where the
+platform punishes them, hashtags on X, throat-clearing openers, yes/no question openers,
+engagement bait, wall-of-text shape, and the counts. It reports facts, never judgements;
+weighing them against this draft is your job. It requires a licence — if it returns
+`license_required`, run the same checks by hand from the references. Nothing in the
+sequence depends on the tool.
 
 | Platform | Governing signal | The mistake it punishes |
 | --- | --- | --- |
@@ -169,6 +180,11 @@ Ask the user to report the actual result back. A prediction that is never checke
 error bar, and over several posts their record of your calls is worth more than any
 rubric on this page.
 
+With a paid plan, keep that record for them: `log_call` stores the verdict, band and
+confidence; `record_result` logs how the post actually landed; `review_calls` shows the
+running tally — exact band, one band off, further out. When the record shows the calls
+running hot or cold, say so before making the next one.
+
 ## Presentation
 
 Write like an editor handing back a draft: direct, specific, unsentimental, short.
@@ -194,6 +210,15 @@ with reassurance.
   post on a warm one.
 - **It cannot assess visuals from a description.** Where the first frame or thumbnail
   decides the outcome, the visual is the variable and the copy read is secondary.
+
+## Licensing
+
+`fold_test` and `platform_mechanics` are open. `draft_lint` and the prediction log
+require a trial or paid licence, and return `license_required` or `upgrade_required`
+when the plan does not cover them. Handle it plainly: say what is missing, call
+`list_plans`, and offer `start_checkout`. Never work around a gate by inventing what the
+paid tool would have said — and never let a licensing miss stall the review itself,
+which needs no tools.
 
 ## References
 

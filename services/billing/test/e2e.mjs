@@ -108,6 +108,8 @@ const child = spawn(process.execPath, [serverPath], {
     STRIPE_WEBHOOK_SECRET: WEBHOOK_SECRET,
     STRIPE_PRICE_DBS_PRO: 'price_pro_mock',
     STRIPE_PRICE_DBS_TEAM: 'price_team_mock',
+    STRIPE_PRICE_GPP_PRO: 'price_gpp_pro_mock',
+    STRIPE_PRICE_GPP_TEAM: 'price_gpp_team_mock',
     BILLING_ALLOWED_ORIGINS: 'https://www.codestudioplugin.com, https://codestudioplugin.com',
   },
   stdio: ['ignore', 'ignore', 'pipe'],
@@ -272,6 +274,18 @@ try {
   assert.deepEqual(cancelled, { active: false, reason: 'inactive' });
   ok('subscription.deleted deactivates the licence');
 
+  // ---- second plugin: ghost-post-preview ---------------------------------
+  const gppCatalog = (await api('GET', '/v1/catalog/ghost-post-preview')).data;
+  assert.equal(gppCatalog.name, 'Ghost Post Preview');
+  assert.equal(gppCatalog.plans.find((p) => p.id === 'pro').price, 4000);
+  assert.equal(gppCatalog.plans.find((p) => p.id === 'team').price, 7900);
+  const gppTrial = (await api('POST', '/v1/trial', { body: { plugin_id: 'ghost-post-preview', email: 'shop@example.com' } })).data;
+  assert.match(gppTrial.license_key, /^PS-GPP(-[A-Z2-9]+){4}$/);
+  assert.deepEqual(gppTrial.features, ['lint', 'history']);
+  const crossPlugin = (await api('GET', '/v1/entitlement?plugin_id=diagnose-by-sound&device_id=device-a', { key: gppTrial.license_key })).data;
+  assert.deepEqual(crossPlugin, { active: false, reason: 'wrong_plugin' });
+  ok('ghost-post-preview has its own catalog, trial keys, and plugin-scoped licences');
+
   // ---- CORS for the storefront -------------------------------------------
   const SITE = 'https://www.codestudioplugin.com';
   const preflight = await fetch(`${BASE}/v1/checkout`, {
@@ -314,11 +328,15 @@ try {
   const provisioned = fs.readFileSync(envFile, 'utf8');
   assert.match(provisioned, /STRIPE_PRICE_DBS_PRO=price_mock_\d+/);
   assert.match(provisioned, /STRIPE_PRICE_DBS_TEAM=price_mock_\d+/);
+  assert.match(provisioned, /STRIPE_PRICE_GPP_PRO=price_mock_\d+/);
+  assert.match(provisioned, /STRIPE_PRICE_GPP_TEAM=price_mock_\d+/);
   assert.match(provisioned, /STRIPE_WEBHOOK_SECRET=whsec_mock_created/);
   assert.equal(stripeState.prices.find((p) => p.lookup_key === 'dbs_pro')?.unit_amount, 4000);
   assert.equal(stripeState.prices.find((p) => p.lookup_key === 'dbs_team')?.unit_amount, 7900);
+  assert.equal(stripeState.prices.find((p) => p.lookup_key === 'gpp_pro')?.unit_amount, 4000);
+  assert.equal(stripeState.prices.find((p) => p.lookup_key === 'gpp_team')?.unit_amount, 7900);
   assert.equal(stripeState.webhooks[0].url, 'https://billing.example.test/v1/stripe/webhook');
-  ok('setup-stripe provisions products, $40/$79 prices, webhook, and writes the env file');
+  ok('setup-stripe provisions both plugins’ products, $40/$79 prices, webhook, and the env file');
 
   const pricesBefore = stripeState.prices.length;
   const webhooksBefore = stripeState.webhooks.length;
