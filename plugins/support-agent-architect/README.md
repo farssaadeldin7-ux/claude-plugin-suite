@@ -70,3 +70,13 @@ data leaves your machine.
   separately. Deciding the policy is yours, and often legal's.
 - **Not retrieval tuning.** Embeddings, chunking and rerankers matter, but they are second
   order to the four failure modes above.
+
+## The skill you bring
+
+**Knowledge Base Architecture.** Structure FAQs and manuals into a clean, logical hierarchy; that structure — not the model — is what keeps a support agent answering instead of hallucinating.
+
+## Plans
+
+Pricing is defined in the suite catalog for when this plugin's tool server ships:
+pro $500/month (2 seats) and team $2,000/month (10 seats), with a 14-day single-seat
+trial. Until the server exists, the skill content is open and nothing is gated.

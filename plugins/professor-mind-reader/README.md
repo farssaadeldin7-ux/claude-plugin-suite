@@ -67,3 +67,13 @@ will not give you one, and any tool that does is guessing.
 It does not verify sources, check factual accuracy, or know whether a cited work says
 what the draft claims it says. It does not replace the module handbook or your marker's
 own guidance — where they disagree with this, they are right.
+
+## The skill you bring
+
+**Prompt Engineering.** The lowest-barrier skill to monetise in the suite. The audit is only as strong as the artefacts and phrasing supplied — the rubric verbatim, the brief, the draft, and asks pitched at the rubric's own verbs. Packaging that discipline (an academic-success pack, a wrapper over this skill) is the fastest speed-to-market here.
+
+## Plans
+
+Pricing is defined in the suite catalog for when this plugin's tool server ships:
+pro $40/month (2 seats) and team $70/month (10 seats), with a 14-day single-seat
+trial. Until the server exists, the skill content is open and nothing is gated.

@@ -66,3 +66,13 @@ of them.
 - **Not legal advice.** The compliance checklist is a prompt to ask someone qualified.
 - **Not willing to fabricate.** It will not invent a mutual connection, a referral, a
   deadline, or a prior conversation, and it will say so if asked.
+
+## The skill you bring
+
+**Prospecting Psychology.** Refine the output until it reads like a person wrote it. A personalised email that survives find-and-replace is a template, and reply rates punish templates.
+
+## Plans
+
+Pricing is defined in the suite catalog for when this plugin's tool server ships:
+pro $500/month (2 seats) and team $2,000/month (10 seats), with a 14-day single-seat
+trial. Until the server exists, the skill content is open and nothing is gated.

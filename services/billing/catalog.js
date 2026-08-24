@@ -75,6 +75,438 @@ export const CATALOG = {
       },
     },
   },
+  'professor-mind-reader': {
+    name: 'Professor Mind-Reader',
+    code: 'PMR',
+    // Plans defined ahead of this plugin's tool server; 'tools' is the feature
+    // its server will gate. Until it ships, keys sell nothing — keep it off the
+    // storefront.
+    plans: {
+      trial: {
+        price: 0,
+        interval: 'month',
+        trial_days: 14,
+        features: ['tools'],
+        limits: {},
+        seats: 1,
+        available: true,
+      },
+      pro: {
+        price: 4000,
+        interval: 'month',
+        features: ['tools'],
+        limits: {},
+        seats: 2,
+        available: true,
+        stripe_price_env: 'STRIPE_PRICE_PMR_PRO',
+      },
+      team: {
+        price: 7000,
+        interval: 'month',
+        features: ['tools'],
+        limits: {},
+        seats: 10,
+        available: true,
+        stripe_price_env: 'STRIPE_PRICE_PMR_TEAM',
+      },
+    },
+  },
+  'five-minute-fluency': {
+    name: '5-Minute Fluency',
+    code: 'FMF',
+    // Plans defined ahead of this plugin's tool server; 'tools' is the feature
+    // its server will gate. Until it ships, keys sell nothing — keep it off the
+    // storefront.
+    plans: {
+      trial: {
+        price: 0,
+        interval: 'month',
+        trial_days: 14,
+        features: ['tools'],
+        limits: {},
+        seats: 1,
+        available: true,
+      },
+      pro: {
+        price: 4000,
+        interval: 'month',
+        features: ['tools'],
+        limits: {},
+        seats: 2,
+        available: true,
+        stripe_price_env: 'STRIPE_PRICE_FMF_PRO',
+      },
+      team: {
+        price: 7000,
+        interval: 'month',
+        features: ['tools'],
+        limits: {},
+        seats: 10,
+        available: true,
+        stripe_price_env: 'STRIPE_PRICE_FMF_TEAM',
+      },
+    },
+  },
+  'basecamp-split': {
+    name: 'Basecamp Split',
+    code: 'BCS',
+    // Plans defined ahead of this plugin's tool server; 'tools' is the feature
+    // its server will gate. Until it ships, keys sell nothing — keep it off the
+    // storefront.
+    plans: {
+      trial: {
+        price: 0,
+        interval: 'month',
+        trial_days: 14,
+        features: ['tools'],
+        limits: {},
+        seats: 1,
+        available: true,
+      },
+      pro: {
+        price: 4000,
+        interval: 'month',
+        features: ['tools'],
+        limits: {},
+        seats: 2,
+        available: true,
+        stripe_price_env: 'STRIPE_PRICE_BCS_PRO',
+      },
+      team: {
+        price: 7000,
+        interval: 'month',
+        features: ['tools'],
+        limits: {},
+        seats: 10,
+        available: true,
+        stripe_price_env: 'STRIPE_PRICE_BCS_TEAM',
+      },
+    },
+  },
+  'podcast-video-studio': {
+    name: 'Podcast & Video Studio',
+    code: 'PVS',
+    // Plans defined ahead of this plugin's tool server; 'tools' is the feature
+    // its server will gate. Until it ships, keys sell nothing — keep it off the
+    // storefront.
+    plans: {
+      trial: {
+        price: 0,
+        interval: 'month',
+        trial_days: 14,
+        features: ['tools'],
+        limits: {},
+        seats: 1,
+        available: true,
+      },
+      pro: {
+        price: 4000,
+        interval: 'month',
+        features: ['tools'],
+        limits: {},
+        seats: 2,
+        available: true,
+        stripe_price_env: 'STRIPE_PRICE_PVS_PRO',
+      },
+      team: {
+        price: 7000,
+        interval: 'month',
+        features: ['tools'],
+        limits: {},
+        seats: 10,
+        available: true,
+        stripe_price_env: 'STRIPE_PRICE_PVS_TEAM',
+      },
+    },
+  },
+  'support-agent-architect': {
+    name: 'Support Agent Architect',
+    code: 'SAA',
+    // Plans defined ahead of this plugin's tool server; 'tools' is the feature
+    // its server will gate. Until it ships, keys sell nothing — keep it off the
+    // storefront.
+    plans: {
+      trial: {
+        price: 0,
+        interval: 'month',
+        trial_days: 14,
+        features: ['tools'],
+        limits: {},
+        seats: 1,
+        available: true,
+      },
+      pro: {
+        price: 50000,
+        interval: 'month',
+        features: ['tools'],
+        limits: {},
+        seats: 2,
+        available: true,
+        stripe_price_env: 'STRIPE_PRICE_SAA_PRO',
+      },
+      team: {
+        price: 200000,
+        interval: 'month',
+        features: ['tools'],
+        limits: {},
+        seats: 10,
+        available: true,
+        stripe_price_env: 'STRIPE_PRICE_SAA_TEAM',
+      },
+    },
+  },
+  'sales-enablement-assistant': {
+    name: 'Sales Enablement Assistant',
+    code: 'SEA',
+    // Plans defined ahead of this plugin's tool server; 'tools' is the feature
+    // its server will gate. Until it ships, keys sell nothing — keep it off the
+    // storefront.
+    plans: {
+      trial: {
+        price: 0,
+        interval: 'month',
+        trial_days: 14,
+        features: ['tools'],
+        limits: {},
+        seats: 1,
+        available: true,
+      },
+      pro: {
+        price: 50000,
+        interval: 'month',
+        features: ['tools'],
+        limits: {},
+        seats: 2,
+        available: true,
+        stripe_price_env: 'STRIPE_PRICE_SEA_PRO',
+      },
+      team: {
+        price: 200000,
+        interval: 'month',
+        features: ['tools'],
+        limits: {},
+        seats: 10,
+        available: true,
+        stripe_price_env: 'STRIPE_PRICE_SEA_TEAM',
+      },
+    },
+  },
+  'wellbeing-companion': {
+    name: 'Wellbeing Companion',
+    code: 'WBC',
+    // Plans defined ahead of this plugin's tool server; 'tools' is the feature
+    // its server will gate. Until it ships, keys sell nothing — keep it off the
+    // storefront.
+    plans: {
+      trial: {
+        price: 0,
+        interval: 'month',
+        trial_days: 14,
+        features: ['tools'],
+        limits: {},
+        seats: 1,
+        available: true,
+      },
+      pro: {
+        price: 4000,
+        interval: 'month',
+        features: ['tools'],
+        limits: {},
+        seats: 2,
+        available: true,
+        stripe_price_env: 'STRIPE_PRICE_WBC_PRO',
+      },
+      team: {
+        price: 7000,
+        interval: 'month',
+        features: ['tools'],
+        limits: {},
+        seats: 10,
+        available: true,
+        stripe_price_env: 'STRIPE_PRICE_WBC_TEAM',
+      },
+    },
+  },
+  'neural-link-intention-layer': {
+    name: 'Neural-Link Intention Layer',
+    code: 'NLI',
+    // Plans defined ahead of this plugin's tool server; 'tools' is the feature
+    // its server will gate. Until it ships, keys sell nothing — keep it off the
+    // storefront.
+    plans: {
+      trial: {
+        price: 0,
+        interval: 'month',
+        trial_days: 14,
+        features: ['tools'],
+        limits: {},
+        seats: 1,
+        available: true,
+      },
+      pro: {
+        price: 4000,
+        interval: 'month',
+        features: ['tools'],
+        limits: {},
+        seats: 2,
+        available: true,
+        stripe_price_env: 'STRIPE_PRICE_NLI_PRO',
+      },
+      team: {
+        price: 7000,
+        interval: 'month',
+        features: ['tools'],
+        limits: {},
+        seats: 10,
+        available: true,
+        stripe_price_env: 'STRIPE_PRICE_NLI_TEAM',
+      },
+    },
+  },
+  'digital-twin-collaborator': {
+    name: 'Digital Twin Collaborator',
+    code: 'DTC',
+    // Plans defined ahead of this plugin's tool server; 'tools' is the feature
+    // its server will gate. Until it ships, keys sell nothing — keep it off the
+    // storefront.
+    plans: {
+      trial: {
+        price: 0,
+        interval: 'month',
+        trial_days: 14,
+        features: ['tools'],
+        limits: {},
+        seats: 1,
+        available: true,
+      },
+      pro: {
+        price: 4000,
+        interval: 'month',
+        features: ['tools'],
+        limits: {},
+        seats: 2,
+        available: true,
+        stripe_price_env: 'STRIPE_PRICE_DTC_PRO',
+      },
+      team: {
+        price: 7000,
+        interval: 'month',
+        features: ['tools'],
+        limits: {},
+        seats: 10,
+        available: true,
+        stripe_price_env: 'STRIPE_PRICE_DTC_TEAM',
+      },
+    },
+  },
+  'emotional-resonance-analyzer': {
+    name: 'Emotional Resonance Analyzer',
+    code: 'ERA',
+    // Plans defined ahead of this plugin's tool server; 'tools' is the feature
+    // its server will gate. Until it ships, keys sell nothing — keep it off the
+    // storefront.
+    plans: {
+      trial: {
+        price: 0,
+        interval: 'month',
+        trial_days: 14,
+        features: ['tools'],
+        limits: {},
+        seats: 1,
+        available: true,
+      },
+      pro: {
+        price: 4000,
+        interval: 'month',
+        features: ['tools'],
+        limits: {},
+        seats: 2,
+        available: true,
+        stripe_price_env: 'STRIPE_PRICE_ERA_PRO',
+      },
+      team: {
+        price: 7000,
+        interval: 'month',
+        features: ['tools'],
+        limits: {},
+        seats: 10,
+        available: true,
+        stripe_price_env: 'STRIPE_PRICE_ERA_TEAM',
+      },
+    },
+  },
+  'code-to-visual-interpreter': {
+    name: 'Code-to-Visual Interpreter',
+    code: 'CVI',
+    // Plans defined ahead of this plugin's tool server; 'tools' is the feature
+    // its server will gate. Until it ships, keys sell nothing — keep it off the
+    // storefront.
+    plans: {
+      trial: {
+        price: 0,
+        interval: 'month',
+        trial_days: 14,
+        features: ['tools'],
+        limits: {},
+        seats: 1,
+        available: true,
+      },
+      pro: {
+        price: 4000,
+        interval: 'month',
+        features: ['tools'],
+        limits: {},
+        seats: 2,
+        available: true,
+        stripe_price_env: 'STRIPE_PRICE_CVI_PRO',
+      },
+      team: {
+        price: 7000,
+        interval: 'month',
+        features: ['tools'],
+        limits: {},
+        seats: 10,
+        available: true,
+        stripe_price_env: 'STRIPE_PRICE_CVI_TEAM',
+      },
+    },
+  },
+  'predictive-resource-allocation': {
+    name: 'Predictive Resource Allocation',
+    code: 'PRA',
+    // Plans defined ahead of this plugin's tool server; 'tools' is the feature
+    // its server will gate. Until it ships, keys sell nothing — keep it off the
+    // storefront.
+    plans: {
+      trial: {
+        price: 0,
+        interval: 'month',
+        trial_days: 14,
+        features: ['tools'],
+        limits: {},
+        seats: 1,
+        available: true,
+      },
+      pro: {
+        price: 50000,
+        interval: 'month',
+        features: ['tools'],
+        limits: {},
+        seats: 2,
+        available: true,
+        stripe_price_env: 'STRIPE_PRICE_PRA_PRO',
+      },
+      team: {
+        price: 200000,
+        interval: 'month',
+        features: ['tools'],
+        limits: {},
+        seats: 10,
+        available: true,
+        stripe_price_env: 'STRIPE_PRICE_PRA_TEAM',
+      },
+    },
+  },
 };
 
 export function plugin(pluginId) {

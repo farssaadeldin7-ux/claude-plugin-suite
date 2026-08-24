@@ -68,3 +68,13 @@ output rather than hiding it in a footnote.
   that depends on your rate and your pipeline, not on the hardware.
 - **Not a substitute for a test render.** Every estimate it gives is an argument for
   running the smallest measurement that would settle the question.
+
+## The skill you bring
+
+**System Architecture Literacy.** Know CPU from GPU from RAM from I/O well enough to act on the findings. The triage names the binding constraint; you have to recognise it in your own pipeline.
+
+## Plans
+
+Pricing is defined in the suite catalog for when this plugin's tool server ships:
+pro $500/month (2 seats) and team $2,000/month (10 seats), with a 14-day single-seat
+trial. Until the server exists, the skill content is open and nothing is gated.

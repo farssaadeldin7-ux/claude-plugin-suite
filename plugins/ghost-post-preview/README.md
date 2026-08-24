@@ -94,3 +94,7 @@ Fold lengths vary by device and font size. Ranking weights change without announ
 Treat them as directional.
 
 It also cannot judge whether your claims are true, cannot see your follower composition or posting history, and cannot assess a thumbnail or first frame from a description — which matters, because on Instagram, TikTok and YouTube the visual usually decides the outcome and the copy is secondary.
+
+## The skill you bring
+
+**Predictive Analytics.** The commercial skill this plugin pairs with. Businesses buy certainty about social spend, and the honest route to it is calibration, not fabricated forecasts: keep a baseline, log every call with the prediction log, and let the record against actual results become the model. The plugin refuses invented engagement numbers precisely so the analytics built on top of it are real.

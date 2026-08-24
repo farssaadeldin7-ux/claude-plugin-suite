@@ -63,3 +63,13 @@ correct across patches.
 - **Not a tier list or a build guide.** See version honesty above.
 - **Not a fix for tilt in one page.** If the problem is mostly frustration, the sheet
   will be about session structure instead of tactics, and it will say so.
+
+## The skill you bring
+
+**Scalable Backend Architecture.** The build-out skill behind this plugin's most scalable form: an on-demand coach serving live game state to many concurrent players is a low-latency streaming problem, and solving it is the defensible moat. As a player, what you bring today is simpler — an accurate self-report of what actually happens in your matches.
+
+## Plans
+
+Pricing is defined in the suite catalog for when this plugin's tool server ships:
+pro $40/month (2 seats) and team $70/month (10 seats), with a 14-day single-seat
+trial. Until the server exists, the skill content is open and nothing is gated.

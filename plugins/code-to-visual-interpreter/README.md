@@ -68,3 +68,13 @@ description of spacing, overlap and how neighbouring elements relate.
 - **Not a guarantee of cross-device reproducibility.** A `sin`-based GLSL hash differs
   across GPU vendors, and long-running GPU simulations drift. It says when a piece is
   reproducible only on the machine that made it.
+
+## The skill you bring
+
+**Computational Design.** Understand the relationship between visual geometry and the code that generates it; that understanding is what prevents bloated, unoptimised assets.
+
+## Plans
+
+Pricing is defined in the suite catalog for when this plugin's tool server ships:
+pro $40/month (2 seats) and team $70/month (10 seats), with a 14-day single-seat
+trial. Until the server exists, the skill content is open and nothing is gated.

@@ -68,3 +68,13 @@ raw characters, and always with a stop hotkey.
 - **Not a large time saving.** An honest projection for a heavy keyboard-driven user is
   20 to 90 minutes a week, and nothing at all for decision-making, client revisions or
   asset sourcing. It says so rather than padding the estimate.
+
+## The skill you bring
+
+**Advanced Workflow Optimisation.** Know your own repetitive command patterns — the predictive settings are configured from them, and the instrumentation only surfaces what you can recognise.
+
+## Plans
+
+Pricing is defined in the suite catalog for when this plugin's tool server ships:
+pro $40/month (2 seats) and team $70/month (10 seats), with a 14-day single-seat
+trial. Until the server exists, the skill content is open and nothing is gated.

@@ -68,3 +68,13 @@ works.
 
 **It is not legal advice.** Contested rights questions — a disputed work-for-hire clause, an
 agency claiming ownership — go to a lawyer.
+
+## The skill you bring
+
+**Style Governance.** Curate high-quality training data from your own past work; the apprentice mimics exactly what the corpus and the never lists teach it, and nothing else.
+
+## Plans
+
+Pricing is defined in the suite catalog for when this plugin's tool server ships:
+pro $40/month (2 seats) and team $70/month (10 seats), with a 14-day single-seat
+trial. Until the server exists, the skill content is open and nothing is gated.

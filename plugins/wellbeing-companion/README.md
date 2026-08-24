@@ -71,3 +71,13 @@ enforce expiry in their own CI meanwhile.)
 This is a builder's tool and it will not help you. If you are having a hard time, please
 reach out to someone — a GP, a helpline in your country, or a person you trust. That is a
 better use of the next ten minutes than reading this repository.
+
+## The skill you bring
+
+**Clinical Triage Protocols.** Be fluent in when a conversation must reach a human. The tool is support, never crisis intervention, and the escalation protocol assumes an operator who can hold that line.
+
+## Plans
+
+Pricing is defined in the suite catalog for when this plugin's tool server ships:
+pro $40/month (2 seats) and team $70/month (10 seats), with a 14-day single-seat
+trial. Until the server exists, the skill content is open and nothing is gated.

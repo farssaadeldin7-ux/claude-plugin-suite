@@ -68,3 +68,13 @@ and says so, rather than assuming a 70 kg carrier.
 - **Not a certification.** It checks that a first aid kit, an emergency communication
   plan and a route plan left with someone exist and have owners. It cannot check that
   they are any good.
+
+## The skill you bring
+
+**Logistics & Resource Optimisation.** The transferable skill this plugin encodes: multi-variable distribution under hard constraints. The same discipline prices into supply chain, disaster relief and event logistics — build for expedition companies first, then pivot the allocation method to larger industries. As a leader you still bring judgement about route and group competence, which the plugin deliberately does not provide.
+
+## Plans
+
+Pricing is defined in the suite catalog for when this plugin's tool server ships:
+pro $40/month (2 seats) and team $70/month (10 seats), with a 14-day single-seat
+trial. Until the server exists, the skill content is open and nothing is gated.

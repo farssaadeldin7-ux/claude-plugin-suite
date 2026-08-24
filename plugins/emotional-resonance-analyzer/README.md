@@ -68,3 +68,13 @@ and those routinely decide whether a scene works. It does not know your audience
 
 Everything it flags is a hypothesis about the cut, testable by watching the cut. Where it
 disagrees with a real retention curve, the curve is right.
+
+## The skill you bring
+
+**Narrative Pacing Theory.** Understand why audiences leave. The tells locate where the cut is at risk; choosing the right creative adjustment is pacing judgement the table cannot make.
+
+## Plans
+
+Pricing is defined in the suite catalog for when this plugin's tool server ships:
+pro $40/month (2 seats) and team $70/month (10 seats), with a 14-day single-seat
+trial. Until the server exists, the skill content is open and nothing is gated.

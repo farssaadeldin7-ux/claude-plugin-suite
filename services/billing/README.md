@@ -33,13 +33,20 @@ swap in a real database later.
 
 **Ghost Post Preview** sells the same shape: trial (14 days, 1 seat, 25 lint passes/month)
 · pro $40/mo (2 seats, unlimited) · team $79/mo (10 seats, unlimited), gating the
-`draft_lint` pass and the prediction log; its Stripe prices live in
-`STRIPE_PRICE_GPP_PRO` / `STRIPE_PRICE_GPP_TEAM`.
+`draft_lint` pass and the prediction log (`STRIPE_PRICE_GPP_PRO` / `_TEAM`).
 
-Neither plugin has a free plan — every gated tool needs a trial or paid licence. (A
-plugin that does want client-side free features can declare them via `LicenseClient`'s
-`freeTier` option; see `docs/LICENSING.md`.) Plans for the other twelve plugins are added
-in `catalog.js` as they launch.
+The other twelve plugins carry defined plans ahead of their tool servers — a 14-day
+single-seat trial, pro (2 seats) and team (10 seats), all gating the `tools` feature
+their servers will check. **Until a plugin's server ships, its keys gate nothing: keep
+it off the storefront.** Standard tier is pro $40/mo · team $70/mo; the three
+premium plugins — Sales Enablement Assistant, Support Agent Architect and Predictive
+Resource Allocation — are pro $500/mo · team $2,000/mo. Env keys follow the plugin
+codes: `STRIPE_PRICE_<CODE>_PRO` / `_TEAM` for PMR, FMF, BCS, PVS, SAA, SEA, WBC, NLI,
+DTC, ERA, CVI and PRA.
+
+No plugin has a free plan — every gated tool needs a trial or paid licence. (A plugin
+that wants client-side free features can declare them via `LicenseClient`'s `freeTier`
+option; see `docs/LICENSING.md`.)
 
 ## Going live — two commands
 

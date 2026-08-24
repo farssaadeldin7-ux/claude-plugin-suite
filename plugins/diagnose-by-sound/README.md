@@ -88,3 +88,7 @@ usage counts. It never sees a diagnosis.
 This does not read fault codes, does not replace inspection, does not price parts, and
 does not cover EV-specific drivetrain noise in depth. Every candidate it produces is a
 hypothesis with a test attached — the test is the point.
+
+## The skill you bring
+
+**Acoustic Signal Processing.** Shipped as a second skill inside this plugin (`skills/acoustic-signal-processing`): filtering background noise and isolating rattles, whines and knocks — capture technique, the elimination protocol, spectrogram reading — before the diagnosis starts.

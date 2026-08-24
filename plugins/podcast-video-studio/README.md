@@ -68,3 +68,13 @@ conversation, and no part of your recording leaves the machine on this plugin's 
   Every factual claim is flagged for someone to source.
 - **It does not handle rights, music clearance or guest approval**, and a guest who agreed
   to an episode has not agreed to a clip of one sentence from it.
+
+## The skill you bring
+
+**Content Strategy.** Identify the high-retention hooks yourself — the tool ranks and cuts what it is told to prioritise, and it is only as good as those segments.
+
+## Plans
+
+Pricing is defined in the suite catalog for when this plugin's tool server ships:
+pro $40/month (2 seats) and team $70/month (10 seats), with a 14-day single-seat
+trial. Until the server exists, the skill content is open and nothing is gated.
