@@ -15,7 +15,6 @@ swap in a real database later.
 | `GET /v1/entitlement?plugin_id&device_id` | Entitlement check (Bearer licence key). Registers the device against a seat. |
 | `POST /v1/usage` | Metered usage, idempotent per `idempotency_key`. |
 | `POST /v1/license/activate` | Bind a key to a device. |
-| `POST /v1/trial` | Issue a 14-day trial key (one per email per plugin). |
 | `POST /v1/checkout` | Create a Stripe Checkout session for a paid plan. |
 | `GET /v1/catalog/:plugin_id` | Plans, prices, features, limits, seats. |
 | `POST /v1/portal` | Stripe billing portal session for a paid licence. |
@@ -27,16 +26,15 @@ swap in a real database later.
 
 | Plan | Price | Seats | Diagnoses / month | Includes |
 | --- | --- | --- | --- | --- |
-| `trial` (14 days) | $0 | 1 | 25 | everything, one per email |
 | `pro` | $40/mo | 2 | unlimited | `diagnose`, `repair_plan`, `history` |
-| `team` | $79/mo | 10 | unlimited | `diagnose`, `repair_plan`, `history` |
+| `team` | $70/mo | 10 | unlimited | `diagnose`, `repair_plan`, `history` |
 
-**Ghost Post Preview** sells the same shape: trial (14 days, 1 seat, 25 lint passes/month)
-· pro $40/mo (2 seats, unlimited) · team $79/mo (10 seats, unlimited), gating the
+**Ghost Post Preview** sells the same shape: pro $40/mo (2 seats, unlimited) · team
+$70/mo (10 seats, unlimited), gating the
 `draft_lint` pass and the prediction log (`STRIPE_PRICE_GPP_PRO` / `_TEAM`).
 
-The other twelve plugins carry defined plans ahead of their tool servers — a 14-day
-single-seat trial, pro (2 seats) and team (10 seats), all gating the `tools` feature
+The other twelve plugins carry defined plans ahead of their tool servers — pro (2
+seats) and team (10 seats), all gating the `tools` feature
 their servers will check. **Until a plugin's server ships, its keys gate nothing: keep
 it off the storefront.** Standard tier is pro $40/mo · team $70/mo; the three
 premium plugins — Sales Enablement Assistant, Support Agent Architect and Predictive
@@ -44,7 +42,7 @@ Resource Allocation — are pro $500/mo · team $2,000/mo. Env keys follow the p
 codes: `STRIPE_PRICE_<CODE>_PRO` / `_TEAM` for PMR, FMF, BCS, PVS, SAA, SEA, WBC, NLI,
 DTC, ERA, CVI and PRA.
 
-No plugin has a free plan — every gated tool needs a trial or paid licence. (A plugin
+No plugin has a free plan or a trial — every gated tool needs a paid licence. (A plugin
 that wants client-side free features can declare them via `LicenseClient`'s `freeTier`
 option; see `docs/LICENSING.md`.)
 
@@ -92,7 +90,7 @@ node scripts/build.mjs
 `.env.example` lists the variables: `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`,
 `STRIPE_PRICE_DBS_PRO`, `STRIPE_PRICE_DBS_TEAM`, `BILLING_PUBLIC_URL` — all written by
 `setup-stripe.mjs` — plus `BILLING_ALLOWED_ORIGINS` (comma-separated browser origins
-allowed to call checkout/trial/catalog, i.e. the storefront site), optional `PORT`
+allowed to call checkout/catalog, i.e. the storefront site), optional `PORT`
 (default 8787), `BILLING_STORE_FILE` (default `data/store.json` beside the server,
 `/data/store.json` in the container), and `STRIPE_API_BASE` (tests point this at a mock;
 leave unset in production).
@@ -100,8 +98,8 @@ leave unset in production).
 ## Tests
 
 `node services/billing/test/e2e.mjs` boots the real server against a mock Stripe and walks
-every flow: trial issue and re-issue refusal, entitlement and seat enforcement, plugin
-scoping, usage idempotency, checkout session creation, webhook signature rejection and
-replay dedupe, key issuance on completed checkout, portal, cancellation, and the
+every flow: key issuance through signed webhooks, entitlement and seat enforcement,
+plugin scoping, usage idempotency, checkout session creation, webhook signature
+rejection and replay dedupe, portal, cancellation, and the
 `setup-stripe.mjs` provisioning script (including that re-runs create nothing new). CI
 runs it on every push.

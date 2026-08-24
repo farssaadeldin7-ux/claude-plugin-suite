@@ -214,7 +214,7 @@ with reassurance.
 ## Licensing
 
 `fold_test` and `platform_mechanics` are open. `draft_lint` and the prediction log
-require a trial or paid licence, and return `license_required` or `upgrade_required`
+require a paid licence, and return `license_required` or `upgrade_required`
 when the plan does not cover them. Handle it plainly: say what is missing, call
 `list_plans`, and offer `start_checkout`. Never work around a gate by inventing what the
 paid tool would have said — and never let a licensing miss stall the review itself,

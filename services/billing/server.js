@@ -8,7 +8,6 @@
  *   POST /v1/usage                               Bearer <license key>
  *   POST /v1/license/activate
  *   POST /v1/checkout
- *   POST /v1/trial
  *   GET  /v1/catalog/:plugin_id
  *   POST /v1/portal
  *
@@ -74,7 +73,7 @@ const escapeHtml = (s) => String(s).replace(/[&<>"']/g, (c) => (
 
 /**
  * Browser storefronts (the pricing page on the marketing site) call
- * /v1/checkout, /v1/trial and /v1/catalog directly, so their origins must be
+ * /v1/checkout and /v1/catalog directly, so their origins must be
  * allowed explicitly. Comma-separated in BILLING_ALLOWED_ORIGINS, e.g.
  * "https://www.codestudioplugin.com,https://codestudioplugin.com".
  */
@@ -151,34 +150,12 @@ async function handle(req, res) {
     return json(res, 200, catalog);
   }
 
-  if (route === 'POST /v1/trial') {
-    const body = JSON.parse(await readBody(req) || '{}');
-    const { plugin_id: pluginId, email } = body;
-    const planDef = planFor(pluginId, 'trial');
-    if (!planDef) return fail(res, 404, 'unknown_plugin', `No trial plan for "${pluginId}".`);
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email ?? '')) {
-      return fail(res, 400, 'invalid_request', 'A valid email address is required for a trial.');
-    }
-    if (store.trialUsed(pluginId, email)) {
-      return fail(res, 409, 'trial_already_used', 'A trial for this plugin has already been issued to this email address.');
-    }
-    const license = issueLicense(store, { pluginId, planId: 'trial', email });
-    store.markTrial(pluginId, email, license.key);
-    return json(res, 200, {
-      license_key: license.key,
-      plan: license.plan,
-      features: license.features,
-      limits: license.limits,
-      expires: license.period_end,
-    });
-  }
-
   if (route === 'POST /v1/checkout') {
     const body = JSON.parse(await readBody(req) || '{}');
     const { plugin_id: pluginId, plan: planId, email } = body;
     const planDef = planFor(pluginId, planId);
     if (!planDef) return fail(res, 404, 'unknown_plan', `No plan "${planId}" for "${pluginId}".`);
-    if (!planDef.price) return fail(res, 400, 'invalid_request', 'This plan is not bought through checkout — use the trial endpoint.');
+    if (!planDef.price) return fail(res, 400, 'invalid_request', 'This plan is not purchasable.');
     const priceId = process.env[planDef.stripe_price_env];
     if (!priceId) return fail(res, 503, 'plan_not_configured', `The Stripe price for "${planId}" is not configured yet.`);
     try {
@@ -195,7 +172,7 @@ async function handle(req, res) {
     const license = looksLikeKey(key) ? store.getLicense(key) : null;
     if (!license) return fail(res, 404, 'unknown_license', 'No licence matches this key.');
     if (!license.stripe?.customer_id) {
-      return fail(res, 400, 'no_billing_account', 'This licence has no Stripe subscription behind it (trials do not).');
+      return fail(res, 400, 'no_billing_account', 'This licence has no Stripe subscription behind it.');
     }
     try {
       const session = await createPortalSession({ customerId: license.stripe.customer_id, publicUrl: PUBLIC_URL });

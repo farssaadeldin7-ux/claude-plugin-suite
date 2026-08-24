@@ -177,7 +177,7 @@ export class LicenseClient {
     if (entitlement.free && !entitlement.features.length) {
       throw new ToolError('license_required', explainDenial({ reason: 'missing_license' }, this.pluginId), {
         reason: entitlement.reason,
-        next_step: 'Call license_activate with an existing key, or start_checkout to buy or trial a plan.',
+        next_step: 'Call license_activate with an existing key, or start_checkout to buy a plan.',
       });
     }
     if (!entitlement.active) {
@@ -197,7 +197,7 @@ export class LicenseClient {
         required_feature: feature,
         available_features: entitlement.features,
         next_step: entitlement.free
-          ? 'Call license_activate with an existing key, or start_checkout to buy or trial a plan.'
+          ? 'Call license_activate with an existing key, or start_checkout to buy a plan.'
           : 'Call start_checkout with a higher plan, or list_plans to compare.',
       });
     }
@@ -260,15 +260,6 @@ export class LicenseClient {
     return data;
   }
 
-  async startTrial(email) {
-    const { ok, data } = await this.#request('POST', '/v1/trial', {
-      auth: false,
-      body: { plugin_id: this.pluginId, email },
-    });
-    if (!ok) throw new ToolError(data.error || 'trial_failed', data.message || 'Could not start a trial.', data.detail);
-    this.saveLicenseKey(data.license_key);
-    return data;
-  }
 
   async plans() {
     const { ok, data } = await this.#request('GET', `/v1/catalog/${this.pluginId}`, { auth: false });
@@ -330,7 +321,7 @@ export function registerLicenseTools(server, client, { pluginName }) {
             ? { note: 'The licensing service was unreachable, so this reflects what works without it.' }
             : {}),
           billing_service: client.billingUrl,
-          next_step: 'Use license_activate with an existing key, or start_checkout to buy or trial a plan.',
+          next_step: 'Use license_activate with an existing key, or start_checkout to buy a plan.',
         };
       }
       if (!entitlement.active) {
@@ -339,7 +330,7 @@ export function registerLicenseTools(server, client, { pluginName }) {
           reason: entitlement.reason,
           explanation: explainDenial(entitlement, client.pluginId),
           billing_service: client.billingUrl,
-          next_step: 'Use license_activate with an existing key, or start_checkout to buy or trial a plan.',
+          next_step: 'Use license_activate with an existing key, or start_checkout to buy a plan.',
         };
       }
       return {
@@ -383,29 +374,17 @@ export function registerLicenseTools(server, client, { pluginName }) {
 
   server.tool('start_checkout', {
     description:
-      `Begin a ${pluginName} purchase or free trial. Returns a Stripe Checkout link for paid plans, ` +
-      'or issues a free trial key immediately. Call list_plans first if the user has not chosen a plan.',
+      `Begin a ${pluginName} purchase. Returns a Stripe Checkout link. ` +
+      'Call list_plans first if the user has not chosen a plan.',
     inputSchema: {
       type: 'object',
       properties: {
-        plan: { type: 'string', description: 'Plan id, e.g. "trial", "pro". Use list_plans to see the options.' },
-        email: { type: 'string', description: 'Email address for the receipt and licence. Required for a trial.' },
+        plan: { type: 'string', description: 'Plan id: "pro" or "team". Use list_plans to see the options.' },
+        email: { type: 'string', description: 'Email address for the receipt and licence.' },
       },
       required: ['plan'],
     },
     handler: async ({ plan, email }) => {
-      if (plan === 'trial') {
-        if (!email?.trim()) throw new ToolError('invalid_request', 'An email address is required to issue a trial licence.');
-        const result = await client.startTrial(email.trim());
-        return {
-          trial_started: true,
-          license_key: result.license_key,
-          plan: result.plan,
-          capabilities: result.features,
-          limits: result.limits,
-          message: 'Trial licence issued and stored on this machine.',
-        };
-      }
       const result = await client.startCheckout(plan, email);
       return {
         checkout_url: result.checkout_url,

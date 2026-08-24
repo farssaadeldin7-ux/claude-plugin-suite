@@ -29,12 +29,12 @@ fastest. This plugin enforces that order.
 
 ### Tools
 
-**Open** — no licence needed, enough to describe a noise before starting a trial
+**Open** — no licence needed, enough to describe a noise before buying
 
 - `sound_vocabulary` — the controlled terms, and which ones matter most
 - `list_signatures` / `describe_signature` — browse and inspect the knowledge base
 
-**Licensed** — requires a trial, pro or team key
+**Licensed** — requires a pro or team key
 
 - `diagnose` — the main call: ranked candidates, next questions, safety verdict
 - `repair_plan` — ordered confirmation sequence, parts, book labour hours
@@ -53,8 +53,8 @@ Point it at your billing service:
 export PLUGIN_SUITE_BILLING_URL=https://billing.yourdomain.com
 ```
 
-Then either start a free trial from inside a conversation ("start a trial for
-diagnose by sound"), or paste an existing key and it will be stored at
+Then buy a plan from the pricing page (or with `start_checkout` from inside a
+conversation) and paste the key — it will be stored at
 `~/.config/plugin-suite/diagnose-by-sound.json`.
 
 A key can also be supplied by environment variable, which takes precedence:
@@ -68,13 +68,12 @@ export PLUGIN_SUITE_LICENSE_KEY=PS-DBS-...
 ## Plans
 
 Served by `services/billing` in this repo; the catalog lives in its `catalog.js`. There is
-no free plan — every diagnosis needs a trial or paid licence.
+no free plan and no trial — every diagnosis needs a paid licence.
 
 | Plan | Price | Seats | Diagnoses / month | Includes |
 | --- | --- | --- | --- | --- |
-| Trial (14 days) | $0 | 1 | 25 | `diagnose`, `repair_plan`, case history — one trial per email |
 | Pro | $40/month | 2 | unlimited | `diagnose`, `repair_plan`, case history |
-| Team | $79/month | 10 | unlimited | the same, for a multi-technician shop |
+| Team | $70/month | 10 | unlimited | the same, for a multi-technician shop |
 
 ## Privacy
 

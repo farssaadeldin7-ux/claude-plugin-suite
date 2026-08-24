@@ -79,5 +79,4 @@ better use of the next ten minutes than reading this repository.
 ## Plans
 
 Pricing is defined in the suite catalog for when this plugin's tool server ships:
-pro $40/month (2 seats) and team $70/month (10 seats), with a 14-day single-seat
-trial. Until the server exists, the skill content is open and nothing is gated.
+pro $40/month (2 seats) and team $70/month (10 seats). Until the server exists, the skill content is open and nothing is gated.

@@ -11,7 +11,7 @@ import path from 'node:path';
 export class Store {
   constructor(file) {
     this.file = file;
-    this.data = { version: 1, licenses: {}, events: {}, trials: {} };
+    this.data = { version: 1, licenses: {}, events: {} };
     try {
       const parsed = JSON.parse(fs.readFileSync(this.file, 'utf8'));
       this.data = { ...this.data, ...parsed };
@@ -53,14 +53,4 @@ export class Store {
     return true;
   }
 
-  // ---- trials ------------------------------------------------------------
-
-  trialUsed(pluginId, email) {
-    return Boolean(this.data.trials[`${pluginId}:${email.toLowerCase()}`]);
-  }
-
-  markTrial(pluginId, email, key) {
-    this.data.trials[`${pluginId}:${email.toLowerCase()}`] = { key, at: Date.now() };
-    this.save();
-  }
 }

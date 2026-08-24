@@ -6,8 +6,9 @@
  *
  * Boots the real server on a random port with a throwaway store, points
  * STRIPE_API_BASE at a local mock, and walks every flow the license-client
- * uses: trial, entitlement, seats, usage metering, checkout, webhook
- * (including bad-signature and replay), portal, and cancellation.
+ * uses: key issuance through signed webhooks, entitlement, seats, usage
+ * metering, checkout, webhook signature rejection and replay, portal, and
+ * cancellation.
  */
 
 import assert from 'node:assert/strict';
@@ -142,6 +143,12 @@ const api = async (method, endpoint, { body, key, raw, headers = {} } = {}) => {
   return { status: response.status, data };
 };
 
+// A signed checkout.session.completed delivery — the only way a key is born.
+const completeCheckout = (eventId, session) => {
+  const payload = JSON.stringify({ id: eventId, type: 'checkout.session.completed', data: { object: session } });
+  return { payload, headers: { 'stripe-signature': signWebhookPayload(payload, WEBHOOK_SECRET) } };
+};
+
 try {
   await until(async () => {
     const { data } = await api('GET', '/health');
@@ -152,40 +159,63 @@ try {
   // ---- catalog ------------------------------------------------------------
   const catalog = (await api('GET', '/v1/catalog/diagnose-by-sound')).data;
   assert.equal(catalog.name, 'Diagnose by Sound');
-  assert.deepEqual(catalog.plans.map((p) => p.id).sort(), ['pro', 'team', 'trial']);
+  assert.deepEqual(catalog.plans.map((p) => p.id).sort(), ['pro', 'team']);
   const pro = catalog.plans.find((p) => p.id === 'pro');
   assert.equal(pro.price, 4000);
   assert.equal(pro.seats, 2);
-  assert.equal(catalog.plans.find((p) => p.id === 'team').seats, 10);
-  ok('catalog lists trial, pro and team with correct prices and seats');
+  const team = catalog.plans.find((p) => p.id === 'team');
+  assert.equal(team.price, 7000);
+  assert.equal(team.seats, 10);
+  ok('catalog lists exactly pro and team with correct prices and seats');
+
+  const seaCatalog = (await api('GET', '/v1/catalog/sales-enablement-assistant')).data;
+  assert.equal(seaCatalog.plans.find((p) => p.id === 'pro').price, 50000);
+  assert.equal(seaCatalog.plans.find((p) => p.id === 'team').price, 200000);
+  ok('premium plugins price at $500/$2,000');
 
   assert.equal((await api('GET', '/v1/catalog/nonsense')).status, 404);
   ok('unknown plugin catalog is a 404');
 
-  // ---- trial --------------------------------------------------------------
-  const trial = (await api('POST', '/v1/trial', { body: { plugin_id: 'diagnose-by-sound', email: 'shop@example.com' } })).data;
-  assert.match(trial.license_key, /^PS-DBS(-[A-Z2-9]+){4}$/);
-  assert.equal(trial.plan, 'trial');
-  assert.equal(trial.limits.diagnoses_per_month, 25);
-  ok('trial issues a PS-DBS key with the trial limits');
+  assert.equal((await api('POST', '/v1/trial', { body: { plugin_id: 'diagnose-by-sound', email: 'shop@example.com' } })).status, 404);
+  ok('there is no trial endpoint');
 
-  const trialAgain = await api('POST', '/v1/trial', { body: { plugin_id: 'diagnose-by-sound', email: 'shop@example.com' } });
-  assert.equal(trialAgain.status, 409);
-  assert.equal(trialAgain.data.error, 'trial_already_used');
-  ok('second trial for the same email is refused');
+  // ---- webhook issues the key --------------------------------------------
+  const dbsCheckout = completeCheckout('evt_dbs_1', {
+    id: 'cs_dbs_1', customer: 'cus_dbs_1', subscription: 'sub_dbs_1',
+    customer_details: { email: 'owner@example.com' },
+    metadata: { plugin_id: 'diagnose-by-sound', plan: 'pro' },
+  });
+
+  const badSig = await api('POST', '/v1/stripe/webhook', { raw: dbsCheckout.payload, headers: { 'stripe-signature': 't=1,v1=deadbeef' } });
+  assert.equal(badSig.status, 400);
+  ok('a bad webhook signature is rejected');
+
+  assert.equal((await api('POST', '/v1/stripe/webhook', { raw: dbsCheckout.payload, headers: dbsCheckout.headers })).status, 200);
+  const replayed = (await api('POST', '/v1/stripe/webhook', { raw: dbsCheckout.payload, headers: dbsCheckout.headers })).data;
+  assert.equal(replayed.deduplicated, true);
+  ok('a signed checkout.session.completed lands once and replays are ignored');
+
+  const success = await api('GET', '/success?session_id=cs_dbs_1');
+  const key = /PS-DBS(?:-[A-Z2-9]+){4}/.exec(success.data)?.[0];
+  assert.ok(key, 'success page shows the issued key');
+  ok('the success page shows the new pro licence key');
 
   // ---- entitlement + seats ------------------------------------------------
-  const key = trial.license_key;
   const ent = (await api('GET', '/v1/entitlement?plugin_id=diagnose-by-sound&device_id=device-a', { key })).data;
   assert.equal(ent.active, true);
-  assert.equal(ent.status, 'trialing');
+  assert.equal(ent.status, 'active');
+  assert.equal(ent.plan, 'pro');
   assert.deepEqual(ent.features, ['diagnose', 'repair_plan', 'history']);
+  assert.equal(ent.limits.diagnoses_per_month, -1);
+  assert.equal(ent.seats.limit, 2);
   assert.equal(ent.seats.used, 1);
-  ok('entitlement is active and registers the first device');
+  ok('the pro entitlement is active and registers the first device');
 
-  const seatFull = (await api('GET', '/v1/entitlement?plugin_id=diagnose-by-sound&device_id=device-b', { key })).data;
-  assert.deepEqual(seatFull, { active: false, reason: 'seat_limit_reached' });
-  ok('a second device on a 1-seat trial is refused');
+  const secondSeat = (await api('GET', '/v1/entitlement?plugin_id=diagnose-by-sound&device_id=device-b', { key })).data;
+  assert.equal(secondSeat.active, true);
+  const thirdSeat = (await api('GET', '/v1/entitlement?plugin_id=diagnose-by-sound&device_id=device-c', { key })).data;
+  assert.deepEqual(thirdSeat, { active: false, reason: 'seat_limit_reached' });
+  ok('a third device on a 2-seat pro plan is refused');
 
   const wrongPlugin = (await api('GET', '/v1/entitlement?plugin_id=ghost-post-preview&device_id=device-a', { key })).data;
   assert.deepEqual(wrongPlugin, { active: false, reason: 'wrong_plugin' });
@@ -205,6 +235,14 @@ try {
   assert.equal(after.usage.diagnoses_per_month, 2);
   ok('usage is metered, idempotent on replay, and visible in the entitlement');
 
+  // ---- activation ---------------------------------------------------------
+  const activate = (await api('POST', '/v1/license/activate', { body: {
+    license_key: key.toLowerCase(), plugin_id: 'diagnose-by-sound', device_id: 'device-a', device_label: 'shop pc',
+  } })).data;
+  assert.equal(activate.activated, true);
+  assert.equal(activate.plan, 'pro');
+  ok('activate accepts the key case-insensitively and reports the plan');
+
   // ---- checkout -----------------------------------------------------------
   const checkout = (await api('POST', '/v1/checkout', { body: { plugin_id: 'diagnose-by-sound', plan: 'pro', email: 'owner@example.com' } })).data;
   assert.equal(checkout.checkout_url, 'https://checkout.stripe.com/c/pay/cs_test_1');
@@ -216,75 +254,38 @@ try {
   assert.equal((await api('POST', '/v1/checkout', { body: { plugin_id: 'diagnose-by-sound', plan: 'enterprise' } })).status, 404);
   ok('unknown plan is refused');
 
-  // ---- webhook ------------------------------------------------------------
-  const completed = JSON.stringify({
-    id: 'evt_1',
-    type: 'checkout.session.completed',
-    data: { object: {
-      id: 'cs_test_1', customer: 'cus_test_1', subscription: 'sub_test_1',
-      customer_details: { email: 'owner@example.com' },
-      metadata: { plugin_id: 'diagnose-by-sound', plan: 'pro' },
-    } },
-  });
-
-  const badSig = await api('POST', '/v1/stripe/webhook', { raw: completed, headers: { 'stripe-signature': 't=1,v1=deadbeef' } });
-  assert.equal(badSig.status, 400);
-  ok('a bad webhook signature is rejected');
-
-  const goodSig = { 'stripe-signature': signWebhookPayload(completed, WEBHOOK_SECRET) };
-  assert.equal((await api('POST', '/v1/stripe/webhook', { raw: completed, headers: goodSig })).status, 200);
-  const replayed = (await api('POST', '/v1/stripe/webhook', { raw: completed, headers: goodSig })).data;
-  assert.equal(replayed.deduplicated, true);
-  ok('a signed checkout.session.completed lands once and replays are ignored');
-
-  const success = await api('GET', '/success?session_id=cs_test_1');
-  const proKey = /PS-DBS(?:-[A-Z2-9]+){4}/.exec(success.data)?.[0];
-  assert.ok(proKey, 'success page shows the issued key');
-  ok('the success page shows the new pro licence key');
-
-  const proEnt = (await api('GET', `/v1/entitlement?plugin_id=diagnose-by-sound&device_id=device-a`, { key: proKey })).data;
-  assert.equal(proEnt.active, true);
-  assert.equal(proEnt.plan, 'pro');
-  assert.equal(proEnt.limits.diagnoses_per_month, -1);
-  assert.equal(proEnt.seats.limit, 2);
-  const secondSeat = (await api('GET', `/v1/entitlement?plugin_id=diagnose-by-sound&device_id=device-b`, { key: proKey })).data;
-  assert.equal(secondSeat.active, true);
-  const thirdSeat = (await api('GET', `/v1/entitlement?plugin_id=diagnose-by-sound&device_id=device-c`, { key: proKey })).data;
-  assert.deepEqual(thirdSeat, { active: false, reason: 'seat_limit_reached' });
-  ok('the pro licence is active, unlimited, and enforces its 2 seats');
-
-  const activate = (await api('POST', '/v1/license/activate', { body: {
-    license_key: proKey.toLowerCase(), plugin_id: 'diagnose-by-sound', device_id: 'device-a', device_label: 'shop pc',
-  } })).data;
-  assert.equal(activate.activated, true);
-  assert.equal(activate.plan, 'pro');
-  ok('activate accepts the key case-insensitively and reports the plan');
-
-  // ---- portal -------------------------------------------------------------
-  const portal = (await api('POST', '/v1/portal', { body: { license_key: proKey } })).data;
-  assert.equal(portal.portal_url, 'https://billing.stripe.com/p/session/bps_test_1');
-  const noPortal = await api('POST', '/v1/portal', { body: { license_key: key } });
-  assert.equal(noPortal.data.error, 'no_billing_account');
-  ok('portal works for Stripe-backed licences and refuses trials');
-
-  // ---- cancellation -------------------------------------------------------
-  const deleted = JSON.stringify({ id: 'evt_2', type: 'customer.subscription.deleted', data: { object: { id: 'sub_test_1' } } });
-  await api('POST', '/v1/stripe/webhook', { raw: deleted, headers: { 'stripe-signature': signWebhookPayload(deleted, WEBHOOK_SECRET) } });
-  const cancelled = (await api('GET', `/v1/entitlement?plugin_id=diagnose-by-sound&device_id=device-a`, { key: proKey })).data;
-  assert.deepEqual(cancelled, { active: false, reason: 'inactive' });
-  ok('subscription.deleted deactivates the licence');
-
   // ---- second plugin: ghost-post-preview ---------------------------------
   const gppCatalog = (await api('GET', '/v1/catalog/ghost-post-preview')).data;
   assert.equal(gppCatalog.name, 'Ghost Post Preview');
   assert.equal(gppCatalog.plans.find((p) => p.id === 'pro').price, 4000);
-  assert.equal(gppCatalog.plans.find((p) => p.id === 'team').price, 7900);
-  const gppTrial = (await api('POST', '/v1/trial', { body: { plugin_id: 'ghost-post-preview', email: 'shop@example.com' } })).data;
-  assert.match(gppTrial.license_key, /^PS-GPP(-[A-Z2-9]+){4}$/);
-  assert.deepEqual(gppTrial.features, ['lint', 'history']);
-  const crossPlugin = (await api('GET', '/v1/entitlement?plugin_id=diagnose-by-sound&device_id=device-a', { key: gppTrial.license_key })).data;
+  assert.equal(gppCatalog.plans.find((p) => p.id === 'team').price, 7000);
+  const gppCheckout = completeCheckout('evt_gpp_1', {
+    id: 'cs_gpp_1', customer: 'cus_gpp_1', subscription: 'sub_gpp_1',
+    customer_details: { email: 'shop@example.com' },
+    metadata: { plugin_id: 'ghost-post-preview', plan: 'pro' },
+  });
+  assert.equal((await api('POST', '/v1/stripe/webhook', { raw: gppCheckout.payload, headers: gppCheckout.headers })).status, 200);
+  const gppSuccess = await api('GET', '/success?session_id=cs_gpp_1');
+  const gppKey = /PS-GPP(?:-[A-Z2-9]+){4}/.exec(gppSuccess.data)?.[0];
+  assert.ok(gppKey, 'success page shows the issued GPP key');
+  const gppEnt = (await api('GET', '/v1/entitlement?plugin_id=ghost-post-preview&device_id=device-a', { key: gppKey })).data;
+  assert.equal(gppEnt.active, true);
+  assert.deepEqual(gppEnt.features, ['lint', 'history']);
+  const crossPlugin = (await api('GET', '/v1/entitlement?plugin_id=diagnose-by-sound&device_id=device-a', { key: gppKey })).data;
   assert.deepEqual(crossPlugin, { active: false, reason: 'wrong_plugin' });
-  ok('ghost-post-preview has its own catalog, trial keys, and plugin-scoped licences');
+  ok('ghost-post-preview has its own catalog, webhook-issued keys, and plugin-scoped licences');
+
+  // ---- portal -------------------------------------------------------------
+  const portal = (await api('POST', '/v1/portal', { body: { license_key: key } })).data;
+  assert.equal(portal.portal_url, 'https://billing.stripe.com/p/session/bps_test_1');
+  ok('portal opens a Stripe billing portal session for a licence');
+
+  // ---- cancellation -------------------------------------------------------
+  const deleted = JSON.stringify({ id: 'evt_dbs_2', type: 'customer.subscription.deleted', data: { object: { id: 'sub_dbs_1' } } });
+  await api('POST', '/v1/stripe/webhook', { raw: deleted, headers: { 'stripe-signature': signWebhookPayload(deleted, WEBHOOK_SECRET) } });
+  const cancelled = (await api('GET', '/v1/entitlement?plugin_id=diagnose-by-sound&device_id=device-a', { key })).data;
+  assert.deepEqual(cancelled, { active: false, reason: 'inactive' });
+  ok('subscription.deleted deactivates the licence');
 
   // ---- CORS for the storefront -------------------------------------------
   const SITE = 'https://www.codestudioplugin.com';
@@ -332,9 +333,9 @@ try {
   assert.match(provisioned, /STRIPE_PRICE_GPP_TEAM=price_mock_\d+/);
   assert.match(provisioned, /STRIPE_WEBHOOK_SECRET=whsec_mock_created/);
   assert.equal(stripeState.prices.find((p) => p.lookup_key === 'dbs_pro')?.unit_amount, 4000);
-  assert.equal(stripeState.prices.find((p) => p.lookup_key === 'dbs_team')?.unit_amount, 7900);
+  assert.equal(stripeState.prices.find((p) => p.lookup_key === 'dbs_team')?.unit_amount, 7000);
   assert.equal(stripeState.prices.find((p) => p.lookup_key === 'gpp_pro')?.unit_amount, 4000);
-  assert.equal(stripeState.prices.find((p) => p.lookup_key === 'gpp_team')?.unit_amount, 7900);
+  assert.equal(stripeState.prices.find((p) => p.lookup_key === 'gpp_team')?.unit_amount, 7000);
   assert.equal(stripeState.prices.find((p) => p.lookup_key === 'sea_pro')?.unit_amount, 50000);
   assert.equal(stripeState.prices.find((p) => p.lookup_key === 'saa_team')?.unit_amount, 200000);
   assert.equal(stripeState.prices.find((p) => p.lookup_key === 'pra_team')?.unit_amount, 200000);
@@ -342,7 +343,7 @@ try {
   assert.equal(stripeState.prices.find((p) => p.lookup_key === 'wbc_team')?.unit_amount, 7000);
   assert.equal(stripeState.prices.length, 28);
   assert.equal(stripeState.webhooks[0].url, 'https://billing.example.test/v1/stripe/webhook');
-  ok('setup-stripe provisions both plugins’ products, $40/$79 prices, webhook, and the env file');
+  ok('setup-stripe provisions both plugins’ products, $40/$70 prices, webhook, and the env file');
 
   const pricesBefore = stripeState.prices.length;
   const webhooksBefore = stripeState.webhooks.length;

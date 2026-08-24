@@ -23,7 +23,7 @@ const PLUGIN_NAME = 'Ghost Post Preview';
 const DEFAULT_BILLING_URL = 'https://billing.example.com';
 
 // No free tier: the fold test and platform data stay open so a draft can be
-// inspected before a trial; the lint pass and the prediction log are licensed.
+// inspected before buying; the lint pass and the prediction log are licensed.
 const client = new LicenseClient({ pluginId: PLUGIN_ID, defaultBillingUrl: DEFAULT_BILLING_URL });
 
 const server = new McpServer({

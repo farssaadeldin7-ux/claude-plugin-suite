@@ -56,7 +56,7 @@ just a better opening to a post nobody needed.
 - `fold_test` — exactly what survives truncation on a platform, and the first hidden line
 - `platform_mechanics` — what each ranking system rewards and suppresses
 
-**Licensed** — requires a trial, pro or team key:
+**Licensed** — requires a pro or team key:
 
 - `draft_lint` — mechanical failures with the evidence quoted: links where the platform
   punishes them, hashtags on X, throat-clearing openers, engagement bait, wall-of-text
@@ -64,14 +64,13 @@ just a better opening to a post nobody needed.
 - `log_call` / `record_result` / `review_calls` — the prediction log that gives the
   review record an error bar, stored only on this machine
 
-There is no free plan. Served by `services/billing` in this repo; the catalog lives in
-its `catalog.js`.
+There is no free plan and no trial. Served by `services/billing` in this repo; the
+catalog lives in its `catalog.js`.
 
 | Plan | Price | Seats | Lint passes / month |
 | --- | --- | --- | --- |
-| Trial (14 days) | $0 | 1 | 25 — one trial per email |
 | Pro | $40/month | 2 | unlimited |
-| Team | $79/month | 10 | unlimited |
+| Team | $70/month | 10 | unlimited |
 
 The review method itself — the skill — loads as content and needs no licence; a
 licensing miss never blocks the manual review.

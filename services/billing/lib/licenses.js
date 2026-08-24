@@ -26,7 +26,7 @@ export function currentPeriod(now = Date.now()) {
 
 /**
  * Issue a licence for a plan. `stripe` carries customer/subscription ids for
- * paid plans; trials have none and expire on period_end instead.
+ * paid plans, which carry the subscription's customer and id.
  */
 export function issueLicense(store, { pluginId, planId, email, stripe = null, checkoutSessionId = null, now = Date.now() }) {
   const entry = pluginFor(pluginId);
@@ -37,13 +37,13 @@ export function issueLicense(store, { pluginId, planId, email, stripe = null, ch
     key: generateKey(entry.code),
     plugin_id: pluginId,
     plan: planId,
-    status: planDef.trial_days ? 'trialing' : 'active',
+    status: 'active',
     email: email ?? null,
     features: planDef.features,
     limits: planDef.limits,
     seats: { limit: planDef.seats, devices: [] },
     usage: {},
-    period_end: planDef.trial_days ? new Date(now + planDef.trial_days * 86400000).toISOString() : null,
+    period_end: null,
     cancel_at_period_end: false,
     stripe: stripe,
     checkout_session_id: checkoutSessionId,
@@ -84,10 +84,6 @@ export function entitlementFor(store, { key, pluginId, deviceId, deviceLabel = n
   if (['canceled', 'inactive', 'past_due'].includes(license.status)) {
     return { active: false, reason: 'inactive' };
   }
-  if (license.status === 'trialing' && license.period_end && now > Date.parse(license.period_end)) {
-    return { active: false, reason: 'expired' };
-  }
-
   if (deviceId) {
     const registered = license.seats.devices.some((d) => d.id === deviceId);
     if (!registered) {
