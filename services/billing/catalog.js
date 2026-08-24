@@ -60,9 +60,7 @@ export const CATALOG = {
   'professor-mind-reader': {
     name: 'Professor Mind-Reader',
     code: 'PMR',
-    // Plans defined ahead of this plugin's tool server; 'tools' is the feature
-    // its server will gate. Until it ships, keys sell nothing — keep it off the
-    // storefront.
+    // The plugin's MCP server gates its licensed tools on the 'tools' feature.
     plans: {
       pro: {
         price: 4000,
@@ -87,9 +85,7 @@ export const CATALOG = {
   'five-minute-fluency': {
     name: '5-Minute Fluency',
     code: 'FMF',
-    // Plans defined ahead of this plugin's tool server; 'tools' is the feature
-    // its server will gate. Until it ships, keys sell nothing — keep it off the
-    // storefront.
+    // The plugin's MCP server gates its licensed tools on the 'tools' feature.
     plans: {
       pro: {
         price: 4000,
@@ -114,9 +110,7 @@ export const CATALOG = {
   'basecamp-split': {
     name: 'Basecamp Split',
     code: 'BCS',
-    // Plans defined ahead of this plugin's tool server; 'tools' is the feature
-    // its server will gate. Until it ships, keys sell nothing — keep it off the
-    // storefront.
+    // The plugin's MCP server gates its licensed tools on the 'tools' feature.
     plans: {
       pro: {
         price: 4000,
@@ -141,9 +135,7 @@ export const CATALOG = {
   'podcast-video-studio': {
     name: 'Podcast & Video Studio',
     code: 'PVS',
-    // Plans defined ahead of this plugin's tool server; 'tools' is the feature
-    // its server will gate. Until it ships, keys sell nothing — keep it off the
-    // storefront.
+    // The plugin's MCP server gates its licensed tools on the 'tools' feature.
     plans: {
       pro: {
         price: 4000,
@@ -168,9 +160,7 @@ export const CATALOG = {
   'support-agent-architect': {
     name: 'Support Agent Architect',
     code: 'SAA',
-    // Plans defined ahead of this plugin's tool server; 'tools' is the feature
-    // its server will gate. Until it ships, keys sell nothing — keep it off the
-    // storefront.
+    // The plugin's MCP server gates its licensed tools on the 'tools' feature.
     plans: {
       pro: {
         price: 50000,
@@ -195,9 +185,7 @@ export const CATALOG = {
   'sales-enablement-assistant': {
     name: 'Sales Enablement Assistant',
     code: 'SEA',
-    // Plans defined ahead of this plugin's tool server; 'tools' is the feature
-    // its server will gate. Until it ships, keys sell nothing — keep it off the
-    // storefront.
+    // The plugin's MCP server gates its licensed tools on the 'tools' feature.
     plans: {
       pro: {
         price: 50000,
@@ -222,9 +210,7 @@ export const CATALOG = {
   'wellbeing-companion': {
     name: 'Wellbeing Companion',
     code: 'WBC',
-    // Plans defined ahead of this plugin's tool server; 'tools' is the feature
-    // its server will gate. Until it ships, keys sell nothing — keep it off the
-    // storefront.
+    // The plugin's MCP server gates its licensed tools on the 'tools' feature.
     plans: {
       pro: {
         price: 4000,
@@ -249,9 +235,7 @@ export const CATALOG = {
   'neural-link-intention-layer': {
     name: 'Neural-Link Intention Layer',
     code: 'NLI',
-    // Plans defined ahead of this plugin's tool server; 'tools' is the feature
-    // its server will gate. Until it ships, keys sell nothing — keep it off the
-    // storefront.
+    // The plugin's MCP server gates its licensed tools on the 'tools' feature.
     plans: {
       pro: {
         price: 4000,
@@ -276,9 +260,7 @@ export const CATALOG = {
   'digital-twin-collaborator': {
     name: 'Digital Twin Collaborator',
     code: 'DTC',
-    // Plans defined ahead of this plugin's tool server; 'tools' is the feature
-    // its server will gate. Until it ships, keys sell nothing — keep it off the
-    // storefront.
+    // The plugin's MCP server gates its licensed tools on the 'tools' feature.
     plans: {
       pro: {
         price: 4000,
@@ -303,9 +285,7 @@ export const CATALOG = {
   'emotional-resonance-analyzer': {
     name: 'Emotional Resonance Analyzer',
     code: 'ERA',
-    // Plans defined ahead of this plugin's tool server; 'tools' is the feature
-    // its server will gate. Until it ships, keys sell nothing — keep it off the
-    // storefront.
+    // The plugin's MCP server gates its licensed tools on the 'tools' feature.
     plans: {
       pro: {
         price: 4000,
@@ -330,9 +310,7 @@ export const CATALOG = {
   'code-to-visual-interpreter': {
     name: 'Code-to-Visual Interpreter',
     code: 'CVI',
-    // Plans defined ahead of this plugin's tool server; 'tools' is the feature
-    // its server will gate. Until it ships, keys sell nothing — keep it off the
-    // storefront.
+    // The plugin's MCP server gates its licensed tools on the 'tools' feature.
     plans: {
       pro: {
         price: 4000,
@@ -357,9 +335,7 @@ export const CATALOG = {
   'predictive-resource-allocation': {
     name: 'Predictive Resource Allocation',
     code: 'PRA',
-    // Plans defined ahead of this plugin's tool server; 'tools' is the feature
-    // its server will gate. Until it ships, keys sell nothing — keep it off the
-    // storefront.
+    // The plugin's MCP server gates its licensed tools on the 'tools' feature.
     plans: {
       pro: {
         price: 50000,

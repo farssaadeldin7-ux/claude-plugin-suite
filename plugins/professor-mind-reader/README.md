@@ -44,14 +44,57 @@ citations. Asked to ghostwrite for assessment, the skill refuses and offers the 
 | `references/rubric-decomposition.md` | Verb ladder, weight-to-effort table, worked decomposition |
 | `references/band-descriptors.md` | Band boundaries across UK, US and ECTS, and the 2:1 to 1st pivot |
 | `references/hidden-criteria.md` | The unwritten conventions checklist, with why each is rewarded |
+| MCP server | Verb ladder, band tables, hidden-rubric checklist, effort arithmetic, scorecard, audit history, licensing |
 
-There is no MCP server. This is a pure-skill plugin: install it and it works.
+### Tools
+
+**Open** — no licence needed, enough to decompose a rubric before buying
+
+- `verb_ladder` — the seven-rung ladder, demotion signals, promotion moves, and exact
+  verb lookup
+- `band_descriptors` — band naming across UK, US and ECTS, what separates the bands,
+  the 2:1 to 1st pivot, descriptor-phrase translation
+- `hidden_rubric` — the unwritten conventions checklist, with tests and failure
+  signatures
+
+**Licensed** — requires a pro or team key
+
+- `effort_map` — target words and marks per 100 words per criterion, investment ratios
+  against the threshold table
+- `audit_scorecard` — marks at stake from the audit's verdicts, and the ranked fix list
+- `log_audit` / `record_result` / `review_audits` — local audit history and its error bar
+
+**Licensing** — `license_status`, `license_activate`, `start_checkout`, `list_plans`,
+`billing_portal`
+
+## Setup
+
+The MCP server has no npm dependencies and needs no install step.
+
+Point it at your billing service:
+
+```bash
+export PLUGIN_SUITE_BILLING_URL=https://billing.yourdomain.com
+```
+
+Then buy a plan from the pricing page (or with `start_checkout` from inside a
+conversation) and paste the key — it will be stored at
+`~/.config/plugin-suite/professor-mind-reader.json`.
+
+A key can also be supplied by environment variable, which takes precedence:
+
+```bash
+export PROFESSOR_MIND_READER_LICENSE_KEY=PS-PMR-...
+# or, shared across the whole suite:
+export PLUGIN_SUITE_LICENSE_KEY=PS-PMR-...
+```
 
 ## Free and paid
 
 Everything the skill does is free — decomposition, effort mapping, the audit, the hidden
-rubric sweep and band positioning. Suite-wide paid features, where a plugin has them,
-cover stored history and exports. This plugin has no gated capability.
+rubric sweep and band positioning — and the server's knowledge-base tools are open. The
+licence gates the server's compute and history tools: the effort arithmetic, the
+scorecard, and the local audit log.
 
 ## What this is not
 
@@ -74,5 +117,7 @@ own guidance — where they disagree with this, they are right.
 
 ## Plans
 
-Pricing is defined in the suite catalog for when this plugin's tool server ships:
-pro $40/month (2 seats) and team $70/month (10 seats). Until the server exists, the skill content is open and nothing is gated.
+Pricing is defined in the suite catalog: pro $40/month (2 seats) and team $70/month
+(10 seats). Both plans include the same tools; the licence gates `effort_map`,
+`audit_scorecard` and the audit history. Skill content and the knowledge-base tools
+stay open.

@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "podcast-video-studio": {
+      "command": "node",
+      "args": ["${CLAUDE_PLUGIN_ROOT}/mcp/server.js"],
+      "env": {
+        "PLUGIN_SUITE_BILLING_URL": "${PLUGIN_SUITE_BILLING_URL}",
+        "PODCAST_VIDEO_STUDIO_LICENSE_KEY": "${PODCAST_VIDEO_STUDIO_LICENSE_KEY}"
+      }
+    }
+  }
+}

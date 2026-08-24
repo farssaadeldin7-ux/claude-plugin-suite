@@ -43,15 +43,62 @@ WebGL/WebGPU, D3 and Processing.
 | `references/decomposition-method.md` | The taxonomy, the five questions to ask of an image, three worked decompositions |
 | `references/performance-budgets.md` | Numeric budgets, the arithmetic, per-technology limits, switch points |
 | `references/toolchain-notes.md` | Per-library idioms, determinism story, the bloat trap in each |
+| MCP server | The tables as lookups, the budget arithmetic, structure matching, source scanning, licensing |
+
+### Tools
+
+**Open** — no licence needed, enough to evaluate the method before buying
+
+- `decomposition_taxonomy` — the structure/modulation/surface tables, the discrimination
+  tests, the five questions and the three worked decompositions
+- `toolchain_notes` — per-library strengths, determinism story and the bloat trap in each
+- `edge_conditions` — where generative parameters degenerate, and what actually happens
+
+**Licensed** — requires a pro or team key
+
+- `structure_match` — the structures consistent with answers to the five questions, the
+  implied modulation class and the octave estimate
+- `cost_budget` — which side of the switch points an element count sits, with the arithmetic
+- `svg_export_budget` — path-data size from point count and precision, and the RDP epsilon
+  for the use case
+- `source_scan` — textual scan of pasted source for unseeded randomness, the GLSL sin hash
+  and known bloat-trap calls, each finding with its line quoted
+
+**Licensing** — `license_status`, `license_activate`, `start_checkout`, `list_plans`,
+`billing_portal`
 
 ## Free and paid
 
-This is a pure-skill plugin. There is no MCP server, nothing is metered, and no part of
-it is gated behind a licence — install it and the whole procedure is available. No code
-leaves your machine because nothing is sent anywhere, and there is no install step,
-dependency or configuration. It works best if you paste the actual source rather than
-describing it, and — for a visual → code request — supply a reference image or a precise
-description of spacing, overlap and how neighbouring elements relate.
+The skill content is open — install it and the whole procedure is available. The server's
+reference tools stay open too: the taxonomy, the toolchain notes and the edge-condition
+table need no key. The compute tools — structure matching, budget arithmetic, export
+sizing, source scanning — require a paid licence. Everything runs locally: the billing
+service sees a licence key, a plugin id, a hashed device identifier and nothing else —
+never your code. It works best if you paste the actual source rather than describing it,
+and — for a visual → code request — supply a reference image or a precise description of
+spacing, overlap and how neighbouring elements relate.
+
+## Setup
+
+The MCP server has no npm dependencies and needs no install step.
+
+Point it at your billing service:
+
+```bash
+export PLUGIN_SUITE_BILLING_URL=https://billing.yourdomain.com
+```
+
+Then buy a plan from the pricing page (or with `start_checkout` from inside a
+conversation) and paste the key — it will be stored at
+`~/.config/plugin-suite/code-to-visual-interpreter.json`.
+
+A key can also be supplied by environment variable, which takes precedence:
+
+```bash
+export CODE_TO_VISUAL_INTERPRETER_LICENSE_KEY=PS-CVI-...
+# or, shared across the whole suite:
+export PLUGIN_SUITE_LICENSE_KEY=PS-CVI-...
+```
 
 ## What this is not
 
@@ -75,5 +122,8 @@ description of spacing, overlap and how neighbouring elements relate.
 
 ## Plans
 
-Pricing is defined in the suite catalog for when this plugin's tool server ships:
-pro $40/month (2 seats) and team $70/month (10 seats). Until the server exists, the skill content is open and nothing is gated.
+Served by `services/billing` in this repo; the catalog lives in its `catalog.js`.
+Pro $40/month (2 seats) and team $70/month (10 seats). Both carry the same `tools`
+capability: the licence gates the compute tools — `structure_match`, `cost_budget`,
+`svg_export_budget` and `source_scan` — while the skill content and the reference
+tools stay open.

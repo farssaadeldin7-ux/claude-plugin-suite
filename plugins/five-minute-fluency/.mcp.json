@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "five-minute-fluency": {
+      "command": "node",
+      "args": ["${CLAUDE_PLUGIN_ROOT}/mcp/server.js"],
+      "env": {
+        "PLUGIN_SUITE_BILLING_URL": "${PLUGIN_SUITE_BILLING_URL}",
+        "FIVE_MINUTE_FLUENCY_LICENSE_KEY": "${FIVE_MINUTE_FLUENCY_LICENSE_KEY}"
+      }
+    }
+  }
+}

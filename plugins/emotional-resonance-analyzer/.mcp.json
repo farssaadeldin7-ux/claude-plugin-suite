@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "emotional-resonance-analyzer": {
+      "command": "node",
+      "args": ["${CLAUDE_PLUGIN_ROOT}/mcp/server.js"],
+      "env": {
+        "PLUGIN_SUITE_BILLING_URL": "${PLUGIN_SUITE_BILLING_URL}",
+        "EMOTIONAL_RESONANCE_ANALYZER_LICENSE_KEY": "${EMOTIONAL_RESONANCE_ANALYZER_LICENSE_KEY}"
+      }
+    }
+  }
+}

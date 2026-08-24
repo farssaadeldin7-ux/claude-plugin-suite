@@ -3,8 +3,7 @@
 Works out where a render, simulation or training job will bottleneck, and says what to
 change first.
 
-Part of a 14-plugin suite. This one is a pure skill — no MCP server, no network calls,
-no telemetry.
+Part of a 14-plugin suite sharing one Stripe-backed licensing service.
 
 ## What it does
 
@@ -26,6 +25,37 @@ the machine.
 - **Farm and cloud rules**: the minimum per-frame time that justifies dispatch, what
   distributes and what does not, Young–Daly checkpoint intervals for spot instances.
 
+## Components
+
+| Component | Purpose |
+| --- | --- |
+| Skill `predictive-resource-allocation` | The intake interview, the triage sequence, how to choose and present remedies |
+| MCP server | The triage reference, capacity arithmetic, bottleneck classification, dispatch arithmetic, estimate log, licensing |
+
+### Tools
+
+**Open** — no licence needed, enough to evaluate the method before buying
+
+- `triage_reference` — the four constraint classes, the discriminating tests, the
+  symptom index, the bandwidth ladder and the minimum intake
+- `domain_profile` — per-application bottleneck profiles and the settings that matter
+- `remedy_ladder` — the fixed remedy order, and why hardware is last
+
+**Licensed** — requires a pro or team key
+
+- `vram_estimate` — GPU rendering capacity arithmetic against the card's usable budget
+- `training_memory_estimate` — static state and activation arithmetic, with the cliff
+  called out when no batch size can fix it
+- `classify_bottleneck` — threshold checks over measured test readings; names a class
+  only when two findings agree
+- `dispatch_plan` — the 10x-overhead dispatch rule, batching bands and Young–Daly
+  checkpoint intervals
+- `estimate_log` — local log of predictions against measured actuals, with a
+  factor-of-two calibration tally
+
+**Licensing** — `license_status`, `license_activate`, `start_checkout`, `list_plans`,
+`billing_portal`
+
 ## Who it is for, and what it requires
 
 3D animators, VFX artists and data scientists who own a deadline and a machine that is
@@ -39,9 +69,32 @@ You also have to bring two things it cannot obtain for itself: **your actual har
 and **one measured baseline run**. The skill will ask for both and will decline to
 predict without them, on purpose.
 
-## Free and paid
+## Setup
 
-Everything here is free. No MCP server, no licence gate, no usage counter, no account.
+The MCP server has no npm dependencies and needs no install step.
+
+Point it at your billing service:
+
+```bash
+export PLUGIN_SUITE_BILLING_URL=https://billing.yourdomain.com
+```
+
+Then buy a plan from the pricing page (or with `start_checkout` from inside a
+conversation) and paste the key — it will be stored at
+`~/.config/plugin-suite/predictive-resource-allocation.json`.
+
+A key can also be supplied by environment variable, which takes precedence:
+
+```bash
+export PREDICTIVE_RESOURCE_ALLOCATION_LICENSE_KEY=PS-PRA-...
+# or, shared across the whole suite:
+export PLUGIN_SUITE_LICENSE_KEY=PS-PRA-...
+```
+
+The estimate log is written only to
+`~/.config/plugin-suite/predictive-resource-allocation-estimates.json` on the machine
+that created it. The billing service sees a licence key, a plugin id and a hashed
+device identifier — never a scene, a model or an estimate.
 
 ## Honest limits
 
@@ -75,5 +128,9 @@ output rather than hiding it in a footnote.
 
 ## Plans
 
-Pricing is defined in the suite catalog for when this plugin's tool server ships:
-pro $500/month (2 seats) and team $2,000/month (10 seats). Until the server exists, the skill content is open and nothing is gated.
+Served by `services/billing` in this repo; the catalog lives in its `catalog.js`.
+Pro is $500/month (2 seats) and team is $2,000/month (10 seats). The licence gates the
+compute tools — capacity arithmetic, bottleneck classification, dispatch arithmetic and
+the estimate log. The skill content and the browsing tools (`triage_reference`,
+`domain_profile`, `remedy_ladder`) stay open, so the method can be evaluated before
+buying.

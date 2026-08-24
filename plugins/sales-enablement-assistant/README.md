@@ -41,17 +41,66 @@ enforces the order of operations. It cannot supply the judgement.
 | `references/trigger-hierarchy.md` | Ranked triggers, where to verify each, what makes one stale |
 | `references/message-anatomy.md` | Structure, worked good and bad examples, the find-and-replace test |
 | `references/ai-tells.md` | The tells with rewrites, and the pre-send self-audit |
+| MCP server | The deterministic mechanics: trigger freshness arithmetic, draft lint, sequence dates, the local outreach log, licensing |
 
-This is a skill-only plugin. There is no MCP server, nothing to install, and no network
-access of its own: it works with whatever research you or the assistant can reach.
+The server has no network access of its own beyond the licensing service: research is
+done with whatever sources you or the assistant can reach, and verifying an event
+remains your job.
+
+### Tools
+
+**Open** — no licence needed, enough to evaluate the method before buying
+
+- `trigger_hierarchy` — the ranked triggers, what is not one, and the staleness rule
+- `message_anatomy` — the structural thresholds, subject rules, worked examples, the
+  compliance checklist and the never-fabricate list
+- `ai_tells` — the tells with before and after rewrites, and the pre-send self-audit
+
+**Licensed** — requires a pro or team key
+
+- `trigger_check` — date arithmetic on a claimed trigger against the freshness table
+- `message_lint` — mechanical draft checks with the evidence quoted: counts, tell
+  phrases, subject rules, opt-out and address pattern scan. No scores, no verdicts
+- `sequence_plan` — the three touches as working-day dates, plus the 90-day quiet date
+- `log_outreach` / `review_outreach` — the local outreach log, with the sequence rules
+  enforced mechanically: three touches then stop, no reopening without a rank 1-3 trigger
+
+**Licensing** — `license_status`, `license_activate`, `start_checkout`, `list_plans`,
+`billing_portal`
+
+## Setup
+
+The MCP server has no npm dependencies and needs no install step.
+
+Point it at your billing service:
+
+```bash
+export PLUGIN_SUITE_BILLING_URL=https://billing.yourdomain.com
+```
+
+Then buy a plan from the pricing page (or with `start_checkout` from inside a
+conversation) and paste the key — it will be stored at
+`~/.config/plugin-suite/sales-enablement-assistant.json`.
+
+A key can also be supplied by environment variable, which takes precedence:
+
+```bash
+export SALES_ENABLEMENT_ASSISTANT_LICENSE_KEY=PS-SEA-...
+# or, shared across the whole suite:
+export PLUGIN_SUITE_LICENSE_KEY=PS-SEA-...
+```
 
 ## Free and paid
 
-Everything in this plugin is free. There is nothing gated and no licence key.
+The skill and its references are open, as everywhere in the suite, and the three browse
+tools need no key. The licence gates the checks and the log: `trigger_check`,
+`message_lint`, `sequence_plan`, `log_outreach` and `review_outreach`.
 
-What costs money is elsewhere: the data sources you research with, your sending
-infrastructure, and your CRM. The plugin does not require, integrate with or resell any
-of them.
+What costs money elsewhere stays elsewhere: the data sources you research with, your
+sending infrastructure, and your CRM. The plugin does not require, integrate with or
+resell any of them. The outreach log is written only to
+`~/.config/plugin-suite/sales-enablement-assistant-outreach.json` on the machine that
+created it — the billing service never sees an account name or a draft.
 
 ## What this is not
 
@@ -73,5 +122,7 @@ of them.
 
 ## Plans
 
-Pricing is defined in the suite catalog for when this plugin's tool server ships:
-pro $500/month (2 seats) and team $2,000/month (10 seats). Until the server exists, the skill content is open and nothing is gated.
+Served by `services/billing` in this repo; the catalog lives in its `catalog.js`:
+pro $500/month (2 seats) and team $2,000/month (10 seats). Both plans include the same
+tools — the licence gates `trigger_check`, `message_lint`, `sequence_plan`,
+`log_outreach` and `review_outreach`; team is the same capability across more seats.

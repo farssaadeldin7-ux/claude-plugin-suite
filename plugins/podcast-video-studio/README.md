@@ -3,7 +3,7 @@
 Turns a long recording into a scored cut list: which moments earn a clip, where each one
 starts and ends, where it goes, and what it is called.
 
-Part of a 14-plugin suite. This one is a pure skill — no MCP server, no external calls.
+Part of a 14-plugin suite sharing one Stripe-backed licensing service.
 
 ## What it does
 
@@ -39,6 +39,28 @@ recording and it will faithfully score forty bad moments.
 | `references/clip-scoring.md` | Rubric, band descriptors, disqualifiers, worked examples |
 | `references/moment-archetypes.md` | The seven archetypes and how to spot each in text |
 | `references/destination-specs.md` | Per-platform length, aspect, safe areas, captions, pacing |
+| MCP server | Archetype tell scan, rubric arithmetic, destination bands, clip log, licensing |
+
+### Tools
+
+**Open** — no licence needed, enough to inspect the method before buying
+
+- `moment_archetypes` — the seven archetypes, their tells and best-fit destinations
+- `scoring_rubric` — the four axes, disqualifiers, thresholds and worked examples
+- `destination_specs` — length, aspect, safe areas, captions and pacing per destination
+
+**Licensed** — requires a pro or team key
+
+- `scan_candidates` — find the archetype tells in a transcript, with evidence quoted and timecodes attached
+- `score_clip` — the rubric applied mechanically: disqualifiers, thresholds, the terminal premise rule, destination fit by length
+- `log_clip` / `record_footage_pass` / `review_clips` — the local clip log that turns the assumed one-third footage-pass failure rate into your own measured count
+
+**Licensing** — `license_status`, `license_activate`, `start_checkout`, `list_plans`,
+`billing_portal`
+
+The server is deterministic throughout: it matches literal tells, does threshold
+arithmetic and counts outcomes. It never assigns the four axis scores, never judges a
+moment and never predicts views — that split is the design, not a gap.
 
 ## Requirements
 
@@ -46,11 +68,38 @@ A transcript with timecodes at sentence level or finer, speaker labels, and verb
 Any ASR output with word or sentence timings works. A tidied transcript with no timecodes
 is not enough — the skill will say so rather than guessing at in-points.
 
+## Setup
+
+The MCP server has no npm dependencies and needs no install step.
+
+Point it at your billing service:
+
+```bash
+export PLUGIN_SUITE_BILLING_URL=https://billing.yourdomain.com
+```
+
+Then buy a plan from the pricing page (or with `start_checkout` from inside a
+conversation) and paste the key — it will be stored at
+`~/.config/plugin-suite/podcast-video-studio.json`.
+
+A key can also be supplied by environment variable, which takes precedence:
+
+```bash
+export PODCAST_VIDEO_STUDIO_LICENSE_KEY=PS-PVS-...
+# or, shared across the whole suite:
+export PLUGIN_SUITE_LICENSE_KEY=PS-PVS-...
+```
+
 ## Free and paid
 
-Everything here is free. There are no gated tools, no usage counter and no licence key,
-because there is no server to gate: the skill and its references run entirely inside the
-conversation, and no part of your recording leaves the machine on this plugin's account.
+The skill content and the three browsing tools are free — the whole method can be read
+and inspected before buying. A licence gates the compute and the history: the transcript
+scan, the threshold arithmetic and the clip log.
+
+The server runs locally over stdio, so no part of your recording leaves the machine.
+The clip log is written only to `~/.config/plugin-suite/podcast-video-studio-clips.json`;
+the billing service sees a licence key, a plugin id and a hashed device identifier — never
+a transcript.
 
 ## What this is not
 
@@ -75,5 +124,8 @@ conversation, and no part of your recording leaves the machine on this plugin's 
 
 ## Plans
 
-Pricing is defined in the suite catalog for when this plugin's tool server ships:
-pro $40/month (2 seats) and team $70/month (10 seats). Until the server exists, the skill content is open and nothing is gated.
+Served by `services/billing` in this repo; the catalog lives in its `catalog.js`:
+pro $40/month (2 seats) and team $70/month (10 seats). Both plans include the same
+tools — the licence gates `scan_candidates`, `score_clip` and the clip log
+(`log_clip`, `record_footage_pass`, `review_clips`); the skill content and the
+browsing tools stay open.

@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "predictive-resource-allocation": {
+      "command": "node",
+      "args": ["${CLAUDE_PLUGIN_ROOT}/mcp/server.js"],
+      "env": {
+        "PLUGIN_SUITE_BILLING_URL": "${PLUGIN_SUITE_BILLING_URL}",
+        "PREDICTIVE_RESOURCE_ALLOCATION_LICENSE_KEY": "${PREDICTIVE_RESOURCE_ALLOCATION_LICENSE_KEY}"
+      }
+    }
+  }
+}

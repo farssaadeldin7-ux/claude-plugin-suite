@@ -33,14 +33,12 @@ swap in a real database later.
 $70/mo (10 seats, unlimited), gating the
 `draft_lint` pass and the prediction log (`STRIPE_PRICE_GPP_PRO` / `_TEAM`).
 
-The other twelve plugins carry defined plans ahead of their tool servers — pro (2
-seats) and team (10 seats), all gating the `tools` feature
-their servers will check. **Until a plugin's server ships, its keys gate nothing: keep
-it off the storefront.** Standard tier is pro $40/mo · team $70/mo; the three
-premium plugins — Sales Enablement Assistant, Support Agent Architect and Predictive
-Resource Allocation — are pro $500/mo · team $2,000/mo. Env keys follow the plugin
-codes: `STRIPE_PRICE_<CODE>_PRO` / `_TEAM` for PMR, FMF, BCS, PVS, SAA, SEA, WBC, NLI,
-DTC, ERA, CVI and PRA.
+The other twelve plugins sell the same shape — pro (2 seats) and team (10 seats),
+each gating the `tools` feature its MCP server checks. Standard tier is pro $40/mo ·
+team $70/mo; the three premium plugins — Sales Enablement Assistant, Support Agent
+Architect and Predictive Resource Allocation — are pro $500/mo · team $2,000/mo. Env
+keys follow the plugin codes: `STRIPE_PRICE_<CODE>_PRO` / `_TEAM` for PMR, FMF, BCS,
+PVS, SAA, SEA, WBC, NLI, DTC, ERA, CVI and PRA.
 
 No plugin has a free plan or a trial — every gated tool needs a paid licence. (A plugin
 that wants client-side free features can declare them via `LicenseClient`'s `freeTier`

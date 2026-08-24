@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "sales-enablement-assistant": {
+      "command": "node",
+      "args": ["${CLAUDE_PLUGIN_ROOT}/mcp/server.js"],
+      "env": {
+        "PLUGIN_SUITE_BILLING_URL": "${PLUGIN_SUITE_BILLING_URL}",
+        "SALES_ENABLEMENT_ASSISTANT_LICENSE_KEY": "${SALES_ENABLEMENT_ASSISTANT_LICENSE_KEY}"
+      }
+    }
+  }
+}
