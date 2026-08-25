@@ -55,13 +55,9 @@ models one job.
 4. **Require a 10 point absolute lift** over baseline. Below that, report that the log
    contains no learnable sequence structure and proceed with the audit alone.
 
-Expected ranges for a creative workflow, self-transitions excluded — top-1 then top-3:
-unigram baseline 8–15% / 20–28%, bigram 25–35% / 45–58%, trigram with backoff 30–45% /
-55–70%. Anything above 70% top-1 is a bug until disproved.
+## Reading navigation and undo
 
-## Reading the audit outputs
-
-**Undo share of all actions**
+**Undo share** as a percentage of all actions:
 
 | Share | Reading |
 | --- | --- |
@@ -70,28 +66,30 @@ unigram baseline 8–15% / 20–28%, bigram 25–35% / 45–58%, trigram with ba
 | 8–15% | Investigate what precedes the undos |
 | over 15% | Wrong defaults, or a destructive rather than non-destructive process |
 
-**Per-action undo rate.** For every action seen 20 or more times, compute
-`P(undo | action)`. Above 0.25 the action's default parameters are wrong. Fix the
-default; do not build a macro around a step that gets reversed a quarter of the time.
+**Per-action undo diagnostic:** for each action with at least 20 occurrences, compute
+`P(undo | action)`. Above 0.25 means the action's defaults are wrong; fix defaults,
+not macros.
 
-**Navigation share.** Zoom, pan and layer-visibility toggles as a
-percentage of all actions — commonly 20–35% in retouching and illustration. Usually the
-biggest single cost in the log, and almost never fixable by a macro: the answers are
-hardware (tablet rocker ring, ExpressKeys, the Navigator panel) and habit.
+**Navigation share** is **zoom, pan, tool switching and layer-visibility toggles as a
+percentage of all actions**. In retouching and illustration it is commonly **20–35%**.
+This is usually the biggest single cost in a creative log and almost never a macro
+candidate; fixes are hardware and habits.
 
-## Scoring formula
+## Scoring automation candidates
 
-```
-value        = F x (K + C) / (S + R)
-payback_weeks = S x 1.3 / (F x (K + C))
-```
+Use one formula throughout so ranking is not argued by gut feel.
+
+- `value = F x (K + C) / (S + R)`
+- `payback_weeks = S x 1.3 / (F x (K + C))`
+
+Where:
 
 | Term | Meaning | Typical values |
 | --- | --- | --- |
-| F | Occurrences per week, from the log | — |
+| F | Occurrences per week, from the log | never from recall |
 | K | Seconds saved per occurrence | keystroke 0.3 s, menu trip 1.5 s, modal dialogue 4 s |
 | C | Context-switch cost, seconds | 0 hand stays put, 1.5 mouse-to-menu, 4 dialogue, 15 leaving the app |
-| S | Setup seconds; the 1.3 factor adds 30% annualised maintenance | 180 keymap, 300 action, 900 component set, 1200 OS macro, 5000 plugin |
+| S | Setup seconds; `x1.3` adds 30% annualised maintenance | 180 keymap, 300 action, 900 component set, 1200 OS macro, 5000 plugin |
 | R | `(1 − p) x severity` | severity 2 s undoable, 30 s silently wrong, unbounded destructive |
 
 Build when payback is under 8 weeks and the sequence is stable across the whole log.
@@ -119,7 +117,7 @@ Top actions:
 | set_brush_size | 233 | 4.8% |
 | toggle_layer_visibility | 171 | 3.6% |
 
-Navigation share 19.4%. Undo share 6.5% — normal band, no action to take.
+Navigation share 24.4%. Undo share 6.5% — normal band, no action to take.
 
 Model: baseline top-1 24.7% including self-transitions, but only **9.1% once
 self-transitions are excluded**. Trigram with backoff reaches **31.4%** excluded, top-3
@@ -148,5 +146,23 @@ batch it is one Image Processor run or a saved export preset, and 24 weekly occu
 collapse to 2.
 
 **A non-candidate.** Runs of three or more consecutive `set_brush_size` occur 64 times.
-That is not a macro; it is the bracket-key increment being wrong for the working
-resolution, or a pen without a size control mapped. Fix the increment.
+Looks large until normalised: those runs are one token with a run length. The underlying
+action is still parameter hunting, and the fix is a tablet rocker ring or better brush
+presets, not a macro around repeated key taps.
+
+## Confidence floors for suggestions
+
+The predictor should not surface weak suggestions. Let **k** be how many times worse a
+wrong suggestion is than a right one is good. Show only when:
+
+`p > k / (1 + k)`
+
+| Wrong-fire is… | k | Minimum p |
+| --- | --- | --- |
+| equal cost to right-fire gain | 1 | 0.50 |
+| 2x worse | 2 | 0.67 |
+| 4x worse | 4 | 0.80 |
+| 9x worse | 9 | 0.90 |
+
+UI commands should default to a threshold around 0.8 and only drop with explicit user
+consent.
