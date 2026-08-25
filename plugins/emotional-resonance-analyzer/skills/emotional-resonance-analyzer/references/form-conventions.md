@@ -26,7 +26,7 @@ The characteristic failure is a film that spends its first minute establishing c
 it has not earned the right to give. The characteristic fix is to start at the second
 scene.
 
-A short doc has room for one question, one person and one turn. Two central questions in
+A short doc has room for one central question, one person and one turn. Two central questions in
 under 10 minutes read as an unfinished feature.
 
 ---
@@ -126,7 +126,9 @@ watched wastes the one moment the form gives you.
 | YouTube long-form | 00:08 | chapter boundaries | 85–95% | 40 s |
 | Broadcast | 01:00 | every break | last segment | 45 s |
 
-The talking-head limit column replaces the 40-second baseline tell for that form.
+The talking-head limit column replaces the 40-second baseline tell for that form, and
+the Central-close window replaces the generic 2/3 premature-resolution baseline the
+same way — judge the close against the form's window, not the ratio.
 
 When the editor names a form that is not on this list — installation piece, festival
 short, internal comms, series episode — say the conventions are not encoded, ask what

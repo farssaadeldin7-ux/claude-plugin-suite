@@ -103,7 +103,7 @@ each are in `references/dropoff-causes.md`.
 
 | Cause | Structural tell | Threshold |
 | --- | --- | --- |
-| No question open | Consecutive scenes that only deliver information | 3 in a row |
+| No question open | Consecutive scenes that only deliver information | 3 in a row, or any 90-second stretch with nothing open — whichever trips first |
 | Stakes not personalised | Subject is a topic, not a person | over 90 seconds |
 | Tonal monotony | No valence change | across 5 minutes |
 | Premature resolution | Central question answered early | before the 2/3 mark |
@@ -149,7 +149,7 @@ Rank by exposed run-time recovered per unit of edit effort. Define effort explic
 
 | Effort | Meaning |
 | --- | --- |
-| 1 | Trim within an existing scene; no reconform, no new material |
+| 1 | Any change inside one scene using material already in the project — trim, split, cutaway; no assembly ripple, no new material |
 | 2 | Reorder or lift a whole scene; ripple through the assembly |
 | 3 | Needs new material, a reshoot, a rewrite of narration, or a rescore |
 

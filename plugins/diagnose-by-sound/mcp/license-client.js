@@ -20,15 +20,24 @@ import { ToolError } from './mcp-lite.js';
 const CACHE_TTL_MS = 5 * 60 * 1000;
 const REQUEST_TIMEOUT_MS = 8000;
 
+/** Hosts pass .mcp.json env through verbatim, so an unset variable can arrive as
+ *  an empty string or a literal "${VAR}" — both count as absent. */
+const envValue = (name) => {
+  const value = process.env[name]?.trim();
+  return value && !/^\$\{[^}]*\}$/.test(value) ? value : null;
+};
+
 export class LicenseClient {
   /**
-   * @param {{pluginId: string, defaultBillingUrl: string, envPrefix?: string}} options
+   * @param {{pluginId: string, defaultBillingUrl: string, envPrefix?: string,
+   *          freeTier?: {plan?: string, features?: string[], limits?: object}}} options
    */
-  constructor({ pluginId, defaultBillingUrl, envPrefix }) {
+  constructor({ pluginId, defaultBillingUrl, envPrefix, freeTier }) {
     this.pluginId = pluginId;
     this.envPrefix = envPrefix || pluginId.replace(/-/g, '_').toUpperCase();
-    this.billingUrl = (process.env.PLUGIN_SUITE_BILLING_URL || defaultBillingUrl).replace(/\/$/, '');
+    this.billingUrl = (envValue('PLUGIN_SUITE_BILLING_URL') || defaultBillingUrl).replace(/\/$/, '');
     this.configPath = path.join(configDir(), `${pluginId}.json`);
+    this.freeTier = { plan: 'free', features: [], limits: {}, ...freeTier };
     this.cache = null;
   }
 
@@ -36,8 +45,8 @@ export class LicenseClient {
 
   get licenseKey() {
     return (
-      process.env[`${this.envPrefix}_LICENSE_KEY`]?.trim() ||
-      process.env.PLUGIN_SUITE_LICENSE_KEY?.trim() ||
+      envValue(`${this.envPrefix}_LICENSE_KEY`) ||
+      envValue('PLUGIN_SUITE_LICENSE_KEY') ||
       this.#readConfig().license_key ||
       null
     );
@@ -74,7 +83,11 @@ export class LicenseClient {
     const dir = path.dirname(this.configPath);
     fs.mkdirSync(dir, { recursive: true, mode: 0o700 });
     const merged = { ...this.#readConfig(), ...patch };
-    fs.writeFileSync(this.configPath, JSON.stringify(merged, null, 2), { mode: 0o600 });
+    // Write-then-rename so a crash mid-write can never truncate the stored
+    // licence: the old file stays intact until the new one is complete.
+    const tmp = `${this.configPath}.tmp`;
+    fs.writeFileSync(tmp, JSON.stringify(merged, null, 2), { mode: 0o600 });
+    fs.renameSync(tmp, this.configPath);
     return merged;
   }
 
@@ -116,17 +129,39 @@ export class LicenseClient {
     return { status: response.status, ok: response.ok, data };
   }
 
+  /** The entitlement a user has with no key, or when the service cannot say. */
+  #freeEntitlement(reason) {
+    return {
+      active: true,
+      free: true,
+      plan: this.freeTier.plan,
+      features: this.freeTier.features,
+      limits: this.freeTier.limits,
+      usage: {},
+      reason,
+    };
+  }
+
   /** Cached entitlement lookup. Set force to bypass the cache after a change. */
   async entitlement({ force = false } = {}) {
     if (!force && this.cache && Date.now() - this.cache.at < CACHE_TTL_MS) {
       return this.cache.value;
     }
     if (!this.licenseKey) {
-      return { active: false, reason: 'missing_license' };
+      return this.#freeEntitlement('missing_license');
     }
 
     const query = new URLSearchParams({ plugin_id: this.pluginId, device_id: this.deviceId });
-    const { data } = await this.#request('GET', `/v1/entitlement?${query}`);
+    let data;
+    try {
+      ({ data } = await this.#request('GET', `/v1/entitlement?${query}`));
+    } catch (err) {
+      // Documented failure behaviour: a previously valid entitlement keeps
+      // working even past its cache TTL, and an unknown state degrades to the
+      // free tier with a clear message — never to an error.
+      if (this.cache) return { ...this.cache.value, stale: true, stale_reason: err.code };
+      return { ...this.#freeEntitlement('billing_unreachable'), degraded: true, note: err.message };
+    }
     this.cache = { at: Date.now(), value: data };
     return data;
   }
@@ -137,6 +172,14 @@ export class LicenseClient {
    */
   async requireFeature(feature) {
     const entitlement = await this.entitlement();
+    // A plugin with no free features has no free tier: with no key, every
+    // gated tool is a licensing miss, not an upgrade prompt.
+    if (entitlement.free && !entitlement.features.length) {
+      throw new ToolError('license_required', explainDenial({ reason: 'missing_license' }, this.pluginId), {
+        reason: entitlement.reason,
+        next_step: 'Call license_activate with an existing key, or start_checkout to buy a plan.',
+      });
+    }
     if (!entitlement.active) {
       throw new ToolError('license_required', explainDenial(entitlement, this.pluginId), {
         reason: entitlement.reason,
@@ -146,11 +189,16 @@ export class LicenseClient {
       });
     }
     if (!entitlement.features?.includes(feature)) {
-      throw new ToolError('upgrade_required', `The "${entitlement.plan}" plan does not include this capability.`, {
+      throw new ToolError('upgrade_required',
+        entitlement.free
+          ? 'This capability is not included in the free tier.'
+          : `The "${entitlement.plan}" plan does not include this capability.`, {
         plan: entitlement.plan,
         required_feature: feature,
         available_features: entitlement.features,
-        next_step: 'Call start_checkout with a higher plan, or list_plans to compare.',
+        next_step: entitlement.free
+          ? 'Call license_activate with an existing key, or start_checkout to buy a plan.'
+          : 'Call start_checkout with a higher plan, or list_plans to compare.',
       });
     }
     return entitlement;
@@ -212,15 +260,6 @@ export class LicenseClient {
     return data;
   }
 
-  async startTrial(email) {
-    const { ok, data } = await this.#request('POST', '/v1/trial', {
-      auth: false,
-      body: { plugin_id: this.pluginId, email },
-    });
-    if (!ok) throw new ToolError(data.error || 'trial_failed', data.message || 'Could not start a trial.', data.detail);
-    this.saveLicenseKey(data.license_key);
-    return data;
-  }
 
   async plans() {
     const { ok, data } = await this.#request('GET', `/v1/catalog/${this.pluginId}`, { auth: false });
@@ -272,13 +311,26 @@ export function registerLicenseTools(server, client, { pluginName }) {
     inputSchema: { type: 'object', properties: {} },
     handler: async () => {
       const entitlement = await client.entitlement({ force: true });
+      if (entitlement.free) {
+        return {
+          licensed: false,
+          ...(entitlement.features.length
+            ? { plan: entitlement.plan, free_tier_includes: entitlement.features }
+            : { reason: 'missing_license', explanation: explainDenial({ reason: 'missing_license' }, client.pluginId) }),
+          ...(entitlement.degraded
+            ? { note: 'The licensing service was unreachable, so this reflects what works without it.' }
+            : {}),
+          billing_service: client.billingUrl,
+          next_step: 'Use license_activate with an existing key, or start_checkout to buy a plan.',
+        };
+      }
       if (!entitlement.active) {
         return {
           licensed: false,
           reason: entitlement.reason,
           explanation: explainDenial(entitlement, client.pluginId),
           billing_service: client.billingUrl,
-          next_step: 'Use license_activate with an existing key, or start_checkout to buy or trial a plan.',
+          next_step: 'Use license_activate with an existing key, or start_checkout to buy a plan.',
         };
       }
       return {
@@ -322,29 +374,17 @@ export function registerLicenseTools(server, client, { pluginName }) {
 
   server.tool('start_checkout', {
     description:
-      `Begin a ${pluginName} purchase or free trial. Returns a Stripe Checkout link for paid plans, ` +
-      'or issues a free trial key immediately. Call list_plans first if the user has not chosen a plan.',
+      `Begin a ${pluginName} purchase. Returns a Stripe Checkout link. ` +
+      'Call list_plans first if the user has not chosen a plan.',
     inputSchema: {
       type: 'object',
       properties: {
-        plan: { type: 'string', description: 'Plan id, e.g. "trial", "pro". Use list_plans to see the options.' },
-        email: { type: 'string', description: 'Email address for the receipt and licence. Required for a trial.' },
+        plan: { type: 'string', description: 'Plan id: "pro" or "team". Use list_plans to see the options.' },
+        email: { type: 'string', description: 'Email address for the receipt and licence.' },
       },
       required: ['plan'],
     },
     handler: async ({ plan, email }) => {
-      if (plan === 'trial') {
-        if (!email?.trim()) throw new ToolError('invalid_request', 'An email address is required to issue a trial licence.');
-        const result = await client.startTrial(email.trim());
-        return {
-          trial_started: true,
-          license_key: result.license_key,
-          plan: result.plan,
-          capabilities: result.features,
-          limits: result.limits,
-          message: 'Trial licence issued and stored on this machine.',
-        };
-      }
       const result = await client.startCheckout(plan, email);
       return {
         checkout_url: result.checkout_url,

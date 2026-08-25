@@ -1,7 +1,7 @@
 {
   "name": "professor-mind-reader",
   "version": "0.1.0",
-  "description": "Reverse-engineer a marking rubric into the handful of things the grader actually rewards, then audit a draft against them.",
+  "description": "Reverse-engineer a marking rubric into the handful of criteria that actually move the mark, then audit a draft against them.",
   "author": {
     "name": "Fars Saadeldin"
   },

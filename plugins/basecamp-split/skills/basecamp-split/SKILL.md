@@ -118,7 +118,7 @@ Move group mass towards the strongest carriers first, in this order: fuel and wa
 Then check every band again. If someone is still over:
 
 1. Name the binding constraint out loud. "D's band is 8.7 kg and their personal kit
-   alone is 8.0 kg" is the finding — not "loads are a bit tight".
+   plus water is 9.5 kg" is the finding — not "loads are a bit tight".
 2. Cut scope before you overload anyone: fewer nights, a resupply, a cached drop, a
    lighter shelter, a shorter menu.
 3. Re-split and re-check.
@@ -141,7 +141,9 @@ its honest limits.
 
 The plan is done when all four of these pass:
 
-- Every `SHARED` and `REDUNDANT-SHARED` item has exactly one carrier's name.
+- Every `SHARED` instance has exactly one carrier's name, and every
+  `REDUNDANT-SHARED` item has at least two instances, each with one named carrier, in
+  different packs.
 - Every one of the seven systems has an owner and a backup in a different pack.
 - No person exceeds their stated band at the heaviest point of the trip.
 - Cost balances sum to zero and every expense has a payer and a split model.

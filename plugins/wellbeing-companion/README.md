@@ -16,7 +16,7 @@ produces the artefacts a wellbeing conversation needs before it is allowed near 
 - A handover specification: what the user is told, where it routes, what the receiving
   human gets, and what the model stops doing
 - A regional crisis-resource configuration format, with verification and expiry built in
-- A red-team suite and the three metrics that govern change control
+- A red-team suite, the metric that gates change control, and the two it deliberately does not
 
 ## Who it is for
 
@@ -58,16 +58,76 @@ trigger to improve containment.
 | `references/scope-and-boundaries.md` | The three lists, declining language, populations needing separate design |
 | `references/escalation-protocol.md` | Trigger categories, response constraints, resource configuration, handover packet |
 | `references/evaluation-and-governance.md` | Red-team construction, metrics, change control, roles, regulatory posture |
+| MCP server | Escalation lookups, resource-block validation, scope wording, evaluation gate, run record, licensing |
 
-## Tiers
+### Tools
 
-**Free** — the scope statement, trigger categories and handover format.
+**Open** — no licence needed, ever. Safety and escalation lookups are deliberately not
+behind the paywall: a safety protocol that costs money to consult is a design failure.
 
-**Paid** — the full red-team suite construction, the resource-configuration validator with
-expiry enforcement, incident-review templates, and the governance role pack.
+- `escalation_triggers` — the nine trigger categories, verbatim, with the conversational
+  thresholds
+- `escalation_response` — response constraints, response shapes, out-of-hours rule,
+  handover packet, what never happens
+- `resource_config_check` — mechanical validation of a regional crisis-resource block:
+  required fields, dates, quarterly cadence, staleness (a stale block fails)
+
+**Licensed** — requires a pro or team key
+
+- `scope_statement` — the three lists in publishable wording, declining pattern, language
+  rules, populations needing separate design
+- `redteam_spec` — the red-team slices and counts, metric definitions, incident rules,
+  governance roles
+- `evaluation_gate` — the binary change-control gate computed from a run's counts
+- `record_redteam_run` / `review_runs` — the local change-control record
+
+**Licensing** — `license_status`, `license_activate`, `start_checkout`, `list_plans`,
+`billing_portal`
+
+None of the tools assess a person, score a transcript, judge severity, or generate crisis
+phone numbers. They serve the protocol text and count what you measured.
+
+## Setup
+
+The MCP server has no npm dependencies and needs no install step.
+
+Point it at your billing service:
+
+```bash
+export PLUGIN_SUITE_BILLING_URL=https://billing.yourdomain.com
+```
+
+Then buy a plan (or use `start_checkout` from inside a conversation) and paste the key —
+it will be stored at `~/.config/plugin-suite/wellbeing-companion.json`.
+
+A key can also be supplied by environment variable, which takes precedence:
+
+```bash
+export WELLBEING_COMPANION_LICENSE_KEY=PS-WBC-...
+# or, shared across the whole suite:
+export PLUGIN_SUITE_LICENSE_KEY=PS-WBC-...
+```
+
+## Privacy
+
+The change-control record written by `record_redteam_run` is stored only at
+`~/.config/plugin-suite/wellbeing-companion-runs.json` on the machine that created it.
+The billing service sees a licence key, a plugin id and a hashed device identifier. It
+never sees a run, a resource block or anything a user typed.
 
 ## If you are here because you are struggling
 
 This is a builder's tool and it will not help you. If you are having a hard time, please
 reach out to someone — a GP, a helpline in your country, or a person you trust. That is a
 better use of the next ten minutes than reading this repository.
+
+## The skill you bring
+
+**Clinical Triage Protocols.** Be fluent in when a conversation must reach a human. The tool is support, never crisis intervention, and the escalation protocol assumes an operator who can hold that line.
+
+## Plans
+
+Pricing is defined in the suite catalog: pro $40/month (2 seats) and team $70/month
+(10 seats). The licence gates the builder's workflow tools — scope wording, red-team
+specification, the evaluation gate and the run record. The skill content, and every
+safety and escalation lookup on the server, stay open regardless of licence.

@@ -1,0 +1,135 @@
+{
+  "note": "Every figure is approximate and every weighting directional. Fold lengths vary by device, font size and accessibility settings; ranking changes without announcement. Mirrors references/platform-mechanics.md — keep the two in step.",
+  "platforms": {
+    "linkedin": {
+      "label": "LinkedIn",
+      "fold": { "chars": 200, "lines": 3, "blank_lines_cost_a_line": true },
+      "governing_signal": "Dwell time, then comments weighted far above likes",
+      "rewards": [
+        "Dwell time — how long the post holds a scroll",
+        "Comments, weighted far above likes",
+        "Substantive replies over one-word replies",
+        "Early engagement from the first-degree network"
+      ],
+      "suppresses": [
+        "Outbound links in the post body — move them to the first comment",
+        "Engagement-bait phrasing",
+        "Reposts without commentary",
+        "Posting more than once in ~18 hours"
+      ],
+      "format_rules": "Short lines, one idea per line, no more than two consecutive lines of prose before a break."
+    },
+    "x": {
+      "label": "X",
+      "fold": { "chars": 280, "lines": null, "blank_lines_cost_a_line": true },
+      "governing_signal": "Reply velocity in the first ~30 minutes",
+      "rewards": [
+        "Reply velocity in the first ~30 minutes",
+        "Replies over likes; likes over reposts for early ranking",
+        "Time spent on the post, including profile clicks",
+        "The author replying inside their own thread"
+      ],
+      "suppresses": [
+        "Outbound links, moderately",
+        "Posts nobody replies to within the first hour",
+        "Deleted-and-reposted content",
+        "Hashtags, which do nothing useful"
+      ],
+      "format_rules": "The first two lines carry the post; longer posts collapse behind Show more."
+    },
+    "instagram": {
+      "label": "Instagram",
+      "fold": { "chars": 125, "lines": 2, "blank_lines_cost_a_line": false },
+      "governing_signal": "Saves and sends over likes; the first frame decides whether the caption exists",
+      "rewards": [
+        "Saves and sends, above all",
+        "Sends to DMs — the strongest single signal",
+        "Watch-through on Reels",
+        "Comment threads with replies"
+      ],
+      "suppresses": [
+        "Text-heavy first frames",
+        "Watermarked reposts from other platforms",
+        "Captions that repeat the image",
+        "Link stickers in feed posts"
+      ],
+      "format_rules": "The caption is secondary — the first frame is the real hook."
+    },
+    "tiktok": {
+      "label": "TikTok",
+      "fold": { "chars": 100, "lines": 1, "blank_lines_cost_a_line": false },
+      "governing_signal": "Watch-through percentage, decided in the first 1.5 seconds",
+      "rewards": [
+        "Watch-through percentage, above everything",
+        "Rewatches and loops",
+        "Comments and shares",
+        "Completion on short videos"
+      ],
+      "suppresses": [
+        "A slow first 1.5 seconds",
+        "Length beyond what the idea supports",
+        "Obvious ad structure in the first frames",
+        "Another platform's watermark"
+      ],
+      "format_rules": "The caption is barely read; the first 1.5 seconds of video is the hook."
+    },
+    "reddit": {
+      "label": "Reddit",
+      "fold": {
+        "title": { "chars": 300, "lines": null, "blank_lines_cost_a_line": false },
+        "body": { "chars": null, "lines": 3, "blank_lines_cost_a_line": false }
+      },
+      "governing_signal": "Subreddit norms and early vote velocity; the title is the entire hook",
+      "rewards": [
+        "Early upvote velocity in the first hour",
+        "Titles that state the substance plainly",
+        "Comment depth and the author replying",
+        "Genuine specificity and receipts"
+      ],
+      "suppresses": [
+        "Anything that reads as marketing",
+        "Accounts with no history in the subreddit",
+        "Cross-posting the same text to several subreddits",
+        "Links to the author's own site or newsletter"
+      ],
+      "format_rules": "Subreddit norms override every general rule. Curiosity-gap titles read as clickbait here."
+    },
+    "youtube": {
+      "label": "YouTube",
+      "fold": {
+        "title": { "chars": 60, "lines": 1, "blank_lines_cost_a_line": false },
+        "body": { "chars": 125, "lines": null, "blank_lines_cost_a_line": false }
+      },
+      "governing_signal": "CTR multiplied by average view duration — either alone is misleading",
+      "rewards": [
+        "Click-through rate on the thumbnail and title",
+        "Average view duration and average percentage viewed",
+        "Session time — viewers who keep watching afterwards",
+        "Returning-viewer signals"
+      ],
+      "suppresses": [
+        "Titles that overpromise relative to the video",
+        "Slow openings before the payoff is named",
+        "Thumbnails that require reading to understand",
+        "Keyword-stuffed titles"
+      ],
+      "format_rules": "Title truncates around 60 characters — load-bearing words first. The first 15 seconds restate the title's promise."
+    },
+    "facebook": {
+      "label": "Facebook",
+      "fold": { "chars": 250, "lines": 3, "blank_lines_cost_a_line": false },
+      "governing_signal": "Meaningful interactions; link previews rank differently from native text",
+      "rewards": ["Comments and shares over reactions", "Native text and native video"],
+      "suppresses": ["Engagement bait it can pattern-match", "Outbound links, moderately"],
+      "format_rules": "Link previews rank differently from native text."
+    },
+    "threads": {
+      "label": "Threads",
+      "fold": { "chars": 350, "lines": 4, "blank_lines_cost_a_line": true },
+      "governing_signal": "Behaves closer to X than to Instagram; replies drive distribution",
+      "rewards": ["Replies and quote activity", "Conversational openers"],
+      "suppresses": ["Outbound links, moderately", "Hashtag stuffing"],
+      "format_rules": "About 4-5 lines visible; the first line carries it."
+    }
+  }
+}

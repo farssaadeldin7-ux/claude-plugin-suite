@@ -12,7 +12,7 @@ cohort, the marker or the moderation meeting.
 | First (1st) | 70-100 | A / A+ | 4.0 | A | Excellent |
 | Upper second (2:1) | 60-69 | B+ / A- | 3.3-3.7 | B | Good |
 | Lower second (2:2) | 50-59 | B / B- | 2.7-3.0 | C | Satisfactory |
-| Third | 40-49 | C | 2.0-2.3 | D/E | Adequate |
+| Third | 40-49 | C / C+ | 2.0-2.3 | D/E | Adequate |
 | Fail | 0-39 | D / F | 0-1.0 | F | Fail |
 
 Two cautions. UK 70% and US "A" are not the same object: a UK first is a band that runs

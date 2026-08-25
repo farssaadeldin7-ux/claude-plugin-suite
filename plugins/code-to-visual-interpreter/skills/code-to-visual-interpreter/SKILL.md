@@ -115,6 +115,9 @@ to design around than to fix afterwards. Two figures decide the technology:
 | 10,000 – 100,000 | WebGL instanced rendering, one draw call |
 | Above 100,000 | GPU-side state: transform feedback (WebGL2) or compute (WebGPU) |
 
+Those are animated switch points. Static exports stretch further: SVG stays workable to
+roughly 20,000 elements before parse and layout costs bite (see the budgets reference).
+
 **Frame budget** — 60 fps is 16.7 ms. Spend at most 10 ms in your own code and leave the
 rest for style, layout and compositing. For static exports the equivalent levers are
 coordinate precision and point count: three decimal places is almost always enough and

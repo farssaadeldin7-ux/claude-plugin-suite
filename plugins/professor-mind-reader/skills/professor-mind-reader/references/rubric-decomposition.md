@@ -40,8 +40,12 @@ Signals of a demoted answer:
 | Describe | Explain | Add "because" and a mechanism |
 | Explain | Apply | Attach it to the case, with specifics from the case |
 | Apply | Analyse | Name what the application revealed that was not obvious |
-| Analyse | Evaluate | State the criteria for judgement, then judge |
+| Analyse | Compare | Put two analysed things on one explicit, stated basis of comparison |
+| Compare | Evaluate | State the criteria for judgement, then judge which side wins on them |
 | Evaluate | Synthesise | Reconcile two positions into one that is yours |
+
+A draft can need more than one move: the worked example below requires rung 4 to rung 6,
+which is Analyse to Compare and then Compare to Evaluate in the same pass.
 
 ## Weight-to-effort mapping
 

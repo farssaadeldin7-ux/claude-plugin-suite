@@ -87,7 +87,7 @@ colour and a third for width — the result is mud, because three independent mo
 destroy the coherence that made the field legible.
 
 **Cost:** 5,000 streamlines × 200 steps = 1,000,000 line segments. That is Canvas 2D
-territory with batched paths, not SVG — as SVG it would be roughly 9 MB of path data
+territory with batched paths, not SVG — as SVG it would be roughly 15 MB of path data
 before simplification.
 
 ## Worked decomposition 2 — Truchet tiling
@@ -118,7 +118,7 @@ shapes as `<symbol>` plus 1,600 `<use>` elements is a few kilobytes.
 
 **Cost, and the trap:** naive packing tests every candidate against every placed circle.
 5,000 circles is roughly 12.5 million distance checks and will hang a browser tab. Use a
-spatial hash grid with cell size equal to the maximum radius and test only the nine
+spatial hash grid with cell size equal to the maximum diameter and test only the nine
 neighbouring cells — this takes it to roughly linear.
 
 ## The five questions to ask of any image

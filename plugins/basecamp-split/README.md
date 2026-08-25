@@ -37,20 +37,60 @@ organisers, and anyone who has been the person who ended up carrying the fourth 
 | `references/gear-taxonomy.md` | Shared vs personal test, the seven-system table with acceptable backups, splittable items |
 | `references/consumables-planning.md` | Energy, food weight, water, treatment and fuel figures, plus a worked four-person three-day example |
 | `references/cost-splitting.md` | The three split models, the settle-up algorithm and its limits, worked example |
+| MCP server | The reference tables as queryable data, the four ledger computations, licensing |
 
-## Free and paid
+### Tools
 
-This is a pure-skill plugin. There is no MCP server, nothing is metered, and no part of
-it is gated behind a licence — install it and the whole procedure is available. No trip
-data leaves your machine because nothing is sent anywhere.
+**Open** — no licence needed, enough to inspect the method before buying
+
+- `gear_taxonomy` — the shared vs personal test, the three tags, the typical
+  classification, splittable items and the duplication audit
+- `spof_systems` — the seven-system table with acceptable backups and the rules
+- `planning_figures` — kcal, food weight, reserve, water, treatment, fuel, carry bands
+  and split models, all as stated ranges
+
+**Licensed** — requires a pro or team key
+
+- `size_consumables` — food, reserve, water and fuel arithmetic for a party; ranges
+  stay ranges unless a point inside them is chosen
+- `weight_ledger` — per-person load against band, the binding constraint named, the
+  aggregate-versus-split finding
+- `settle_costs` — the ledger in whole pennies, the zero-sum check, the greedy
+  settle-up with its honest limits
+- `reconcile_plan` — the four finishing checks plus the two always-required items
+
+**Licensing** — `license_status`, `license_activate`, `start_checkout`, `list_plans`,
+`billing_portal`
 
 ## Setup
 
-No install step, no dependencies, no configuration. Drop it in and ask for a gear split.
+The MCP server has no npm dependencies and needs no install step.
 
-It works best if you can supply body weights, nights per person and a rough personal
-kit weight per person. Without body weights it falls back to self-declared target loads
-and says so, rather than assuming a 70 kg carrier.
+Point it at your billing service:
+
+```bash
+export PLUGIN_SUITE_BILLING_URL=https://billing.yourdomain.com
+```
+
+Then buy a plan from the pricing page (or with `start_checkout` from inside a
+conversation) and paste the key — it will be stored at
+`~/.config/plugin-suite/basecamp-split.json`.
+
+A key can also be supplied by environment variable, which takes precedence:
+
+```bash
+export BASECAMP_SPLIT_LICENSE_KEY=PS-BCS-...
+# or, shared across the whole suite:
+export PLUGIN_SUITE_LICENSE_KEY=PS-BCS-...
+```
+
+The tools work best if you can supply body weights, nights per person and a rough
+personal kit weight per person. Without body weights the weight ledger falls back to
+self-declared target loads and says so, rather than assuming a 70 kg carrier.
+
+Trip data — rosters, loads, expenses — is passed through the tools and stored nowhere.
+The billing service sees a licence key, a plugin id and a hashed device identifier; it
+never sees a trip.
 
 ## What this is not
 
@@ -68,3 +108,14 @@ and says so, rather than assuming a 70 kg carrier.
 - **Not a certification.** It checks that a first aid kit, an emergency communication
   plan and a route plan left with someone exist and have owners. It cannot check that
   they are any good.
+
+## The skill you bring
+
+**Logistics & Resource Optimisation.** The transferable skill this plugin encodes: multi-variable distribution under hard constraints. The same discipline prices into supply chain, disaster relief and event logistics — build for expedition companies first, then pivot the allocation method to larger industries. As a leader you still bring judgement about route and group competence, which the plugin deliberately does not provide.
+
+## Plans
+
+Pricing is defined in the suite catalog: pro $40/month (2 seats) and team $70/month
+(10 seats). A licence gates the four ledger computations — `size_consumables`,
+`weight_ledger`, `settle_costs` and `reconcile_plan`. The skill content and the three
+reference-table tools stay open, so the method can be evaluated before buying.

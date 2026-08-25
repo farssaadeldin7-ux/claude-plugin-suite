@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "support-agent-architect": {
+      "command": "node",
+      "args": ["${CLAUDE_PLUGIN_ROOT}/mcp/server.js"],
+      "env": {
+        "PLUGIN_SUITE_BILLING_URL": "${PLUGIN_SUITE_BILLING_URL}",
+        "SUPPORT_AGENT_ARCHITECT_LICENSE_KEY": "${SUPPORT_AGENT_ARCHITECT_LICENSE_KEY}"
+      }
+    }
+  }
+}

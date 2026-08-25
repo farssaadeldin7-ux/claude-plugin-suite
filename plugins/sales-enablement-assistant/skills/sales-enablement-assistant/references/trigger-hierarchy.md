@@ -29,7 +29,7 @@ trigger; a new Chief People Officer, when you sell observability, is not.
 
 - **Where to verify**: their LinkedIn start date, the hire announcement, the company
   leadership page.
-- **Freshness**: 12 weeks. The window is the first 90 days, when a new executive is
+- **Freshness**: 13 weeks — the first 90 days, when a new executive is
   visibly reviewing what they inherited and has permission to change it.
 - **What to do with it**: address the thing they were hired to fix, which is usually
   stated in the announcement itself.
@@ -75,7 +75,7 @@ describe a problem in its own words.
 - **Where to verify**: a public case study appearing or disappearing, a logo added to a
   vendor's site, a conference talk, a technical job posting naming the new stack, a
   status page or integration directory listing.
-- **Freshness**: 12 weeks.
+- **Freshness**: 13 weeks.
 - **What to do with it**: a switch means someone owns the migration and is exposed if it
   goes badly. That person is your buyer.
 - **Failure mode**: guessing at the switch from a job posting that merely lists a tool
@@ -93,6 +93,14 @@ thread, a blog entry.
   Disagreeing well outperforms agreeing blandly.
 - **Failure mode**: "Loved your post on X" with nothing after it. If you cannot name
   the specific claim you are responding to, you did not read it.
+
+## Anything else dated and verifiable
+
+Events this list does not name — layoffs, an executive departure, a public outage or
+incident, a lawsuit, an expansion announced outside a funding round — qualify when they
+are dated, verifiable at a primary source, and map to the pain you solve. Treat them at
+rank-6-equivalent strength. What disqualifies an event is a missing date or source, not
+absence from this list.
 
 ## Not a trigger
 

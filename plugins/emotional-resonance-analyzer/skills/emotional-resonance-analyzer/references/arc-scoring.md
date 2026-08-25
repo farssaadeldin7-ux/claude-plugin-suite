@@ -74,9 +74,9 @@ One row per question. Reproduce it in full in the output.
 
 | # | Question | Opens | Closes | How it closes | Weight |
 | --- | --- | --- | --- | --- | --- |
-| Q1 | Will the yard reopen? | 00:40 | 21:10 | On screen, explicit | Central |
-| Q2 | Why did Dan stay? | 03:15 | 17:30 | Implied, in testimony | Major |
-| Q3 | What is in the ledger book? | 06:50 | — | Never closed | Minor |
+| Q1 | Will the yard reopen? | 00:15 | 09:45 | On screen, explicit | Central |
+| Q2 | Why did Dan stay? | 00:40 | 07:00 | Implied, in testimony | Major |
+| Q3 | What is in the ledger book? | 05:50 | — | Never closed | Minor |
 
 **Weight** is Central, Major or Minor. Exactly one question is Central. If you cannot
 identify a single Central question, that is the finding — say so before anything else,
@@ -120,6 +120,12 @@ film, which is exactly why the note is a reframe at around 07:00 rather than a c
 Q1 closes at 09:45 of 11:40, ratio 0.84 — within the 70–85% window for a short doc. No
 premature resolution. Q3 never closes; Minor, and the ledger book pays off visually in
 scene 12, so leave it.
+
+Two more trip on the same material. Scenes 3–5 keep the subject a topic rather than a
+person for 4:10 — **stakes not personalised**, tripped, overlapping the no-question
+stretch and raising cut #1's priority. And scene 10 peaks at intensity 5 with the scenes
+after it at 3 and 2, never dropping to 1 — **no landing** by the pattern table above;
+the celebration needs a beat of stillness before the credits.
 
 **Three highest-leverage cuts.**
 

@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "neural-link-intention-layer": {
+      "command": "node",
+      "args": ["${CLAUDE_PLUGIN_ROOT}/mcp/server.js"],
+      "env": {
+        "PLUGIN_SUITE_BILLING_URL": "${PLUGIN_SUITE_BILLING_URL}",
+        "NEURAL_LINK_INTENTION_LAYER_LICENSE_KEY": "${NEURAL_LINK_INTENTION_LAYER_LICENSE_KEY}"
+      }
+    }
+  }
+}

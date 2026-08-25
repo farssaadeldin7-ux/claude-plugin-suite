@@ -73,8 +73,8 @@ is an error, and so is a listing with no directory.
 
 ## Adding a tool server to an existing skill
 
-Skills and MCP servers are separable on purpose. Thirteen plugins are skill-only today; the
-skill content is the specification the server gets built against. When adding one:
+Skills and MCP servers are separable on purpose. All fourteen plugins now ship servers; the
+skill content is the specification each server was built against. When adding one:
 
 - Free-tier tools should be the ones that make the skill work at all. Paid tools are the
   ones that save the user time once they are already getting value.

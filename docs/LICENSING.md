@@ -1,7 +1,8 @@
 # Licensing
 
 One billing service across all fourteen plugins. A user holds a single account; entitlements
-are per plugin, or one suite entitlement covering all of them.
+are per plugin, or one suite entitlement covering all of them. The service itself lives in
+[`services/billing/`](../services/billing/), with the plan catalog in its `catalog.js`.
 
 ## Resolution order
 
@@ -31,6 +32,11 @@ The split is the same principle everywhere in the suite:
 
 A free tier that produces a deliberately crippled answer teaches the user the tool is bad.
 The free tier should be genuinely useful and obviously incomplete, which is a different thing.
+
+A plugin may also ship with no free tier at all — Diagnose by Sound does — in which case
+every gated tool requires a paid licence, and ungated tools (vocabulary, browsing)
+are what a prospective user gets. The client grants free features only where the plugin
+declares them via `LicenseClient`'s `freeTier` option.
 
 ## Failure behaviour
 

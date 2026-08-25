@@ -65,7 +65,9 @@ One line per piece, with these fields.
 | `contributes` | `all`, or a list of dimensions if the piece is partial |
 | `note` | Only for near-misses: one sentence on what is wrong with it |
 
-`landed` is not a quality rating; it is how the work performed against the brief. A piece can
+`landed` and `mixed` record how the work performed against the brief, not its quality.
+`near-miss` is the exception: it records style distance — a piece that is almost the
+author's voice and not quite, however it performed against the brief. A piece can
 be exemplary and have landed badly. Keep both facts.
 
 ## Worked curation: a 20-piece corpus
@@ -107,7 +109,7 @@ candidate pieces.
 
 ### What the three near-misses bought
 
-They produced five never entries that the twenty good pieces could not have:
+They produced five never entries that the seventeen good pieces could not have:
 
 1. Never let an accent colour exceed roughly 12% of frame area, even for reach.
 2. Never cut on a musical beat.

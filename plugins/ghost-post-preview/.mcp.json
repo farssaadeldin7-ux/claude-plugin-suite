@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "ghost-post-preview": {
+      "command": "node",
+      "args": ["${CLAUDE_PLUGIN_ROOT}/mcp/server.js"],
+      "env": {
+        "PLUGIN_SUITE_BILLING_URL": "${PLUGIN_SUITE_BILLING_URL}",
+        "GHOST_POST_PREVIEW_LICENSE_KEY": "${GHOST_POST_PREVIEW_LICENSE_KEY}"
+      }
+    }
+  }
+}

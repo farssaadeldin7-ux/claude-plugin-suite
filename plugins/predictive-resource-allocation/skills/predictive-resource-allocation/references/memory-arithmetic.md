@@ -49,16 +49,16 @@ cause of a scene that "should" fit and does not.
 ### Framebuffer and AOVs
 
 `framebuffer_GB = width x height x AOV_count x 16 bytes x 2 / 1e9`, where 16 bytes is
-RGBA half and the factor of 2 covers the sample buffer and denoiser input. A 4K frame
+RGBA at fp32 accumulation and the factor of 2 covers the sample buffer and denoiser input. A 4K frame
 with 12 AOVs is about **3.2 GB** — often the difference between fitting and not.
 
 ### Worked example: 24 GB card
 
 18M triangles at 64 bytes is 1.15 GB; BVH at 1.6x adds 1.84 GB; 22 texture sets, mostly
-4K 8-bit with four at 8K half, come to 4.4 GB; a 4K framebuffer with 8 AOVs is 2.1 GB;
-renderer and driver overhead 1.5 GB. **Total ~11 GB**, comfortable inside a 21 GB budget.
+4K 8-bit with four at 8K half, come to 4.1 GB; a 4K framebuffer with 8 AOVs is 2.1 GB;
+renderer and driver overhead 1.5 GB. **Total ~10.7 GB**, comfortable inside a 21 GB budget.
 
-Raise the four 8K half sets to twelve and textures reach roughly 10.7 GB, total ~17.3 GB
+Raise the four 8K half sets to twelve and textures reach roughly 9.8 GB, total ~16.4 GB
 — still fits, but thin enough that adding volumetrics pushes it over.
 
 ## Training

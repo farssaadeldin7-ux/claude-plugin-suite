@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "code-to-visual-interpreter": {
+      "command": "node",
+      "args": ["${CLAUDE_PLUGIN_ROOT}/mcp/server.js"],
+      "env": {
+        "PLUGIN_SUITE_BILLING_URL": "${PLUGIN_SUITE_BILLING_URL}",
+        "CODE_TO_VISUAL_INTERPRETER_LICENSE_KEY": "${CODE_TO_VISUAL_INTERPRETER_LICENSE_KEY}"
+      }
+    }
+  }
+}

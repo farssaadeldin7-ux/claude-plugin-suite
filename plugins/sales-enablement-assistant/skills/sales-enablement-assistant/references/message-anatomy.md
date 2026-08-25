@@ -76,7 +76,7 @@ Depends entirely on something this person said.
 
 What is wrong: no trigger, opening survives find-and-replace, two AI-standard phrases in
 the first sentence, a tricolon in the second paragraph, an unsourced 3x claim, an em-dash
-in a sales sentence, a calendar ask on a first touch, and two closing questions. 104
+in a sales sentence, a calendar ask on a first touch, and two closing questions. 86
 words that could go to any company in the sector.
 
 ## Worked example — good
@@ -97,7 +97,7 @@ words that could go to any company in the sector.
 > Alex
 > YourCo, 4 Bank Street, Bristol BS1 4TR. Reply "no thanks" and I will not write again.
 
-96 words. One idea. No link. One question that is a fact the reader already knows, so
+94 words. One idea. No link. One question that is a fact the reader already knows, so
 answering costs a few seconds. Identification and opt-out present.
 
 ## The ask

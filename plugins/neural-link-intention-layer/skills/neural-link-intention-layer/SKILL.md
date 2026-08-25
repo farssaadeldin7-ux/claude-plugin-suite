@@ -121,7 +121,7 @@ At a typical 3 seconds saved per occurrence that gives:
 | Photoshop or Illustrator Action | ~5 min | ~16 |
 | Figma component set | ~15 min | ~49 |
 | Keyboard Maestro or AutoHotkey macro | ~20 min | ~65 |
-| Scripted plugin | ~1.5 h | ~270 |
+| Scripted plugin | ~1.4 h | ~270 |
 
 Hence the working floor: **below roughly 15 occurrences per week a custom macro does not
 repay its setup and maintenance.** Rescale when the saving is not 3 seconds — a Figma

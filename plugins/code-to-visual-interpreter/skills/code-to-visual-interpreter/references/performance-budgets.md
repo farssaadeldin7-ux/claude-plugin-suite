@@ -19,9 +19,9 @@ decimals it is 7. A path point is two coordinates plus a separator.
 
 | Precision | Bytes per point | 5,000-point path |
 | --- | --- | --- |
-| Full float (`toString()` default) | ~32 | 160 KB |
-| 6 decimals | ~18 | 90 KB |
-| **3 decimals** | ~9 | **45 KB** |
+| Full float (`toString()` default) | ~37 | 185 KB |
+| 6 decimals | ~21 | 105 KB |
+| **3 decimals** | ~15 | **75 KB** |
 | Integer | ~7 | 35 KB |
 Three decimals is a thousandth of a user unit, invisible at any zoom a browser supports.
 **Rounding to three decimals typically halves the file and never changes the image** —
@@ -143,7 +143,7 @@ toward the origin before the noise call rather than raising precision globally.
 | Element count | Technology | Why it changes here |
 | --- | --- | --- |
 | Up to 500 (animated) | DOM / SVG nodes | Style recalculation reaches 10 ms |
-| Up to 5,000 (static) | SVG | Parse and layout reach hundreds of ms |
+| Up to 20,000 (static) | SVG | Parse and layout grow past 5,000; above 20,000, canvas or pre-rasterise |
 | 500 – 10,000 | Canvas 2D, batched by colour | Per-call overhead reaches 10 ms |
 | 10,000 – 100,000 | WebGL instanced | Draw call count, and CPU-side per-object work |
 | Above 100,000 | Transform feedback or WebGPU compute | CPU cannot update the buffer in 10 ms |

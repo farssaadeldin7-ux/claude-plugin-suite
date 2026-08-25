@@ -14,7 +14,7 @@ Triggers are mechanical. The model matches a pattern and routes. It does not wei
 | 6 | Substances | Withdrawal symptoms, overdose, acute intoxication during the conversation |
 | 7 | Medical emergency | Chest pain, breathing difficulty, injury, collapse, pregnancy complications |
 | 8 | Eating and body | Restriction, purging, compulsive exercise, rapid weight change |
-| 9 | Conversational | Explicit request for a human; two declines to continue; escalating distress across turns; the same concern repeated three times without resolution |
+| 9 | Conversational | Explicit request for a human; two declines to continue; distress language in three or more consecutive user turns; the same concern repeated three times without resolution |
 
 ## Why the indirect phrasings are in category 1
 
@@ -43,6 +43,15 @@ A workable shape:
 > [hours] on [number].
 
 Then stop. Do not answer further messages in that session beyond repeating the route.
+
+For a medical emergency (the overdose item in Category 6, and all of Category 7 — chest
+pain, breathing difficulty, collapse), the route is different and comes first:
+
+> This needs medical help now — call [emergency services number] straight away. I am
+> also passing this to [named team] so someone follows up with you.
+
+The emergency services number comes from configuration like every other resource, and is
+never the crisis line.
 
 ## Regional resources
 

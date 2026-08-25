@@ -62,11 +62,11 @@ and the failure mode that makes it read as fake. Strongest to weakest:
 | Rank | Trigger | Freshness window |
 | --- | --- | --- |
 | 1 | Funding round or acquisition | 10 weeks |
-| 2 | Relevant executive hire | 12 weeks |
+| 2 | Relevant executive hire | 13 weeks |
 | 3 | Public job posting that implies the pain | 6 weeks, or until it closes |
 | 4 | Product launch or pricing change | 8 weeks |
 | 5 | Compliance or regulatory deadline | until the deadline |
-| 6 | Competitor switch or vendor change | 12 weeks |
+| 6 | Competitor switch or vendor change | 13 weeks |
 | 7 | Public commentary by the buyer themselves | 3 weeks |
 | — | "You're in industry X" | not a trigger; stop |
 
@@ -92,7 +92,7 @@ constraints:
 | Constraint | Threshold |
 | --- | --- |
 | Total length | Under 120 words, greeting and sign-off included |
-| Ideas | Exactly one. A second idea halves the reply rate of the first |
+| Ideas | Exactly one. A second idea competes with the first for the reply |
 | Links | One at most, and only where the trigger needs evidence |
 | Questions | Exactly one, in the body, at the end |
 | The ask | Answerable in under 15 seconds of the recipient's thought |

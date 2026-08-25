@@ -10,7 +10,7 @@ before.
 
 ## 1. Em-dash cadence
 
-Two em dashes in a message under 120 words is the single most recognised marker. The
+Two em dashes in a message under 120 words is the classic marker. The
 pattern is a clause, a dash, and a summarising flourish.
 
 - **Before**: "We help logistics teams cut manual work — freeing your engineers to focus
@@ -84,7 +84,7 @@ this more than the recipient does, which is the wrong footing.
 
 ## 8. Closing with two questions
 
-Two questions halve the chance of either being answered, and the classic second one
+Two questions invite answering neither, and the classic second one
 ("or is there someone better to speak to?") reads as pre-emptive surrender.
 
 - **Before**: "Would you be open to a quick call? Or should I speak to someone else on

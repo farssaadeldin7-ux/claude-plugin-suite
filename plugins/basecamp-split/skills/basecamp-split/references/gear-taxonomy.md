@@ -77,7 +77,7 @@ and carried in a different pack**. A blank in this table is a blocker.
   the only fuel in another is fine while the group is together and useless the moment
   it is not. Each subgroup that could plausibly separate needs a working set.
 - **An owner is a person who knows they own it.** Assign it out loud, in writing, and
-  confirm it was read. Two-thirds of missing group gear was assigned to someone who
+  confirm it was read. In practice, most missing group gear was assigned to someone who
   never saw the message.
 - **Competence is part of the check.** A compass owned by someone who cannot take a
   bearing is not a navigation system. Ask.

@@ -131,12 +131,13 @@ Produce one row per criterion:
 | Delivered verb level | What the draft actually does |
 | Strongest supporting sentence | **Verbatim quote**, with its location |
 | Verdict | Met / Partially met / Unmet |
-| Marks at stake | Weight x the gap |
+| Marks at stake | Weight x the gap: unmet 1.0, partially met 0.5, met 0 |
 
 Verdict rules: **unmet** if there is no quotable sentence, or the strongest one sits a
-full level below the required verb. **Partially met** if the evidence appears once and
-the criterion implies sustained quality ("throughout", "consistently"). **Met** needs one
-strong quote plus a corroborating instance.
+full level below the required verb. **Met** needs one strong quote at the required level
+plus a corroborating instance. Everything between is **partially met** — a single strong
+instance with no corroboration, or evidence that appears once where the criterion
+demands sustained quality ("throughout", "consistently").
 
 A single quoted sentence per criterion beats a paragraph of commentary. When the quote is
 embarrassing, quote it anyway.

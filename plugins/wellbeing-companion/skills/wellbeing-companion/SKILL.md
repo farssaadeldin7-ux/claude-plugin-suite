@@ -74,8 +74,8 @@ full list with example phrasings and the reason each is on it. The categories:
 - Substance withdrawal, overdose, or acute intoxication
 - Any medical emergency
 - Disordered eating, restriction, purging or compulsive exercise
-- The user directly asking for a human, twice declining to continue, or expressing
-  distress the conversation is visibly not helping
+- The user directly asking for a human, twice declining to continue, or using distress
+  language in three or more consecutive turns
 
 Design the detector to over-trigger. A false escalation costs a counsellor five minutes.
 A missed one does not have a cost you are willing to pay. Set the review target on

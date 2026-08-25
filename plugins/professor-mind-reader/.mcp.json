@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "professor-mind-reader": {
+      "command": "node",
+      "args": ["${CLAUDE_PLUGIN_ROOT}/mcp/server.js"],
+      "env": {
+        "PLUGIN_SUITE_BILLING_URL": "${PLUGIN_SUITE_BILLING_URL}",
+        "PROFESSOR_MIND_READER_LICENSE_KEY": "${PROFESSOR_MIND_READER_LICENSE_KEY}"
+      }
+    }
+  }
+}

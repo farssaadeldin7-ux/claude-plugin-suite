@@ -60,6 +60,7 @@ plugins/<id>/                     one directory per plugin
   skills/<id>/references/*.md     tables, taxonomies, worked examples
   .mcp.json, mcp/                 only where a plugin ships a tool server
 packages/suite-runtime/           shared MCP + licensing runtime, vendored into plugins
+services/billing/                 the Stripe-backed licensing service the runtime talks to
 scripts/                          validate, vendor, build
 docs/                             architecture, audiences, licensing
 ```
@@ -77,8 +78,9 @@ to add a plugin, and [`docs/LICENSING.md`](docs/LICENSING.md) for the free/paid 
 
 ## Status
 
-Version 0.1.0. `diagnose-by-sound` ships a working MCP server; the other thirteen are
-skill-only and are the reference content the tool servers will be built against.
+Version 0.1.0. All fourteen plugins ship working MCP servers built on the shared
+runtime, each gating its licensed tools behind the billing service and keeping open
+tools for evaluation before buying.
 
 ## Licence
 

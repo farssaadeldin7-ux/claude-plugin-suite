@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "wellbeing-companion": {
+      "command": "node",
+      "args": ["${CLAUDE_PLUGIN_ROOT}/mcp/server.js"],
+      "env": {
+        "PLUGIN_SUITE_BILLING_URL": "${PLUGIN_SUITE_BILLING_URL}",
+        "WELLBEING_COMPANION_LICENSE_KEY": "${WELLBEING_COMPANION_LICENSE_KEY}"
+      }
+    }
+  }
+}
