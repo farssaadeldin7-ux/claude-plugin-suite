@@ -17,7 +17,7 @@
     { "source": "./plugins/podcast-video-studio", "category": "media" },
     { "source": "./plugins/customer-sales-support", "category": "operations" },
     { "source": "./plugins/haptic-feedback-mapper", "category": "design" },
-    { "source": "./plugins/wellbeing-companion", "category": "health" },
+    { "source": "./plugins/mental-health-chatbot", "category": "health" },
     { "source": "./plugins/neural-link-intention-layer", "category": "design" },
     { "source": "./plugins/digital-twin-collaborator", "category": "design" },
     { "source": "./plugins/emotional-resonance-analyzer", "category": "media" },

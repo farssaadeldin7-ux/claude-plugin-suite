@@ -1,6 +1,6 @@
 /**
- * The scope statement in publishable wording, ported verbatim from
- * skills/wellbeing-companion/references/scope-and-boundaries.md.
+ * The scope statement in publishable wording — the canonical copy the
+ * mental-health-chatbot skill's step 1 configures a deployment from.
  *
  * The scope statement is the product. Everything else is implementation. The
  * hard-stop list is deliberately not duplicated here — it is the trigger list

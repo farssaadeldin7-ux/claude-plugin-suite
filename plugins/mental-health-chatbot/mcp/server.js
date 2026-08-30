@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Wellbeing Companion — MCP server.
+ * Mental-Health Chatbot — MCP server.
  *
  * The deterministic half of the design protocol: the escalation trigger list
  * and response rules served verbatim, mechanical validation of a regional
@@ -36,8 +36,8 @@ import {
 } from './lib/evaluation.js';
 import { recordRun, reviewRuns, RUNS_FILE } from './lib/runs.js';
 
-const PLUGIN_ID = 'wellbeing-companion';
-const PLUGIN_NAME = 'Wellbeing Companion';
+const PLUGIN_ID = 'mental-health-chatbot';
+const PLUGIN_NAME = 'Mental-Health Chatbot';
 const DEFAULT_BILLING_URL = 'https://billing.example.com';
 
 // No free tier, but the split is not the usual one: everything escalation- or

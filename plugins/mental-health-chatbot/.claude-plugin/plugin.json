@@ -1,0 +1,17 @@
+{
+  "name": "mental-health-chatbot",
+  "version": "0.1.0",
+  "description": "Structured non-clinical check-ins with escalation always on: routes to real resources, never diagnoses, never handles crisis, and produces supervisor summaries and an audit log.",
+  "author": {
+    "name": "Fars Saadeldin"
+  },
+  "license": "UNLICENSED",
+  "keywords": [
+    "mental-health",
+    "wellbeing",
+    "check-ins",
+    "telehealth",
+    "hr",
+    "escalation"
+  ]
+}

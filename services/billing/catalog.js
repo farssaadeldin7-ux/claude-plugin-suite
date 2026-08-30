@@ -207,9 +207,9 @@ export const CATALOG = {
       },
     },
   },
-  'wellbeing-companion': {
-    name: 'Wellbeing Companion',
-    code: 'WBC',
+  'mental-health-chatbot': {
+    name: 'Mental-Health Chatbot',
+    code: 'MHC',
     // The plugin's MCP server gates its licensed tools on the 'tools' feature.
     plans: {
       pro: {
@@ -219,7 +219,7 @@ export const CATALOG = {
         limits: {},
         seats: 2,
         available: true,
-        stripe_price_env: 'STRIPE_PRICE_WBC_PRO',
+        stripe_price_env: 'STRIPE_PRICE_MHC_PRO',
       },
       team: {
         price: 7000,
@@ -228,7 +228,7 @@ export const CATALOG = {
         limits: {},
         seats: 10,
         available: true,
-        stripe_price_env: 'STRIPE_PRICE_WBC_TEAM',
+        stripe_price_env: 'STRIPE_PRICE_MHC_TEAM',
       },
     },
   },

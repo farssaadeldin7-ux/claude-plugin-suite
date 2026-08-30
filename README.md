@@ -23,7 +23,7 @@ Installable as a marketplace:
 | [`podcast-video-studio`](plugins/podcast-video-studio) | Agencies, solo creators | A clip that needs context is disqualified however good it was in the room |
 | [`customer-sales-support`](plugins/customer-sales-support) | E-commerce, SaaS | An AI support agent is only as good as the docs; "I don't know — here's a person" is a first-class answer |
 | [`haptic-feedback-mapper`](plugins/haptic-feedback-mapper) | Creative-tool makers | A haptic that fires for something ignorable is worse than the screen it replaced |
-| [`wellbeing-companion`](plugins/wellbeing-companion) | Telehealth, HR wellness | Escalation is never a judgement call the model makes about severity |
+| [`mental-health-chatbot`](plugins/mental-health-chatbot) | Telehealth, HR wellness | Support, not crisis intervention — escalation is always on and never a severity judgement |
 | [`neural-link-intention-layer`](plugins/neural-link-intention-layer) | Designers, UI/UX | Eliminate, then batch, then automate — in that order |
 | [`digital-twin-collaborator`](plugins/digital-twin-collaborator) | Creative directors | A style is defined by what you never do; the "never" list matters most |
 | [`emotional-resonance-analyzer`](plugins/emotional-resonance-analyzer) | Editors, documentarians | Flat stretches are the problem, not low stretches; real retention data always wins |

@@ -38,7 +38,7 @@ each gating the `tools` feature its MCP server checks. Standard tier is pro $40/
 team $70/mo; the three premium plugins — Haptic Feedback Mapper, Customer Sales
 Support and Predictive Resource Allocation — are pro $500/mo · team $2,000/mo. Env
 keys follow the plugin codes: `STRIPE_PRICE_<CODE>_PRO` / `_TEAM` for PMR, FMF, BCS,
-PVS, CSS, HFM, WBC, NLI, DTC, ERA, CVI and PRA.
+PVS, CSS, HFM, MHC, NLI, DTC, ERA, CVI and PRA.
 
 No plugin has a free plan or a trial — every gated tool needs a paid licence. (A plugin
 that wants client-side free features can declare them via `LicenseClient`'s `freeTier`

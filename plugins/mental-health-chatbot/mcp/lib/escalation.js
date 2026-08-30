@@ -1,6 +1,6 @@
 /**
- * The escalation protocol, ported verbatim from
- * skills/wellbeing-companion/references/escalation-protocol.md.
+ * The escalation protocol — the canonical trigger list and response
+ * constraints the mental-health-chatbot skill screens every message against.
  *
  * Triggers are mechanical. The model matches a pattern and routes. It does not
  * weigh severity. Nothing in this module estimates severity, scores a message,
