@@ -48,7 +48,7 @@ just a better opening to a post nobody needed.
 
 | Component | Purpose |
 | --- | --- |
-| Skill `ghost-post-preview` | The judgement: hook audit, persona read, the one named failure, the band |
+| Skill `sales-and-outreach` | The client-getting system: offer, niche, prospect list, cold pitch, follow-up, close |
 | MCP server | The mechanics: fold reconstruction, draft lint, platform data, prediction log, licensing |
 
 **Open** — no licence needed:

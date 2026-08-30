@@ -35,10 +35,7 @@ recording and it will faithfully score forty bad moments.
 
 | Component | Purpose |
 | --- | --- |
-| Skill `podcast-video-studio` | The eight-step procedure, from transcript to cut list |
-| `references/clip-scoring.md` | Rubric, band descriptors, disqualifiers, worked examples |
-| `references/moment-archetypes.md` | The seven archetypes and how to spot each in text |
-| `references/destination-specs.md` | Per-platform length, aspect, safe areas, captions, pacing |
+| Skill `auto-clip` | Automatically clips the most engaging ≤60s segments and formats them for TikTok/Reels/Shorts |
 | MCP server | Archetype tell scan, rubric arithmetic, destination bands, clip log, licensing |
 
 ### Tools
