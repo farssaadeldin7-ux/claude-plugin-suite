@@ -35,27 +35,33 @@ import {
   evaluationGate,
 } from './lib/evaluation.js';
 import { recordRun, reviewRuns, RUNS_FILE } from './lib/runs.js';
+import {
+  SUMMARY_TEMPLATE, SESSION_ENDINGS, recordSession, reviewAudit, AUDIT_FILE,
+} from './lib/audit.js';
 
 const PLUGIN_ID = 'mental-health-chatbot';
 const PLUGIN_NAME = 'Mental-Health Chatbot';
 const DEFAULT_BILLING_URL = 'https://billing.example.com';
 
-// No free tier, but the split is not the usual one: everything escalation- or
-// safety-related is open regardless of licence, because a safety protocol must
-// not sit behind a paywall. The licence gates the builder's workflow tools —
-// scope wording, red-team specification, the gate arithmetic and the run record.
+// No free tier, but the split is not the usual one: everything a deployment
+// needs to be configured safely — the scope wording, the trigger list, the
+// response rules, the resource-block check — is open regardless of licence,
+// because neither safety nor setup sits behind a paywall. The licence gates
+// the operator's measurement workflow: the red-team specification, the gate
+// arithmetic, the run record, the summary template and the session audit log.
 const client = new LicenseClient({ pluginId: PLUGIN_ID, defaultBillingUrl: DEFAULT_BILLING_URL });
 
 const server = new McpServer({
   name: PLUGIN_ID,
   version: '0.1.0',
   instructions:
-    'Design-protocol lookups for a boundaried wellbeing support conversation. This is a builder\'s ' +
-    'tool: it serves the escalation trigger list, response rules and resource-block checks (open), ' +
-    'and the scope wording, red-team specification and change-control gate (licensed). It does not ' +
-    'assess anyone, score transcripts, judge severity, or generate crisis phone numbers. If a ' +
-    'person in distress is present, do not run this protocol at them — follow the skill\'s ' +
-    'guidance and help them find support where they are.',
+    'Protocol lookups and operator records for a boundaried, non-clinical check-in service. It ' +
+    'serves the escalation trigger list, response rules, resource-block checks and scope wording ' +
+    '(open), and the red-team specification, change-control gate, run record, supervisor-summary ' +
+    'template and session audit log (licensed). It does not assess anyone, score transcripts, ' +
+    'judge severity, or generate crisis phone numbers, and the audit log holds only categorical ' +
+    'fields — never anything a user typed. If a person in distress is present, do not run this ' +
+    'protocol at them — follow the skill\'s guidance and help them find support where they are.',
 });
 
 // --------------------------------------------------------- escalation (open)
@@ -141,7 +147,8 @@ server.tool('scope_statement', {
     'The three scope lists in publishable wording — in scope, out of scope with what to say ' +
     'instead, hard stop — plus the declining pattern, the language rules, the engagement warning ' +
     'and the populations needing separate design. Wording lookup only; it does not tailor the ' +
-    'scope to a deployment. Requires a paid plan (the trigger list itself stays open).',
+    'scope to a deployment. Open, no licence needed: a deployment cannot be configured safely ' +
+    'without it, and setup is not paywalled.',
   inputSchema: {
     type: 'object',
     properties: {
@@ -154,7 +161,6 @@ server.tool('scope_statement', {
     },
   },
   handler: async ({ section }) => {
-    await client.requireFeature('tools');
     const sections = {
       in_scope: { in_scope: IN_SCOPE },
       out_of_scope: { out_of_scope: OUT_OF_SCOPE, scope_change_rule: SCOPE_CHANGE_RULE },
@@ -276,6 +282,69 @@ server.tool('review_runs', {
   handler: async ({ limit }) => {
     await client.requireFeature('tools');
     return reviewRuns({ limit: limit ?? 20 });
+  },
+});
+
+// -------------------------------------------- summaries and the audit log
+
+server.tool('summary_template', {
+  description:
+    'The supervisor-summary template: sections, the resolution rules (aggregate-only unless the ' +
+    'confidentiality notice says otherwise, every claim with its denominator, the minimum session ' +
+    'count behind a theme), and the standing caveat that themes are conversational patterns, not ' +
+    'clinical findings. Template only — writing the summary against a real period is the skill\'s ' +
+    'job, from the deployment\'s own records. Requires a paid plan.',
+  inputSchema: { type: 'object', properties: {} },
+  handler: async () => {
+    await client.requireFeature('tools');
+    return SUMMARY_TEMPLATE;
+  },
+});
+
+server.tool('record_session', {
+  description:
+    'Append one check-in session to the local audit log — categorical fields only: date, ' +
+    'configuration version, messages screened, trigger category if one fired, whether it ' +
+    'escalated and whether the handover packet was delivered, resources shown, how it ended. ' +
+    'There is no free-text field, so nothing a user typed can enter the log. A trigger recorded ' +
+    'without an escalation is accepted and flagged — the log captures misses, it does not hide ' +
+    'them. Requires a paid plan. Nothing leaves this machine.',
+  inputSchema: {
+    type: 'object',
+    properties: {
+      session_date: { type: 'string', description: 'YYYY-MM-DD. Defaults to today.' },
+      config_version: { type: 'string', description: 'The scope statement, trigger list and resource block in force.' },
+      messages: { type: 'number', description: 'Messages in the session — each one screened.' },
+      trigger_category: { type: 'number', description: 'The trigger category (1-9) that fired, if any. Omit for none.' },
+      escalated: { type: 'boolean', description: 'Whether the session escalated to a human.' },
+      handover_packet_delivered: { type: 'boolean', description: 'Required when escalated: whether the receiving human got the packet.' },
+      resources_shown: { type: 'number', description: 'Resources from the verified block shown this session. Default 0.' },
+      ended: { type: 'string', description: `${SESSION_ENDINGS.join(', ')}.` },
+    },
+    required: ['config_version', 'messages', 'ended'],
+  },
+  handler: async (args) => {
+    await client.requireFeature('tools');
+    return recordSession(args);
+  },
+});
+
+server.tool('review_audit', {
+  description:
+    'The audit log\'s computed position: session and ending tallies, escalations by category, and ' +
+    'the one number the weekly review exists for — sessions containing a trigger where no ' +
+    'escalation fired, target zero, each one listed as an incident. Counting only, over what was ' +
+    'recorded; it cannot see sessions that were never logged. Requires a paid plan.',
+  inputSchema: {
+    type: 'object',
+    properties: {
+      since: { type: 'string', description: 'Only sessions on or after this date, YYYY-MM-DD — e.g. the current reporting window.' },
+      limit: { type: 'number', description: 'Sessions to list. Default 20.' },
+    },
+  },
+  handler: async ({ since, limit }) => {
+    await client.requireFeature('tools');
+    return reviewAudit({ since, limit: limit ?? 20 });
   },
 });
 

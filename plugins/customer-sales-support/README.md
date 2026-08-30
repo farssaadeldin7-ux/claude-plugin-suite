@@ -2,7 +2,9 @@
 
 An AI-powered customer support agent, built on the company's own content. Instead of a
 human answering every basic question, the agent is trained on the company's manuals and
-FAQs and handles tickets automatically. The plugin audits the help centre first,
+FAQs and handles tickets automatically — post-sales support tickets and the pre-sales
+questions prospects ask before buying (what a product does, which plan fits, availability,
+how to order), under one grounding rule. The plugin audits the help centre first,
 restructures it into something answerable without hallucinating, reports where coverage is
 missing, and defines which questions must reach a person.
 
@@ -25,8 +27,9 @@ runs content-first:
   ranked by frequency, for the business to either document or assign to humans.
 - **Define what must reach a person** — hard escalation rules as literal conditions
   (refunds over a threshold, legal/safety language, anger, repeat contacts, anything
-  uncovered, "I want a human"), with a handover that never makes the customer repeat
-  themselves.
+  uncovered, "I want a human" — and on the pre-sales side: negotiation, discounts, and
+  recommendations the docs don't determine), with a handover that never makes the
+  customer repeat themselves.
 - **Test before launch** — the ticket sample as a frozen regression set; wrong answers are
   launch blockers; re-run on every doc change.
 - **Launch narrow, widen by intent** — highest-volume, lowest-risk intents first.

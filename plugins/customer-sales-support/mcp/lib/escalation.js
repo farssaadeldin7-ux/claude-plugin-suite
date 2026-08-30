@@ -1,6 +1,7 @@
 /**
  * Hard escalation triggers, the handover format and the grounding contract —
- * ported from references/escalation-and-eval.md. The screen matches the
+ * the canonical rules behind step 4 of the customer-sales-support skill
+ * (define what must reach a person). The screen matches the
  * trigger table's literal detection phrases against a message, nothing more:
  * it misses paraphrase, it does not read sentiment, and a message can require
  * escalation without matching any pattern here. It exists so the trigger list

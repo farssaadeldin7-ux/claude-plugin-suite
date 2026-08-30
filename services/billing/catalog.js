@@ -188,7 +188,7 @@ export const CATALOG = {
     // The plugin's MCP server gates its licensed tools on the 'tools' feature.
     plans: {
       pro: {
-        price: 50000,
+        price: 4000,
         interval: 'month',
         features: ['tools'],
         limits: {},
@@ -197,7 +197,7 @@ export const CATALOG = {
         stripe_price_env: 'STRIPE_PRICE_HFM_PRO',
       },
       team: {
-        price: 200000,
+        price: 7000,
         interval: 'month',
         features: ['tools'],
         limits: {},

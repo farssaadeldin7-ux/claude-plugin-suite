@@ -5,9 +5,10 @@ description: >
   tickets — "set up a support agent for my store", "train an AI on our FAQs", "automate our
   support inbox", "audit our help centre", "why does our support bot make things up", "which
   tickets should still go to a human", "our docs aren't ready for an AI agent", "reduce our
-  ticket volume". Also use it for auditing an existing help centre, restructuring articles so
-  an agent can answer from them without hallucinating, finding coverage gaps, and writing the
-  escalation rules that decide which questions must reach a person.
+  ticket volume", "answer pre-sales questions automatically", "our bot should handle 'which
+  plan is right for me'". Also use it for auditing an existing help centre, restructuring
+  articles so an agent can answer from them without hallucinating, finding coverage gaps, and
+  writing the escalation rules that decide which questions must reach a person.
 metadata:
   version: "0.1.0"
 ---
@@ -19,6 +20,12 @@ answering every basic question, the agent is trained on the company's manuals an
 handles tickets automatically. This skill audits the help centre first, restructures it into
 something answerable without hallucinating, reports where coverage is missing, and defines
 which questions must reach a person.
+
+"Sales" in the name is the pre-sales half of the same job: the questions prospects ask
+before buying — what a product does, which plan fits a stated need, availability, shipping,
+how to order — are tickets too, answered under exactly the same grounding rule as
+post-sales support. What the agent never does on the sales side is improvise a discount,
+a comparison against a competitor, or a recommendation the docs don't state.
 
 The order matters. Most support-agent failures are not model failures — they are knowledge
 failures. An agent pointed at a help centre written for humans skimming will guess, and a
@@ -42,7 +49,21 @@ real tickets (50–200, pulled from the actual queue), record for each: which ar
 answer it, whether that article exists, and whether its text actually contains the answer
 stated plainly. The output is three lists — answered, answerable-but-buried, and uncovered.
 Do not skip the sample; auditing the help centre against itself instead of against real
-tickets is how gaps stay invisible.
+tickets is how gaps stay invisible. Include pre-sales contacts in the sample — the
+"does it work with X" and "which plan" questions — not just post-sales tickets.
+
+While reading the sample, also record the intent behind each ticket in the format the
+server tools use: cluster the tickets into intents, and mark each intent's rough volume
+and its kind — *static* (one documented answer fits everyone), *account-specific* (needs
+a lookup), or *judgement* (needs a human). `taxonomy_reference` carries the three kinds,
+the three-way test with its edge cases, and two worked taxonomies to pattern-match
+against. The mapping between the two vocabularies is direct: an intent whose answer no
+article states is your **uncovered** list; a static intent whose article exists but fails
+the shape rules in step 2 is **answerable-but-buried**; account-specific and judgement
+intents can never be answered from articles alone, so they feed step 4's escalation
+rules, not the article backlog. Once recorded, `taxonomy_audit` checks the taxonomy
+against every stated threshold and returns the containment ceiling and the ordered
+article backlog.
 
 ### 2. Restructure so the agent can't hallucinate
 
@@ -61,7 +82,12 @@ An article the agent can answer from safely has a specific shape:
   answers from whichever retrieves first. Merge or delete.
 
 Rewrite the answerable-but-buried list into this shape. That work is the bulk of the
-project and the reason the agent will be trustworthy.
+project and the reason the agent will be trustworthy. `article_rules` carries the full
+template, style rules, the policy/procedure split and the anti-patterns with rewrites;
+run `article_lint` on each rewritten draft for the mechanical failures with the evidence
+quoted. Pre-sales articles follow the same shape — a plan-comparison article states the
+documented differences and prices, with each plan's fit conditions as explicit branches,
+never a persuasive pitch.
 
 ### 3. Report the coverage gaps
 
@@ -84,9 +110,16 @@ Write the escalation rules before the agent goes live, as literal conditions, no
 | Anything the docs do not cover | The one rule, enforced |
 | The customer asks for a human | Refusing this reads as hiding |
 
+On the pre-sales side, add: negotiation, discount requests, and a prospect asking for a
+recommendation the docs don't determine — a human closes; the agent informs.
+
 Every escalation hands over the full context — the question, what the agent already said,
 the article it used — so the customer never repeats themselves. An escalation that restarts
-the conversation converts a deflection failure into a churn risk.
+the conversation converts a deflection failure into a churn risk. `escalation_reference`
+carries the full trigger table, handover format and grounding contract; `escalation_screen`
+checks a message against the triggers' literal detection phrases — a screen for exercising
+the trigger list against real ticket text, not a replacement for the agent's own
+implementation.
 
 ### 5. Ground the agent and test before launch
 
@@ -96,7 +129,10 @@ set before any customer sees it. Score three outcomes per ticket: answered corre
 the right article, escalated correctly, or wrong. Wrong answers are launch blockers —
 each one traces to either a doc defect (fix the article) or a missing escalation rule (add
 it). Keep the regression set and re-run it after every doc change; a help centre edit that
-silently breaks ten answers is otherwise invisible until customers find it.
+silently breaks ten answers is otherwise invisible until customers find it. Score outcomes
+yourself — that judgement is human work — then hand the counts to `regression_score` for
+the metric formulas, composition checks and rollout gates, and record each run with
+`regression_history` so doc changes carry arithmetic deltas instead of impressions.
 
 ### 6. Launch narrow, then widen
 
@@ -113,6 +149,17 @@ Deliver artifacts, not advice: the audit lists, the rewritten articles, the gap 
 escalation rule table, and the regression scores. When reviewing an existing help centre,
 quote the failing text — "this article says 'we're happy to help with returns' and the
 agent will invent the terms" is actionable; "your docs need work" is not.
+
+## Licensing
+
+`taxonomy_reference`, `article_rules` and `escalation_reference` are open — the whole
+method can be read before buying. `taxonomy_audit`, `article_lint`, `escalation_screen`,
+`regression_score` and `regression_history` require a paid licence and return
+`license_required` or `upgrade_required` when the plan does not cover them. Handle it
+plainly: say what is missing, call `list_plans`, and offer `start_checkout`. Never work
+around a gate by inventing what a paid tool would have said — and never let a licensing
+miss stall the method itself: every check the licensed tools run is stated in the open
+reference tables and can be applied by hand.
 
 ## Limits of the method
 

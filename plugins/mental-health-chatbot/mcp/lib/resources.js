@@ -1,8 +1,9 @@
 /**
  * Mechanical validation of a regional crisis-resource configuration block,
- * against the rules in references/escalation-protocol.md ("Regional resources").
+ * against the resource rules the mental-health-chatbot skill's step 4
+ * (route to real resources only) configures a deployment with.
  *
- * The reference forbids hardcoding crisis numbers from memory and forbids the
+ * The protocol forbids hardcoding crisis numbers from memory and forbids the
  * model generating them; this module accordingly contains no numbers, no
  * service names and no defaults. It checks the shape and the dates of a block
  * the deployer supplies, and it names — without checking — the rules only a

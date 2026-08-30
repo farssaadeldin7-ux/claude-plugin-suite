@@ -42,6 +42,11 @@ operator configuration turns this off.
 
 ## What this is not
 
+- **Not a clinical product, whatever the name says.** "Mental-health chatbot" is the
+  colloquial category buyers search for, not a claim: the service is a non-clinical
+  check-in with a route to humans. Because a product's name and copy count as claims for
+  medical-device purposes, the skill requires the *deployment's* user-facing name and
+  description to make no clinical claims, and flags copy that does as a blocking finding.
 - **Not a therapist, and not a therapy product.** It does not assess, diagnose, treat or
   monitor, and it will not help build something that claims to.
 - **Not crisis intervention.** Its entire behaviour in a crisis is to route to a human and
@@ -66,7 +71,7 @@ does not disclose.
 | Component | Purpose |
 | --- | --- |
 | Skill `mental-health-chatbot` | The check-in structure, the escalation boundary, summaries, the audit log, the change gate |
-| MCP server | Escalation lookups, resource-block validation, scope wording, evaluation gate, run record, licensing |
+| MCP server | Escalation lookups, resource-block validation, scope wording, evaluation gate, run record, summary template, session audit log, licensing |
 
 ### Tools
 
@@ -79,23 +84,32 @@ behind the paywall: a safety protocol that costs money to consult is a design fa
   handover packet, what never happens
 - `resource_config_check` — mechanical validation of a regional crisis-resource block:
   required fields, dates, quarterly cadence, staleness (a stale block fails)
+- `scope_statement` — the three lists in publishable wording, declining pattern, language
+  rules, populations needing separate design. Open because setup is not paywalled: a
+  deployment cannot be configured safely without it
 
 **Licensed** — requires a pro or team key
 
-- `scope_statement` — the three lists in publishable wording, declining pattern, language
-  rules, populations needing separate design
 - `redteam_spec` — the red-team slices and counts, metric definitions, incident rules,
   governance roles
 - `evaluation_gate` — the binary change-control gate computed from a run's counts
 - `record_redteam_run` / `review_runs` — the local change-control record
+- `summary_template` — the supervisor-summary sections and resolution rules (aggregate
+  unless the confidentiality notice says otherwise, denominators on every claim, minimum
+  session count behind a theme)
+- `record_session` / `review_audit` — the local session audit log, categorical fields
+  only, computing the weekly number that must stay at zero: sessions containing a
+  trigger where no escalation fired
 
 **Licensing** — `license_status`, `license_activate`, `start_checkout`, `list_plans`,
 `billing_portal`
 
 None of the tools assess a person, score a transcript, judge severity, or generate crisis
-phone numbers. They serve the protocol text and count what you measured. The supervisor
-summary and the audit log are documents the skill produces to the deployment's own
-specification — nothing a user typed passes through the server.
+phone numbers. They serve the protocol text and count what you measured. The audit log
+holds only categorical fields — dates, counts, category numbers, enumerated outcomes;
+there is no free-text field, so nothing a user typed can enter it. The supervisor summary
+itself is written by the skill against `summary_template`, from the deployment's own
+records.
 
 ## Setup
 
@@ -121,9 +135,12 @@ export PLUGIN_SUITE_LICENSE_KEY=PS-MHC-...
 ## Privacy
 
 The change-control record written by `record_redteam_run` is stored only at
-`~/.config/plugin-suite/mental-health-chatbot-runs.json` on the machine that created it.
+`~/.config/plugin-suite/mental-health-chatbot-runs.json`, and the session audit log
+written by `record_session` only at
+`~/.config/plugin-suite/mental-health-chatbot-audit.json`, both on the machine that
+created them. The audit log is categorical by construction — no free-text field exists.
 The billing service sees a licence key, a plugin id and a hashed device identifier. It
-never sees a run, a resource block or anything a user typed.
+never sees a run, a session record, a resource block or anything a user typed.
 
 ## If you are here because you are struggling
 
@@ -140,6 +157,8 @@ operator who can hold that line.
 ## Plans
 
 Pricing is defined in the suite catalog: pro $40/month (2 seats) and team $70/month
-(10 seats). The licence gates the operator's workflow tools — scope wording, red-team
-specification, the evaluation gate and the run record. The skill content, and every
-safety and escalation lookup on the server, stay open regardless of licence.
+(10 seats). The licence gates the operator's measurement workflow — red-team
+specification, the evaluation gate, the run record, the summary template and the session
+audit log. The skill content, every safety and escalation lookup, and the scope wording
+needed to configure a deployment stay open regardless of licence: neither safety nor
+setup is paywalled.

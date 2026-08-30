@@ -1,7 +1,8 @@
 /**
  * Article architecture: the template, the style rules, the policy/procedure
- * split, the anti-patterns and the four retrieval failure modes — ported from
- * references/article-template.md and step 4 of the skill. The lint applies
+ * split, the anti-patterns and the four retrieval failure modes — the
+ * canonical rules behind step 2 of the customer-sales-support skill
+ * (restructure so the agent can't hallucinate). The lint applies
  * only the checks those rules state mechanically, with the evidence quoted;
  * whether a finding matters for a given article is the skill's judgement.
  */
@@ -114,7 +115,8 @@ export const MAINTENANCE = [
   'Every article change re-runs the regression set. Edits to first sentences are exactly what moves retrieval.',
 ];
 
-// The four retrieval failure modes, from step 4 of the skill. Audited before
+// The four retrieval failure modes, part of the skill's restructuring pass
+// (step 2). Audited before
 // launch because each produces confident wrong answers, not visible failures.
 export const RETRIEVAL_FAILURE_MODES = [
   {

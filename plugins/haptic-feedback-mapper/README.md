@@ -31,13 +31,19 @@ replaced. The channel works because it is scarce and trusted.
 
 ## Who it is for
 
-Makers of creative tools — drawing, rendering, audio, video — selling to artists and
-freelancers who bill by the hour, and product teams positioning focus itself as the
-feature.
+Two readers, deliberately:
 
-You bring the product and the users. The plugin supplies the measurement method, the
-mapping discipline and the ROI framing; the before/after numbers must come from real
-sessions, and the skill will say so rather than invent them.
+- **The tool maker** — drawing, rendering, audio, video products — who ships the haptic
+  mapping and sells it as Deep-Work Protection. Steps 1–5 of the skill are the product
+  work; step 6 is their pitch.
+- **The artist or freelancer** who bills by the hour and wants their own interruption
+  cost measured. Steps 1–5 stand alone as a self-measurement, whether or not anyone is
+  selling them anything.
+
+You bring the product and the users (or, as the artist, your own sessions). The plugin
+supplies the measurement method, the mapping discipline and the ROI framing; the
+before/after numbers must come from real sessions, and the skill will say so rather than
+invent them.
 
 ## Components
 
@@ -116,10 +122,11 @@ rate.
 - **Not a measured claim until you measure.** Billable-hour gains are projections until
   the after-measurement exists; the pitch sells the measured before/after where it
   exists and the trial where it doesn't.
-- **Not original research.** Refocus-cost figures are borrowed from the
-  interruption-recovery literature, which studied office task-switching, not studio work
-  — which is why the method computes with a conservative floor and labels every
-  assumption.
+- **Not original research.** Refocus-cost figures are borrowed: the upper figure traces
+  to Mark, Gudith & Klocke, "The Cost of Interrupted Work: More Speed and Stress"
+  (CHI 2008) — the widely cited ~23 minutes to fully return to an interrupted task —
+  which studied office task-switching, not studio work. That is why the method computes
+  with a conservative floor and labels every assumption.
 - **Not a content channel.** A buzz says "the client replied"; reading the reply is still
   a screen task. The win is choosing when to switch, not never switching.
 - **Not one-size-fits-all hardware.** Vibration sensitivity differs across users and
@@ -128,6 +135,8 @@ rate.
 ## Plans
 
 Served by `services/billing` in this repo; the catalog lives in its `catalog.js`:
-pro $500/month (2 seats) and team $2,000/month (10 seats). Both plans include the same
-tools — the licence gates `load_math`, `mapping_audit`, `vocabulary_check`, `log_session`
-and `review_sessions`; the skill content and the reference tools stay open.
+pro $40/month (2 seats) and team $70/month (10 seats) — standard tier, priced for the
+solo artists and small product teams it serves, not the enterprise tier its audience
+can't carry. Both plans include the same tools — the licence gates `load_math`,
+`mapping_audit`, `vocabulary_check`, `log_session` and `review_sessions`; the skill
+content and the reference tools stay open.

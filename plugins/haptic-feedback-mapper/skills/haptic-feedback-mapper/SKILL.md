@@ -42,9 +42,11 @@ Before mapping anything, measure the current cost of screen-checking so the impr
 a denominator. For a typical working session, count: how many times the artist checks a
 status (observed or self-logged over a few sessions), what fraction of checks changed
 nothing ("still rendering"), and the refocus cost per switch. Use the research range for
-recovery after an interruption — commonly cited around 10–23 minutes for full refocus, with
-a defensible conservative floor of 1–5 minutes for a glance-level switch — and **state
-which figure you used and why**. The baseline formula:
+recovery after an interruption — commonly cited around 10–23 minutes for full refocus, the
+upper figure tracing to Mark, Gudith & Klocke, "The Cost of Interrupted Work: More Speed
+and Stress" (CHI 2008), with a defensible conservative floor of 1–5 minutes for a
+glance-level switch — and **state which figure you used and why**, naming the citation
+when the upper figure appears in anything a buyer reads. The baseline formula:
 
 ```
 weekly cost = checks/day × refocus minutes × working days
@@ -149,9 +151,9 @@ and rules on this page.
 
 ## Limits of the method
 
-- **Refocus-cost figures are borrowed, not measured here.** The interruption-recovery
-  literature studied office task-switching, not studio work; that is why the method
-  computes with a conservative floor and labels every assumption.
+- **Refocus-cost figures are borrowed, not measured here.** The upper figure comes from
+  Mark, Gudith & Klocke (CHI 2008), which studied office task-switching, not studio work;
+  that is why the method computes with a conservative floor and labels every assumption.
 - **Billable-hour gains are projections until the after-measurement exists.** Sell the
   measured before/after where you have it; sell the framework and the trial where you
   don't. Never present the projection as a result.

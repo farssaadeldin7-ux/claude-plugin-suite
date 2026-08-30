@@ -1,6 +1,7 @@
 /**
- * The regression-set method and metric definitions, ported from
- * references/escalation-and-eval.md. The scorer is arithmetic over outcomes a
+ * The regression-set method and metric definitions — the canonical rules
+ * behind step 5 of the customer-sales-support skill (ground the agent and
+ * test before launch). The scorer is arithmetic over outcomes a
  * person has already assigned: it computes the three metrics by their stated
  * formulas, checks the set's composition, and reads the rollout gates. It does
  * not judge whether any individual answer was correct — that scoring is human

@@ -53,6 +53,13 @@ without them, help build them instead — that is the setup half of this skill.
 Moving anything from out-of-scope to in-scope is a clinical governance decision with a
 named clinical owner, not a product decision. Record who signed it.
 
+The deployment's own user-facing name and copy are part of the configuration, and they
+count as claims: a product's name and description bear on medical-device classification.
+The deployment must present itself as a non-clinical check-in with a route to humans —
+never as therapy, assessment, treatment or monitoring. Copy that claims clinical function
+("clinically proven", "detects depression", "your AI therapist") is a blocking finding,
+reported like a missing escalation route.
+
 ### 2. Run the check-in as structure, not assessment
 
 The check-in is the same shape every time — the value of the product is the rhythm, not
@@ -113,19 +120,26 @@ The summary is for the programme's supervisor and it is honest about its own res
 - Every summary states the reporting window, the number of sessions behind each claim,
   and that themes are conversational patterns, not clinical findings.
 
+Write the summary against `summary_template` — it carries the sections, the resolution
+rules and the minimum session count behind a theme — over the period's records from the
+audit log (`review_audit` with the reporting window's `since` date).
+
 ### 6. Keep the audit log
 
-Every session writes a record the operator can stand behind in an incident review:
-timestamp, configuration version (scope statement, trigger list and resource block in
-force), the questions asked, whether each message was screened, any trigger fired and the
-category, resources shown, how the session ended, and whether a summary or handover packet
-was produced. Append-only, retained per the confidentiality notice.
+Every session writes a record the operator can stand behind in an incident review — with
+`record_session`, which stores categorical fields only: date, configuration version (the
+scope statement, trigger list and resource block in force), messages screened, any
+trigger category fired, whether it escalated and whether the handover packet was
+delivered, resources shown, and how the session ended. There is no free-text field, so
+nothing a user typed can enter the log; the transcript lives wherever the confidentiality
+notice says it lives. Append-only, retained per that notice.
 
-The log exists so one number can be reviewed weekly: **sessions containing a trigger where
-no escalation fired**. The target is zero. On any model or prompt change, re-run the
-red-team set (`redteam_spec`, gated by `evaluation_gate`, recorded with
-`record_redteam_run`) — a change that improves helpfulness and moves missed-escalation off
-zero does not ship.
+The log exists so one number can be reviewed weekly, computed by `review_audit`:
+**sessions containing a trigger where no escalation fired**. The target is zero, and each
+such record is an incident, flagged the moment it is written. On any model or prompt
+change, re-run the red-team set (`redteam_spec`, gated by `evaluation_gate`, recorded
+with `record_redteam_run`) — a change that improves helpfulness and moves
+missed-escalation off zero does not ship.
 
 ## Confidentiality, said plainly
 
@@ -153,12 +167,15 @@ is literally true.
 
 ## Licensing
 
-The safety surface is never paywalled: `escalation_triggers`, `escalation_response` and
-`resource_config_check` are open, deliberately — a safety protocol that costs money to
-consult is a design failure. `scope_statement`, `redteam_spec`, `evaluation_gate` and the
-run record require a paid licence and return `license_required` when the plan does not
-cover them: say what is missing, call `list_plans`, offer `start_checkout`, and never
-invent what a gated tool would have said. A licensing miss never blocks an escalation.
+Neither safety nor setup is paywalled: `escalation_triggers`, `escalation_response`,
+`resource_config_check` and `scope_statement` are open, deliberately — a safety protocol
+that costs money to consult is a design failure, and step 1's configuration must be
+buildable without a key. The measurement workflow — `redteam_spec`, `evaluation_gate`,
+the run record, `summary_template` and the session audit log — requires a paid licence
+and returns `license_required` when the plan does not cover it: say what is missing, call
+`list_plans`, offer `start_checkout`, and never invent what a gated tool would have said.
+A licensing miss never blocks an escalation, and a check-in that cannot write its audit
+record still escalates first and reports the logging gap after.
 
 ## If a person in distress reaches this skill directly
 

@@ -168,9 +168,9 @@ try {
   assert.equal(team.seats, 10);
   ok('catalog lists exactly pro and team with correct prices and seats');
 
-  const hfmCatalog = (await api('GET', '/v1/catalog/haptic-feedback-mapper')).data;
-  assert.equal(hfmCatalog.plans.find((p) => p.id === 'pro').price, 50000);
-  assert.equal(hfmCatalog.plans.find((p) => p.id === 'team').price, 200000);
+  const cssCatalog = (await api('GET', '/v1/catalog/customer-sales-support')).data;
+  assert.equal(cssCatalog.plans.find((p) => p.id === 'pro').price, 50000);
+  assert.equal(cssCatalog.plans.find((p) => p.id === 'team').price, 200000);
   ok('premium plugins price at $500/$2,000');
 
   assert.equal((await api('GET', '/v1/catalog/nonsense')).status, 404);
@@ -336,7 +336,7 @@ try {
   assert.equal(stripeState.prices.find((p) => p.lookup_key === 'dbs_team')?.unit_amount, 7000);
   assert.equal(stripeState.prices.find((p) => p.lookup_key === 'gpp_pro')?.unit_amount, 4000);
   assert.equal(stripeState.prices.find((p) => p.lookup_key === 'gpp_team')?.unit_amount, 7000);
-  assert.equal(stripeState.prices.find((p) => p.lookup_key === 'hfm_pro')?.unit_amount, 50000);
+  assert.equal(stripeState.prices.find((p) => p.lookup_key === 'hfm_pro')?.unit_amount, 4000);
   assert.equal(stripeState.prices.find((p) => p.lookup_key === 'css_team')?.unit_amount, 200000);
   assert.equal(stripeState.prices.find((p) => p.lookup_key === 'pra_team')?.unit_amount, 200000);
   assert.equal(stripeState.prices.find((p) => p.lookup_key === 'pmr_pro')?.unit_amount, 4000);

@@ -1,13 +1,14 @@
 {
   "name": "customer-sales-support",
   "version": "0.1.0",
-  "description": "AI-powered customer support agent trained on the company's own manuals and FAQs: audits the help centre, restructures it so the agent answers without hallucinating, reports coverage gaps, and defines which questions must reach a person.",
+  "description": "AI-powered customer support agent trained on the company's own manuals and FAQs — pre-sales questions and support tickets alike: audits the help centre, restructures it so the agent answers without hallucinating, reports coverage gaps, and defines which questions must reach a person.",
   "author": {
     "name": "Fars Saadeldin"
   },
   "license": "UNLICENSED",
   "keywords": [
     "support",
+    "pre-sales",
     "customer-service",
     "knowledge-base",
     "ecommerce",

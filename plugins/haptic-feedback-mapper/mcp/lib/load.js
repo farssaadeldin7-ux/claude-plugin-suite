@@ -20,9 +20,11 @@ export const REFOCUS_FIGURES = {
     minutes: [10, 23],
     default_minutes: 15,
     basis:
-      'The commonly cited range for full refocus after an interruption in the task-switching ' +
-      'literature. It studied office work, not studio work — borrow it as an upper bound, never ' +
-      'as a measurement.',
+      'The commonly cited range for full refocus after an interruption; the upper figure traces ' +
+      'to Mark, Gudith & Klocke, "The Cost of Interrupted Work: More Speed and Stress" ' +
+      '(CHI 2008), which found roughly 23 minutes to fully return to an interrupted task. It ' +
+      'studied office work, not studio work — borrow it as an upper bound, never as a ' +
+      'measurement, and cite it by name when a buyer asks for the source.',
   },
   rule:
     'State which figure you used and why, every time a number appears. Compute with the ' +

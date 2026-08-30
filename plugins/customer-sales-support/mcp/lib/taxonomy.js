@@ -1,8 +1,9 @@
 /**
  * The intent taxonomy: the three-kind classification, the three-way test with
  * its edge cases, the clustering thresholds, and the two worked taxonomies —
- * all ported from references/intent-taxonomy.md. The audit applies only the
- * checks that reference states mechanically; whether an intent really is
+ * the canonical tables the customer-sales-support skill's help-centre audit
+ * (step 1) records tickets against. The audit applies only the
+ * checks those tables state mechanically; whether an intent really is
  * static for this business is a judgement the audit does not make.
  */
 
