@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Sales Enablement Assistant — MCP server.
+ * Haptic Feedback Mapper — MCP server.
  *
  * The deterministic half of the method: the ranked trigger hierarchy with its
  * freshness arithmetic, the anatomy thresholds and the mechanical draft lint
@@ -32,8 +32,8 @@ import { lintMessage } from './lib/lint.js';
 import { planSequence } from './lib/sequence.js';
 import { logOutreach, reviewOutreach, OUTCOMES } from './lib/outreach.js';
 
-const PLUGIN_ID = 'sales-enablement-assistant';
-const PLUGIN_NAME = 'Sales Enablement Assistant';
+const PLUGIN_ID = 'haptic-feedback-mapper';
+const PLUGIN_NAME = 'Haptic Feedback Mapper';
 const DEFAULT_BILLING_URL = 'https://billing.example.com';
 
 // No free tier: the hierarchy, the anatomy and the tell list stay open so the

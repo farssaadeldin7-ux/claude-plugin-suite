@@ -20,8 +20,8 @@ answer to "why doesn't this work for everyone".
 | Plugin | Audience | Skill they must bring | Why they will pay |
 | --- | --- | --- | --- |
 | Podcast & Video Studio | Content agencies, solo creators | Content strategy: identifying high-retention hooks. The tool is only as good as the segments it is told to prioritise | Clip production is the agency's per-hour cost centre |
-| Support Agent Architect | E-commerce managers, SaaS founders | Knowledge base architecture: structuring FAQs and manuals into a clean hierarchy | A support agent that hallucinates costs more than no agent. This is the difference |
-| Sales Enablement Assistant | B2B sales teams, account executives | Prospecting psychology: keeping the output human | Reply rate is the metric, and templated outreach has already stopped working |
+| Customer Sales Support | E-commerce managers, SaaS founders | Knowledge base architecture: structuring FAQs and manuals into a clean hierarchy | A support agent that hallucinates costs more than no agent. This is the difference |
+| Haptic Feedback Mapper | Creative-tool makers, product teams selling to artists | Workflow measurement: quantifying the cognitive load of screen-checking honestly | Deep-work protection priced in billable hours — interruptions are the artist's largest invisible cost |
 | Wellbeing Companion | Telehealth platforms, HR wellness teams | Clinical triage: recognising when to hand to a human. Support, not crisis intervention | Regulated, high-liability, and the compliance artefacts are the product |
 | Neural-Link Intention Layer | Digital artists, UI/UX designers | Workflow optimisation: knowing their own repetitive command patterns | Billable hours recovered from the hotkey tax |
 | Digital Twin Collaborator | Freelance creative directors, studio heads | Style governance: curating high-quality training data from their own work | Lets one director supervise more output without diluting the studio's voice |

@@ -21,8 +21,8 @@ Installable as a marketplace:
 | [`five-minute-fluency`](plugins/five-minute-fluency) | Competitive players | Three changes maximum, ranked by rating gain per unit of practice |
 | [`basecamp-split`](plugins/basecamp-split) | Guides, expedition leaders | Every critical system has a named owner and a stated backup, or the plan is not finished |
 | [`podcast-video-studio`](plugins/podcast-video-studio) | Agencies, solo creators | A clip that needs context is disqualified however good it was in the room |
-| [`support-agent-architect`](plugins/support-agent-architect) | E-commerce, SaaS | Hallucination is a knowledge-architecture defect; "I don't know" is a first-class outcome |
-| [`sales-enablement-assistant`](plugins/sales-enablement-assistant) | B2B sales | No trigger, no email; if it survives find-and-replace it is a template |
+| [`customer-sales-support`](plugins/customer-sales-support) | E-commerce, SaaS | An AI support agent is only as good as the docs; "I don't know — here's a person" is a first-class answer |
+| [`haptic-feedback-mapper`](plugins/haptic-feedback-mapper) | Creative-tool makers | A haptic that fires for something ignorable is worse than the screen it replaced |
 | [`wellbeing-companion`](plugins/wellbeing-companion) | Telehealth, HR wellness | Escalation is never a judgement call the model makes about severity |
 | [`neural-link-intention-layer`](plugins/neural-link-intention-layer) | Designers, UI/UX | Eliminate, then batch, then automate — in that order |
 | [`digital-twin-collaborator`](plugins/digital-twin-collaborator) | Creative directors | A style is defined by what you never do; the "never" list matters most |

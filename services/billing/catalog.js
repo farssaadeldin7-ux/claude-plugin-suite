@@ -157,9 +157,9 @@ export const CATALOG = {
       },
     },
   },
-  'support-agent-architect': {
-    name: 'Support Agent Architect',
-    code: 'SAA',
+  'customer-sales-support': {
+    name: 'Customer Sales Support',
+    code: 'CSS',
     // The plugin's MCP server gates its licensed tools on the 'tools' feature.
     plans: {
       pro: {
@@ -169,7 +169,7 @@ export const CATALOG = {
         limits: {},
         seats: 2,
         available: true,
-        stripe_price_env: 'STRIPE_PRICE_SAA_PRO',
+        stripe_price_env: 'STRIPE_PRICE_CSS_PRO',
       },
       team: {
         price: 200000,
@@ -178,13 +178,13 @@ export const CATALOG = {
         limits: {},
         seats: 10,
         available: true,
-        stripe_price_env: 'STRIPE_PRICE_SAA_TEAM',
+        stripe_price_env: 'STRIPE_PRICE_CSS_TEAM',
       },
     },
   },
-  'sales-enablement-assistant': {
-    name: 'Sales Enablement Assistant',
-    code: 'SEA',
+  'haptic-feedback-mapper': {
+    name: 'Haptic Feedback Mapper',
+    code: 'HFM',
     // The plugin's MCP server gates its licensed tools on the 'tools' feature.
     plans: {
       pro: {
@@ -194,7 +194,7 @@ export const CATALOG = {
         limits: {},
         seats: 2,
         available: true,
-        stripe_price_env: 'STRIPE_PRICE_SEA_PRO',
+        stripe_price_env: 'STRIPE_PRICE_HFM_PRO',
       },
       team: {
         price: 200000,
@@ -203,7 +203,7 @@ export const CATALOG = {
         limits: {},
         seats: 10,
         available: true,
-        stripe_price_env: 'STRIPE_PRICE_SEA_TEAM',
+        stripe_price_env: 'STRIPE_PRICE_HFM_TEAM',
       },
     },
   },

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Support Agent Architect — MCP server.
+ * Customer Sales Support — MCP server.
  *
  * The deterministic half of the method: the classification tables, trigger
  * lists and thresholds from the references, a mechanical taxonomy audit, an
@@ -37,8 +37,8 @@ import {
 } from './lib/evaluation.js';
 import { logRun, listRuns, RUNS_FILE } from './lib/runs.js';
 
-const PLUGIN_ID = 'support-agent-architect';
-const PLUGIN_NAME = 'Support Agent Architect';
+const PLUGIN_ID = 'customer-sales-support';
+const PLUGIN_NAME = 'Customer Sales Support';
 const DEFAULT_BILLING_URL = 'https://billing.example.com';
 
 // No free tier: the reference tables stay open so the method can be evaluated

@@ -15,7 +15,7 @@ function storePath() {
     || (process.platform === 'win32'
       ? process.env.APPDATA || path.join(os.homedir(), 'AppData', 'Roaming')
       : path.join(os.homedir(), '.config'));
-  return path.join(base, 'plugin-suite', 'support-agent-architect-runs.json');
+  return path.join(base, 'plugin-suite', 'customer-sales-support-runs.json');
 }
 
 function readAll() {
