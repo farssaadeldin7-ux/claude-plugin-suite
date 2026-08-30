@@ -44,10 +44,38 @@ sessions, and the skill will say so rather than invent them.
 | Component | Purpose |
 | --- | --- |
 | Skill `haptic-feedback-mapper` | The sequence: baseline, inventory, event classes, vocabulary design, verification, the pitch |
-| MCP server | Deterministic mechanics and licensing (tool surface predates the current method and is pending rework) |
+| MCP server | The reference tables as data, the load arithmetic, the mechanical mapping audit and vocabulary check, the local session log, licensing |
 
-**Licensing tools** — `license_status`, `license_activate`, `start_checkout`,
-`list_plans`, `billing_portal`
+### Tools
+
+**Open** — no licence needed, enough to evaluate the method before buying
+
+- `event_classes` — the four classes (act_now, done, ambient, noise) with criteria,
+  channels and examples, plus the one rule and the act-now ceiling
+- `vocabulary_rules` — the 3–5 pattern limit, the three distinguishable axes, the
+  failure-distinctiveness rule, the fallback requirement, the blind test
+- `refocus_figures` — the conservative glance-level floor and the literature range, each
+  with its basis and limits stated
+
+**Licensed** — requires a pro or team key
+
+- `load_math` — checks/day × refocus minutes × working days at both bounds, priced at the
+  buyer's own rate, with every assumption echoed back for showing next to the numbers
+- `mapping_audit` — a recorded event→class mapping checked against the stated rules with
+  the entries quoted: ambient/noise events carrying a haptic, act-now events without one,
+  the ceiling, the distribution
+- `vocabulary_check` — a proposed pattern set checked mechanically: duplicate meanings,
+  axis collisions, intensity-only pairs, the failure-distinctiveness rule
+- `log_session` / `review_sessions` — the local before/after measurement log: per-phase
+  checks-per-hour, the drop share, and the trust metric with the crying-wolf flag
+
+**Licensing** — `license_status`, `license_activate`, `start_checkout`, `list_plans`,
+`billing_portal`
+
+The server is deterministic throughout: it serves tables, does arithmetic and matches the
+recorded mapping against stated rules. It never decides what class an event belongs in,
+never measures a session, and never predicts a billable-hour gain — that split is the
+design, not a gap.
 
 ## Setup
 
@@ -71,6 +99,18 @@ export HAPTIC_FEEDBACK_MAPPER_LICENSE_KEY=PS-HFM-...
 export PLUGIN_SUITE_LICENSE_KEY=PS-HFM-...
 ```
 
+## Free and paid
+
+The skill content and the three reference tools are free — the whole method can be read
+and inspected before buying. A licence gates the compute and the history: the load
+arithmetic, the mapping audit, the vocabulary check and the session log.
+
+The server runs locally over stdio, so no session data leaves the machine. The
+measurement log is written only to
+`~/.config/plugin-suite/haptic-feedback-mapper-sessions.json`; the billing service sees a
+licence key, a plugin id and a hashed device identifier — never a session, a mapping or a
+rate.
+
 ## What this is not
 
 - **Not a measured claim until you measure.** Billable-hour gains are projections until
@@ -88,4 +128,6 @@ export PLUGIN_SUITE_LICENSE_KEY=PS-HFM-...
 ## Plans
 
 Served by `services/billing` in this repo; the catalog lives in its `catalog.js`:
-pro $500/month (2 seats) and team $2,000/month (10 seats).
+pro $500/month (2 seats) and team $2,000/month (10 seats). Both plans include the same
+tools — the licence gates `load_math`, `mapping_audit`, `vocabulary_check`, `log_session`
+and `review_sessions`; the skill content and the reference tools stay open.

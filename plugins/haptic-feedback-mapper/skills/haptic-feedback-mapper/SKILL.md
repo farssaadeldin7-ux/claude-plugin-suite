@@ -51,7 +51,10 @@ weekly cost = checks/day × refocus minutes × working days
 ```
 
 Run it with the conservative floor and the literature figure both. Even the floor is
-usually alarming, and the floor is credible.
+usually alarming, and the floor is credible. The `refocus_figures` tool carries both
+figures with their bases; `load_math` runs the arithmetic at both bounds and echoes every
+assumption back so it can be shown next to the numbers. If the tools are unavailable, the
+formula above is the whole computation — run it by hand.
 
 ### 2. Inventory the checks
 
@@ -75,6 +78,11 @@ The distribution matters: in a healthy mapping, most events land in Ambient or N
 more than a handful land in Act now, the mapping is re-creating the notification tray in
 vibration form.
 
+Once the mapping is drafted, run `mapping_audit` — it checks the recorded mapping against
+these rules mechanically with the entries quoted: ambient or noise events carrying a
+haptic, act-now events without one, the ceiling, the distribution. It reports facts, never
+which class an event belongs in; that judgement stays here, with the user.
+
 ### 4. Design the haptic vocabulary
 
 Small and learnable beats expressive: **3–5 distinguishable patterns, no more.** Untrained
@@ -85,13 +93,19 @@ confusable with success (make it the most distinctive pattern); intensity respec
 context (a wrist buzz an artist feels through a drawing glove differs from a phone on a
 desk); and the whole vocabulary is teachable in one sentence each. Test it blind: if a
 user cannot name the meaning of a pattern without looking, cut a pattern rather than add a
-tutorial.
+tutorial. Run `vocabulary_check` on the proposed set — it flags duplicate meanings, axis
+collisions, pairs that differ only in intensity, and a failure pattern confusable with
+success. What it cannot check is how the patterns feel on the actual hardware; only the
+blind test decides that.
 
 ### 5. Verify the load actually dropped
 
 Re-measure after adoption, same method as the baseline: checks per session, and the share
 of haptics the user acted on (the trust metric — it should stay high; a falling action
-rate means the vocabulary has started crying wolf). The before/after pair is both the
+rate means the vocabulary has started crying wolf). With a paid plan, keep the record
+mechanical: `log_session` stores each session's counts by phase, and `review_sessions`
+computes the per-phase averages, the drop share and the trust metric, flagging a
+crying-wolf action rate and a baseline that didn't drop. The before/after pair is both the
 product validation and the sales asset. If checks did not drop, the usual causes, in
 order: Ambient events got haptics, Noise wasn't actually silenced, or the artist doesn't
 yet trust silence to mean "nothing needs you" — which is fixed by reliability, not by
@@ -122,6 +136,16 @@ haptic vocabulary spec (pattern, meaning, intensity, context), the baseline and 
 measurements with the formula and assumptions visible, and the ROI one-pager in the
 buyer's rate. Whenever a number appears, its assumption appears next to it — the credibility
 of the whole pitch rests on the conservative math being checkable.
+
+## Licensing
+
+`event_classes`, `vocabulary_rules` and `refocus_figures` are open. `load_math`,
+`mapping_audit`, `vocabulary_check` and the session log require a paid licence, and return
+`license_required` or `upgrade_required` when the plan does not cover them. Handle it
+plainly: say what is missing, call `list_plans`, and offer `start_checkout`. Never work
+around a gate by inventing what the paid tool would have said — and never let a licensing
+miss stall the method itself: every computation here can be run by hand from the formulas
+and rules on this page.
 
 ## Limits of the method
 
