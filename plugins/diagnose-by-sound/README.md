@@ -24,7 +24,6 @@ fastest. This plugin enforces that order.
 | Component | Purpose |
 | --- | --- |
 | Skill `diagnose-by-sound` | The interview protocol, how to read the results, how to present them |
-| Skill `acoustic-signal-processing` | Filtering background noise and isolating the mechanical signal — rattles, whines, knocks — before diagnosis: capture technique, elimination tests, spectrogram reading, frequency/order arithmetic |
 | MCP server | Vocabulary, signature matching, repair planning, case history, licensing |
 
 ### Tools
@@ -90,4 +89,7 @@ hypothesis with a test attached — the test is the point.
 
 ## The skill you bring
 
-**Acoustic Signal Processing.** Shipped as a second skill inside this plugin (`skills/acoustic-signal-processing`): filtering background noise and isolating rattles, whines and knocks — capture technique, the elimination protocol, spectrogram reading — before the diagnosis starts.
+**Acoustic Signal Processing.** Filtering background noise and isolating the mechanical
+signal — rattles, whines, knocks — before the diagnosis starts. The plugin supplies the
+interview and the differential; separating the real noise from the cabin, the road and a
+bad description is the listening discipline you bring.
