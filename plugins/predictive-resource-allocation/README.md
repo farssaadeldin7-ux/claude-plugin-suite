@@ -129,7 +129,10 @@ output rather than hiding it in a footnote.
 ## Plans
 
 Served by `services/billing` in this repo; the catalog lives in its `catalog.js`.
-Pro is $500/month (2 seats) and team is $2,500/month (10 seats). The licence gates the
+**Month one of pro is the paid pilot** — agree the success metric before checkout (one
+prevented out-of-memory failure or one correctly named bottleneck on a real job of
+theirs), run the month, then continue on the measured result or cancel at period end.
+No separate pilot SKU. Pro is $500/month (2 seats) and team is $2,500/month (10 seats). The licence gates the
 compute tools — capacity arithmetic, bottleneck classification, dispatch arithmetic and
 the estimate log. The skill content and the browsing tools (`triage_reference`,
 `domain_profile`, `remedy_ladder`) stay open, so the method can be evaluated before

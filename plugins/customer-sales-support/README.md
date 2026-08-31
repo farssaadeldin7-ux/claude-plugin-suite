@@ -121,4 +121,11 @@ identifier — never a ticket, an article or a metric.
 Pricing is defined in the suite catalog, served by `services/billing` in this repo:
 pro $1,000/month (2 seats) and team $5,000/month (10 seats). The licence gates the compute
 tools — `taxonomy_audit`, `article_lint`, `escalation_screen`, `regression_score` and
-`regression_history`; the three reference tools and the skill content stay open.
+`regression_history`; the three reference tools and the skill content stay open (the
+Starter tier: the whole method, free, by hand).
+
+**Month one of pro is the paid pilot.** Never sold cold: agree the success metric before
+checkout — regression-set accuracy on the buyer's own tickets, scored by their own team —
+run the month, then the subscription continues on the measured result or cancels at
+period end. No separate pilot SKU; the pitch is the fraction-of-value rule, priced
+against the support hours the pilot just measured.

@@ -125,7 +125,7 @@ disagrees with a real retention curve, the curve is right.
 
 ## Plans
 
-Pricing is defined in the suite catalog: pro $500/month (2 seats) and team $1,500/month
+Pricing is defined in the suite catalog: pro $500/month (2 seats, ≈ $250 per editor seat) and team $1,500/month (10 seats, ≈ $150 per seat) — per-seat is the honest unit here, and the "$500 per project" framing is the pitch: one project a month at pro. Team is
 (10 seats). Both plans include the same tools — the licence gates `check_tells`,
 `plot_arc`, `reconcile_curve` and the analysis history; the reference-table tools and
 the skill content stay open.
