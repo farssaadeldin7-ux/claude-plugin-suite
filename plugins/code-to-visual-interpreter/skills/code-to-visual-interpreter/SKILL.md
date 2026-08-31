@@ -157,6 +157,22 @@ be visible and always settable, which is metadata, not a design control.
 A designer given nine sliders explores a fraction of the space and reports the piece
 does not do much. Given two, they find the range.
 
+## The commercial application: the Time-to-Market Accelerator
+
+What this sells is a compressed prototyping cycle. The cost being removed is the
+refresh-and-tweak loop: a developer changing a magic number, refreshing, squinting,
+changing it again — and, without a seed, never able to compare two runs of the same
+frame. The disciplines in this skill attack that loop directly: a recorded seed makes
+every tweak a reviewable diff instead of a hunt; a decomposed rule with an exposed
+parameter table moves iteration from the developer to the designer; a budgeted asset
+stops the ship-block rework when the export turns out to be 4 MB.
+
+Framed for a buyer, that is a **Time-to-Market Accelerator**, and it is measured, not
+asserted: count iterations and minutes per refresh-tweak cycle on their own feature
+before and after, and price the removed cycles at the developer's rate. The claim is
+hours cut from the dev cycle of *that* feature — quoted from their measurement, in their
+codebase, not from a generic benchmark.
+
 ## Output format
 
 For a **visual → code** request, deliver these five things in this order:

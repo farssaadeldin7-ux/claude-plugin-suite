@@ -165,6 +165,22 @@ Drift is usually the preamble being trimmed, the corpus ageing, or corrections n
 back; diagnose which before rewriting anything. Protocol and remedies in
 `references/drift-and-governance.md`.
 
+## The commercial application: the Junior-to-Senior Bridge
+
+What this sells is standardised quality control. The profile turns senior taste into a
+checkable document, and the scoring pass grades a draft against it before a senior ever
+looks — so junior staff produce work that arrives at review already inside the house
+style. Priced for a studio, that is the **Junior-to-Senior Bridge**: the cost of
+senior-level oversight is senior hours spent per review round, and the bridge cuts the
+rounds. Measure it as review rounds per deliverable before and after the profile, times
+the senior's hourly rate.
+
+Sell it inside the apprentice metaphor, not the twin one: the bridge raises the floor of
+junior output and reduces senior correction passes — it does not make junior work senior
+work, and the never-list plus the senior's remaining edits are exactly what the studio is
+still paying that senior for. A claim of eliminated oversight is the overselling this
+skill opens by warning against.
+
 ## Disclosure
 
 Settle this before the first draft goes out, not after a client asks. Agree what gets told to

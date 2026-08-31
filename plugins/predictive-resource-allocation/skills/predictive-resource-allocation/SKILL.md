@@ -167,6 +167,23 @@ Every answer has the same three parts, in this order:
 Then the honesty line: this is an estimate from stated assumptions, and one measured
 run beats it.
 
+## The commercial application: Render Insurance
+
+What this sells is the prevented catastrophe. Price the crash before pitching anything:
+a multi-day render that dies out-of-memory at frame 900 costs the lost compute time, the
+labour that queued and shepherded it, and whatever the missed deadline costs downstream —
+all numbers the buyer already knows for their own jobs. The memory arithmetic and the
+capacity-cliff checks in this skill exist to name that failure **before** the farm hits
+it: the VRAM estimate that says "this scene does not fit in 24 GB at these settings"
+is worth the whole subscription the first time it is right about a multi-day job.
+
+That is **Render Insurance**, and it is sold with this skill's own honesty intact: the
+estimates carry roughly a factor-of-two error band, which is precisely why the deliverable
+is *headroom* — a plan that fits with margin, verified by one cheap measured run before
+the long one is committed. Insurance here means engineered margin plus a baseline test,
+never a certainty claim; a pitch that promises zero crashes is the guess dressed as
+arithmetic this skill forbids.
+
 ## Limits of the method
 
 Be direct about all of these when they apply.

@@ -121,6 +121,21 @@ Mechanism details and examples live in `references/automation-catalogue.md`.
 - Keep the automation only if net saving is visible in the next 2–3 weeks of logs.
 - Refit the sequence model when major tooling or process changes happen.
 
+## The commercial application: the Production Capacity Multiplier
+
+What this sells is the reduction of click-fatigue. The audit prices the invisible tax —
+mouse travel, menu navigation, zoom-pan-zoom, the tool toggle, the undo — in minutes per
+week, counted from the person's own log. Framed for a buyer, that becomes a **Production
+Capacity Multiplier**: minutes recovered per file, times files per day, is extra
+throughput without extra fatigue — the shape of the claim is a retoucher handling on the
+order of 20% more files per day without burnout.
+
+The one rule holds in the pitch exactly as it holds in the audit: **no log, no numbers.**
+The capacity claim is computed from *their* measured audit, after instrumentation, never
+promised in advance — and it lives inside the stated ceiling (20–90 minutes per week for
+a heavy user, nothing for decision-making or client revision). Sell the measurement and
+the payback arithmetic; let their own log produce the multiplier.
+
 ## Deliverable format
 
 The output should be short, auditable and falsifiable:
