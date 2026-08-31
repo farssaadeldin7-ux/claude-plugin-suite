@@ -119,6 +119,6 @@ identifier — never a ticket, an article or a metric.
 ## Plans
 
 Pricing is defined in the suite catalog, served by `services/billing` in this repo:
-pro $500/month (2 seats) and team $2,000/month (10 seats). The licence gates the compute
+pro $1,000/month (2 seats) and team $5,000/month (10 seats). The licence gates the compute
 tools — `taxonomy_audit`, `article_lint`, `escalation_screen`, `regression_score` and
 `regression_history`; the three reference tools and the skill content stay open.

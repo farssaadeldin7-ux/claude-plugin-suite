@@ -84,8 +84,8 @@ no free plan and no trial — every diagnosis needs a paid licence.
 
 | Plan | Price | Seats | Diagnoses / month | Includes |
 | --- | --- | --- | --- | --- |
-| Pro | $40/month | 2 | unlimited | `diagnose`, `repair_plan`, case history |
-| Team | $70/month | 10 | unlimited | the same, for a multi-technician shop |
+| Pro | $50/month | 2 | unlimited | `diagnose`, `repair_plan`, case history |
+| Team | $150/month | 10 | unlimited | the same, for a multi-technician shop |
 
 ## Privacy
 

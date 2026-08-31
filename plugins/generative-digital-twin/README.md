@@ -131,6 +131,6 @@ agency claiming ownership — go to a lawyer.
 ## Plans
 
 Pricing is defined in the suite catalog (`services/billing/catalog.js`):
-pro $40/month (2 seats) and team $70/month (10 seats). Both plans include the same tools —
+pro $200/month (2 seats) and team $500/month (10 seats). Both plans include the same tools —
 `corpus_check`, `score_draft`, `drift_audit` and the profile store; team buys seats, not
 capabilities. The skill content and the open tools stay free.

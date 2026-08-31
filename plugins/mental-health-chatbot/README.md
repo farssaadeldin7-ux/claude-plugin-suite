@@ -165,7 +165,7 @@ operator who can hold that line.
 
 ## Plans
 
-Pricing is defined in the suite catalog: pro $40/month (2 seats) and team $70/month
+Pricing is defined in the suite catalog: pro $20/month (2 seats) and team $50/month
 (10 seats). The licence gates the operator's measurement workflow — red-team
 specification, the evaluation gate, the run record, the summary template and the session
 audit log. The skill content, every safety and escalation lookup, and the scope wording

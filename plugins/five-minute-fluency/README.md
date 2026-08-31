@@ -123,7 +123,7 @@ correct across patches.
 
 ## Plans
 
-Pricing is defined in the suite catalog: pro $40/month (2 seats) and team $70/month
+Pricing is defined in the suite catalog: pro $10/month (2 seats) and team $30/month
 (10 seats). Both include the same tools — the licence gates `score_changes`,
 `sheet_lint` and the sheet log (`log_sheet`, `record_session`, `review_sheets`); the
 knowledge-base tools stay open.

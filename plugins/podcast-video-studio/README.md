@@ -122,7 +122,7 @@ a transcript.
 ## Plans
 
 Served by `services/billing` in this repo; the catalog lives in its `catalog.js`:
-pro $40/month (2 seats) and team $70/month (10 seats). Both plans include the same
+pro $100/month (2 seats) and team $300/month (10 seats). Both plans include the same
 tools — the licence gates `scan_candidates`, `score_clip` and the clip log
 (`log_clip`, `record_footage_pass`, `review_clips`); the skill content and the
 browsing tools stay open.

@@ -117,7 +117,7 @@ own guidance — where they disagree with this, they are right.
 
 ## Plans
 
-Pricing is defined in the suite catalog: pro $40/month (2 seats) and team $70/month
+Pricing is defined in the suite catalog: pro $50/month (2 seats) and team $150/month
 (10 seats). Both plans include the same tools; the licence gates `effort_map`,
 `audit_scorecard` and the audit history. Skill content and the knowledge-base tools
 stay open.

@@ -125,7 +125,7 @@ disagrees with a real retention curve, the curve is right.
 
 ## Plans
 
-Pricing is defined in the suite catalog: pro $40/month (2 seats) and team $70/month
+Pricing is defined in the suite catalog: pro $500/month (2 seats) and team $1,500/month
 (10 seats). Both plans include the same tools — the licence gates `check_tells`,
 `plot_arc`, `reconcile_curve` and the analysis history; the reference-table tools and
 the skill content stay open.

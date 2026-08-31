@@ -135,8 +135,8 @@ rate.
 ## Plans
 
 Served by `services/billing` in this repo; the catalog lives in its `catalog.js`:
-pro $40/month (2 seats) and team $70/month (10 seats) — standard tier, priced for the
-solo artists and small product teams it serves, not the enterprise tier its audience
-can't carry. Both plans include the same tools — the licence gates `load_math`,
+pro $100/month (2 seats) and team $300/month (10 seats) — a Deep-Work premium priced
+against the billable hours it recovers, within reach of the solo artists and small
+product teams it serves. Both plans include the same tools — the licence gates `load_math`,
 `mapping_audit`, `vocabulary_check`, `log_session` and `review_sessions`; the skill
 content and the reference tools stay open.

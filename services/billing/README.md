@@ -22,23 +22,31 @@ swap in a real database later.
 | `GET /success?session_id=` | Post-checkout page that shows the licence key once. |
 | `GET /health` | Liveness. |
 
-## Plans — Diagnose by Sound
+## Plans
 
-| Plan | Price | Seats | Diagnoses / month | Includes |
-| --- | --- | --- | --- | --- |
-| `pro` | $40/mo | 2 | unlimited | `diagnose`, `repair_plan`, `history` |
-| `team` | $70/mo | 10 | unlimited | `diagnose`, `repair_plan`, `history` |
+Every plugin sells the same two-plan shape — `pro` (2 seats) and `team` (10 seats),
+each gating the features its MCP server checks — priced per plugin on the value the
+tool returns, not a flat tier. From `catalog.js`:
 
-**Ghost Post Preview** sells the same shape: pro $40/mo (2 seats, unlimited) · team
-$70/mo (10 seats, unlimited), gating the
-`draft_lint` pass and the prediction log (`STRIPE_PRICE_GPP_PRO` / `_TEAM`).
+| Plugin | Pro | Team |
+| --- | --- | --- |
+| Customer Sales Support | $1,000/mo | $5,000/mo |
+| Ghost Post Preview (Sales and Outreach) | $500/mo | $2,000/mo |
+| Predictive Resource Allocation | $500/mo | $2,500/mo |
+| Emotional Resonance Analyzer | $500/mo | $1,500/mo |
+| Generative Digital Twin | $200/mo | $500/mo |
+| Code-to-Visual Interpreter | $150/mo | $400/mo |
+| Podcast & Video Studio | $100/mo | $300/mo |
+| Haptic Feedback Mapper | $100/mo | $300/mo |
+| Neural-Link Intention Layer | $100/mo | $300/mo |
+| Diagnose by Sound | $50/mo | $150/mo |
+| Professor Mind-Reader | $50/mo | $150/mo |
+| Mental-Health Chatbot | $20/mo | $50/mo |
+| 5-Minute Fluency | $10/mo | $30/mo |
+| Basecamp Split | $5/mo | $15/mo |
 
-The other twelve plugins sell the same shape — pro (2 seats) and team (10 seats),
-each gating the `tools` feature its MCP server checks. Standard tier is pro $40/mo ·
-team $70/mo; the two premium plugins — Customer Sales Support and Predictive
-Resource Allocation — are pro $500/mo · team $2,000/mo. Env
-keys follow the plugin codes: `STRIPE_PRICE_<CODE>_PRO` / `_TEAM` for PMR, FMF, BCS,
-PVS, CSS, HFM, MHC, NLI, GDT, ERA, CVI and PRA.
+Env keys follow the plugin codes: `STRIPE_PRICE_<CODE>_PRO` / `_TEAM` for DBS, GPP,
+PMR, FMF, BCS, PVS, CSS, HFM, MHC, NLI, GDT, ERA, CVI and PRA.
 
 No plugin has a free plan or a trial — every gated tool needs a paid licence. (A plugin
 that wants client-side free features can declare them via `LicenseClient`'s `freeTier`

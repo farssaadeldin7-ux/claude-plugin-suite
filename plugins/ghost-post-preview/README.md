@@ -69,8 +69,8 @@ catalog lives in its `catalog.js`.
 
 | Plan | Price | Seats | Lint passes / month |
 | --- | --- | --- | --- |
-| Pro | $40/month | 2 | unlimited |
-| Team | $70/month | 10 | unlimited |
+| Pro | $500/month | 2 | unlimited |
+| Team | $2,000/month | 10 | unlimited |
 
 The review method itself — the skill — loads as content and needs no licence; a
 licensing miss never blocks the manual review.
