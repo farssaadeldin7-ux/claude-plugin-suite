@@ -53,7 +53,11 @@ Garbage capture cannot be filtered into a good signal afterwards. For any record
 ## The elimination protocol
 
 The ordered subtraction sequence — which system each test silences, and what remaining
-noise then means — is in `references/isolation-protocol.md`. The spine of it:
+noise then means — is in `references/isolation-protocol.md`, and the `elimination_plan`
+tool automates the bookkeeping: pass the tests already run with their outcomes and it
+returns what each result mechanically rules in, the derived side of the vehicle, a
+conflict flag when results point both ways (usually two noises), and the ordered tests
+still worth running. The spine of it:
 
 1. **Stationary vs moving** splits the field in half before anything else.
 2. **Neutral coast** at the speed where it happens: still there means road-speed linked
@@ -87,9 +91,18 @@ most of what matters:
 
 The frequency-to-order arithmetic — matching a line or stripe rate to crank speed, wheel
 speed, or a specific accessory ratio — is worked through in
-`references/frequency-bands.md`. Treat all figures there as bands, not thresholds: phone
-microphones and car interiors shift absolute levels, but the *relationships* (what the
-sound tracks, how components space) survive.
+`references/frequency-bands.md`, and `order_match` runs it mechanically: give it the
+measured line or stripe rate plus the RPM, cylinder count, road speed and tyre size, and
+it returns every rotating part whose rate (or harmonic, to order 6) matches, with the
+working shown. When several rates match, the elimination tests decide, not the
+arithmetic. `frequency_bands` serves the family table itself. Treat all figures as
+bands, not thresholds: phone microphones and car interiors shift absolute levels, but
+the *relationships* (what the sound tracks, how components space) survive.
+
+Before interpreting any spectrogram, run `capture_check` on the recording conditions —
+HVAC, radio, windows, mounting, whether the noise was actually happening. Wash and
+maskers cannot be removed after the fact, and a failed capture is re-recorded, not
+interpreted through.
 
 ## Hand off cleanly
 

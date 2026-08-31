@@ -38,6 +38,9 @@ import { recordRun, reviewRuns, RUNS_FILE } from './lib/runs.js';
 import {
   SUMMARY_TEMPLATE, SESSION_ENDINGS, recordSession, reviewAudit, AUDIT_FILE,
 } from './lib/audit.js';
+import {
+  DETECTION_PHRASES, SCREEN_LIMITS, screenMessage, checkDeployment, draftSummary,
+} from './lib/checkin.js';
 
 const PLUGIN_ID = 'mental-health-chatbot';
 const PLUGIN_NAME = 'Mental-Health Chatbot';
@@ -56,9 +59,11 @@ const server = new McpServer({
   version: '0.1.0',
   instructions:
     'Protocol lookups and operator records for a boundaried, non-clinical check-in service. It ' +
-    'serves the escalation trigger list, response rules, resource-block checks and scope wording ' +
-    '(open), and the red-team specification, change-control gate, run record, supervisor-summary ' +
-    'template and session audit log (licensed). It does not assess anyone, score transcripts, ' +
+    'serves the escalation trigger list, response rules, resource-block checks, scope wording, ' +
+    'the deployment gate (deployment_check), the literal-phrase message screen (screen_message — ' +
+    'a non-match is never clearance) and the phrase floor (open), and the red-team ' +
+    'specification, change-control gate, run record, supervisor-summary template, summary ' +
+    'drafter and session audit log (licensed). It does not assess anyone, score transcripts, ' +
     'judge severity, or generate crisis phone numbers, and the audit log holds only categorical ' +
     'fields — never anything a user typed. If a person in distress is present, do not run this ' +
     'protocol at them — follow the skill\'s guidance and help them find support where they are.',
@@ -285,7 +290,91 @@ server.tool('review_runs', {
   },
 });
 
+// ------------------------------------------------- check-in automation (open)
+
+server.tool('deployment_check', {
+  description:
+    'The step-1 gate, mechanical: checks that a deployment carries the four artefacts — scope ' +
+    'statement (published, hard stops adopted unedited), escalation route (team, hours, a ' +
+    'fallback the operator attests is staffed), resource block (validated via the same rules as ' +
+    'resource_config_check), confidentiality notice (shown before the first message). ' +
+    'ready:false means no check-ins run. Shape checks only — whether the claims are true is the ' +
+    'operator\'s attestation, now on record. Open: setup is not paywalled.',
+  inputSchema: {
+    type: 'object',
+    properties: {
+      scope_statement: { type: 'object', description: '{ in_scope[], out_of_scope[], hard_stop_confirmed: true, published: true }' },
+      escalation_route: { type: 'object', description: '{ team, hours, out_of_hours_fallback, fallback_staffed: true }' },
+      resource_block: { type: 'object', description: 'The regional crisis-resource block, same shape as resource_config_check.' },
+      confidentiality_notice: { type: 'object', description: '{ who_reads, retention, employer_sees, disclosure_triggers, shown_before_first_message: true }' },
+    },
+  },
+  handler: async (args) => checkDeployment(args),
+});
+
+server.tool('screen_message', {
+  description:
+    'Literal-phrase trigger screen over one user message: matches the detection-phrase floor for ' +
+    'all nine categories, evidence quoted, designed to over-trigger. A match means escalate now. ' +
+    'A NON-MATCH IS NOT CLEARANCE — paraphrase, misspelling and context escape literal matching, ' +
+    'and the model escalates on its own read regardless; session-level triggers (sustained ' +
+    'distress, declining twice) are outside a single-message screen. No scores, no severity. ' +
+    'Open: the safety surface is never paywalled.',
+  inputSchema: {
+    type: 'object',
+    properties: {
+      message: { type: 'string', description: 'The user message text, verbatim.' },
+    },
+    required: ['message'],
+  },
+  handler: async (args) => screenMessage(args),
+});
+
+server.tool('detection_phrases', {
+  description:
+    'The literal detection-phrase floor per trigger category, as data — for building the ' +
+    'deployment\'s own detector and its red-team set. A floor, not the detector: the lists ' +
+    'deliberately over-trigger and still miss paraphrase. Open.',
+  inputSchema: { type: 'object', properties: {} },
+  handler: async () => ({ phrases: DETECTION_PHRASES, limits: SCREEN_LIMITS }),
+});
+
 // -------------------------------------------- summaries and the audit log
+
+server.tool('draft_summary', {
+  description:
+    'Draft the supervisor summary\'s quantitative sections mechanically from the audit log for a ' +
+    'stated window: participation and endings, escalations by category with case ids only, the ' +
+    'operator\'s themes with denominators enforced (below the minimum session count they are ' +
+    'withheld, not rounded up), missed escalations surfaced rather than hidden, and the standing ' +
+    'caveat verbatim. Numbers only — the prose around them is the skill\'s, inside the same ' +
+    'resolution rules. Requires a paid plan.',
+  inputSchema: {
+    type: 'object',
+    properties: {
+      since: { type: 'string', description: 'Reporting window start, YYYY-MM-DD.' },
+      until: { type: 'string', description: 'Reporting window end, YYYY-MM-DD. Defaults to now.' },
+      themes: {
+        type: 'array',
+        description: 'The themes the operator observed, each with its denominator.',
+        items: {
+          type: 'object',
+          properties: {
+            theme: { type: 'string', description: 'The theme, in the deployment\'s own vocabulary.' },
+            sessions_behind: { type: 'number', description: 'How many sessions in the window carry it.' },
+          },
+          required: ['theme', 'sessions_behind'],
+        },
+      },
+      config_version: { type: 'string', description: 'The configuration version in force during the window.' },
+    },
+    required: ['since'],
+  },
+  handler: async (args) => {
+    await client.requireFeature('tools');
+    return draftSummary(args);
+  },
+});
 
 server.tool('summary_template', {
   description:

@@ -50,6 +50,11 @@ without them, help build them instead — that is the setup half of this skill.
 | Resource block | Regional crisis resources, verified and dated (`resource_config_check` validates it; a stale block fails) |
 | Confidentiality notice | Who reads what, in plain language, shown before the first message |
 
+Run `deployment_check` with the four artefacts before the first session: it enforces this
+gate mechanically — `ready: false` means no check-ins, and the findings name what is
+missing. What it cannot check (whether the fallback really answers at 2am, whether the
+notice is honest) becomes the operator's recorded attestation.
+
 Moving anything from out-of-scope to in-scope is a clinical governance decision with a
 named clinical owner, not a product decision. Record who signed it.
 
@@ -88,6 +93,14 @@ emergencies, disordered eating, and the user asking for a human or showing susta
 distress. Design the screen to over-trigger: a false escalation costs a counsellor five
 minutes; a missed one does not have a cost anyone is willing to pay.
 
+Run `screen_message` on every message as the mechanical floor: it matches the literal
+detection phrases for all nine categories with the evidence quoted, and a match means
+escalate now. **A non-match is never clearance** — paraphrase, misspelling and context
+escape literal matching, so escalate on your own read of the message regardless of the
+screen, and track the session-level triggers the screen cannot see (distress across three
+consecutive turns, declining twice). `detection_phrases` serves the phrase floor as data
+for the deployment's own detector and its red-team set.
+
 When a trigger fires (`escalation_response` carries the constraints verbatim):
 
 1. Respond briefly and warmly — no assessment questions, no advice. Say plainly that a
@@ -120,9 +133,12 @@ The summary is for the programme's supervisor and it is honest about its own res
 - Every summary states the reporting window, the number of sessions behind each claim,
   and that themes are conversational patterns, not clinical findings.
 
-Write the summary against `summary_template` — it carries the sections, the resolution
-rules and the minimum session count behind a theme — over the period's records from the
-audit log (`review_audit` with the reporting window's `since` date).
+Draft it mechanically with `draft_summary`: pass the reporting window and the observed
+themes with their denominators, and it assembles the quantitative sections from the audit
+log — participation, escalations by category as case ids, themes with the minimum
+session count enforced (below it they are withheld, not rounded up), missed escalations
+surfaced, the standing caveat verbatim. Write the prose around those numbers against
+`summary_template`, inside the same resolution rules.
 
 ### 6. Keep the audit log
 
@@ -168,10 +184,11 @@ is literally true.
 ## Licensing
 
 Neither safety nor setup is paywalled: `escalation_triggers`, `escalation_response`,
-`resource_config_check` and `scope_statement` are open, deliberately — a safety protocol
-that costs money to consult is a design failure, and step 1's configuration must be
-buildable without a key. The measurement workflow — `redteam_spec`, `evaluation_gate`,
-the run record, `summary_template` and the session audit log — requires a paid licence
+`resource_config_check`, `scope_statement`, `deployment_check`, `screen_message` and
+`detection_phrases` are open, deliberately — a safety protocol that costs money to
+consult is a design failure, and step 1's configuration must be buildable without a key.
+The measurement workflow — `redteam_spec`, `evaluation_gate`, the run record,
+`summary_template`, `draft_summary` and the session audit log — requires a paid licence
 and returns `license_required` when the plan does not cover it: say what is missing, call
 `list_plans`, offer `start_checkout`, and never invent what a gated tool would have said.
 A licensing miss never blocks an escalation, and a check-in that cannot write its audit

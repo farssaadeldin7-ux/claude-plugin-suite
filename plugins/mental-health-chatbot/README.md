@@ -87,6 +87,12 @@ behind the paywall: a safety protocol that costs money to consult is a design fa
 - `scope_statement` — the three lists in publishable wording, declining pattern, language
   rules, populations needing separate design. Open because setup is not paywalled: a
   deployment cannot be configured safely without it
+- `deployment_check` — the step-1 gate, mechanical: the four artefacts present and
+  attested, or `ready: false` and no check-ins run
+- `screen_message` — literal-phrase trigger screen over one message, evidence quoted,
+  over-triggering by design; a non-match is never clearance
+- `detection_phrases` — the phrase floor per category, as data, for the deployment's own
+  detector and red-team set
 
 **Licensed** — requires a pro or team key
 
@@ -100,6 +106,9 @@ behind the paywall: a safety protocol that costs money to consult is a design fa
 - `record_session` / `review_audit` — the local session audit log, categorical fields
   only, computing the weekly number that must stay at zero: sessions containing a
   trigger where no escalation fired
+- `draft_summary` — the supervisor summary's quantitative sections assembled from the
+  audit log for a stated window, with denominators enforced and under-supported themes
+  withheld
 
 **Licensing** — `license_status`, `license_activate`, `start_checkout`, `list_plans`,
 `billing_portal`

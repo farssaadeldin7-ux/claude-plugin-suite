@@ -32,6 +32,19 @@ fastest. This plugin enforces that order.
 
 - `sound_vocabulary` — the controlled terms, and which ones matter most
 - `list_signatures` / `describe_signature` — browse and inspect the knowledge base
+- `frequency_bands` — where knocks, rattles, whines, bearings and maskers sit in
+  frequency and time, with the harmonic rule
+- `capture_check` — mechanical check of the recording conditions (HVAC, radio, windows,
+  mounting, live reproduction) before a spectrogram is interpreted
+
+The isolation compute tools are licensed with `diagnose`:
+
+- `order_match` — order arithmetic tying a measured spectrogram line or stripe rate to
+  crank, camshaft, firing rate, accessory pulley or wheel, harmonics to order 6, working
+  shown
+- `elimination_plan` — the staged subtraction protocol over recorded results: what each
+  outcome rules in, the derived side of the vehicle, conflicts flagged, next tests
+  ordered
 
 **Licensed** — requires a pro or team key
 

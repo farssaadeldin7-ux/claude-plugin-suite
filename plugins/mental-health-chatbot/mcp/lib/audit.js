@@ -160,9 +160,12 @@ export function recordSession({
  * review exists for — sessions containing a trigger where no escalation
  * fired. Target zero. Counting only.
  */
-export function reviewAudit({ since, limit = 20 } = {}) {
+export function reviewAudit({ since, until, limit = 20 } = {}) {
   const sinceDay = since === undefined ? null : isoDayOf(since, 'since');
-  const sessions = readAll().filter((s) => sinceDay === null || s.session_date >= sinceDay);
+  const untilDay = until === undefined ? null : isoDayOf(until, 'until');
+  const sessions = readAll().filter((s) =>
+    (sinceDay === null || s.session_date >= sinceDay)
+    && (untilDay === null || s.session_date <= untilDay));
 
   const byEnding = {};
   const escalationsByCategory = {};
@@ -179,6 +182,7 @@ export function reviewAudit({ since, limit = 20 } = {}) {
 
   return {
     ...(sinceDay ? { since: sinceDay } : {}),
+    ...(untilDay ? { until: untilDay } : {}),
     total_sessions: sessions.length,
     endings: byEnding,
     escalations: {

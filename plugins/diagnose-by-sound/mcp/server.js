@@ -17,6 +17,10 @@ import {
   safetyVerdict, normaliseObservation, rejectedTerms,
 } from './lib/match.js';
 import { saveCase, listCases, getCase, updateCase, priorOutcomes, CASES_FILE } from './lib/cases.js';
+import {
+  FAMILY_BANDS, BAND_CAVEAT, HARMONIC_RULE, ELIMINATION_TESTS,
+  matchOrders, planElimination, checkCapture,
+} from './lib/acoustics.js';
 
 const PLUGIN_ID = 'diagnose-by-sound';
 const PLUGIN_NAME = 'Diagnose by Sound';
@@ -31,9 +35,12 @@ const server = new McpServer({
   name: PLUGIN_ID,
   version: '0.1.0',
   instructions:
-    'Acoustic diagnosis for vehicles. Call sound_vocabulary first to learn the controlled terms, ' +
-    'characterise the noise with the user in those terms, then call diagnose. Never guess at ' +
-    'vocabulary values — unrecognised terms are dropped and silently weaken the match.',
+    'Acoustic diagnosis for vehicles. Isolation first: capture_check for the recording ' +
+    'conditions, elimination_plan for the next subtraction tests over recorded results, ' +
+    'order_match to tie a spectrogram line to a rotating part by arithmetic, frequency_bands for ' +
+    'the family tables. Then diagnosis: call sound_vocabulary to learn the controlled terms, ' +
+    'characterise the isolated noise with the user in those terms, and call diagnose. Never guess ' +
+    'at vocabulary values — unrecognised terms are dropped and silently weaken the match.',
 });
 
 // ---------------------------------------------------------------- vocabulary
@@ -338,6 +345,90 @@ server.tool('record_outcome', {
     const updated = updateCase(case_id, { chosen, outcome, notes });
     if (!updated) throw new ToolError('unknown_case', `No case "${case_id}".`);
     return { updated: true, case: updated };
+  },
+});
+
+// ----------------------------------------------------------- signal isolation
+
+server.tool('frequency_bands', {
+  description:
+    'The frequency-band families — where knocks, slaps, ticks, rattles, whines, bearings, belts, ' +
+    'brakes, exhaust leaks and maskers sit in frequency and time, with their spectrogram ' +
+    'signatures — plus the harmonic rule. Reference data only; order_match is what runs the ' +
+    'arithmetic against a measurement. Every figure is a band, not a threshold.',
+  inputSchema: { type: 'object', properties: {} },
+  handler: async () => ({
+    caveat: BAND_CAVEAT,
+    families: FAMILY_BANDS,
+    harmonic_rule: HARMONIC_RULE,
+  }),
+});
+
+server.tool('capture_check', {
+  description:
+    'Mechanical check of the described recording conditions against the capture rules: HVAC, ' +
+    'radio, windows, phone mounting, whether the noise was actually reproduced. Findings with ' +
+    'fixes; it has not heard the recording and judges nothing about its content. Open — a bad ' +
+    'capture should be caught before anyone pays for anything.',
+  inputSchema: {
+    type: 'object',
+    properties: {
+      windows_closed: { type: 'boolean', description: 'Were the windows closed during the capture?' },
+      hvac_off: { type: 'boolean', description: 'Was the HVAC/blower off?' },
+      radio_off: { type: 'boolean', description: 'Was the audio system off?' },
+      phone_mounted: { type: 'boolean', description: 'Was the phone mounted or rested, rather than handheld?' },
+      reproduced_live: { type: 'boolean', description: 'Was the noise actually happening during the recording?' },
+    },
+  },
+  handler: async (args) => checkCapture(args),
+});
+
+server.tool('order_match', {
+  description:
+    'Order arithmetic: tie a measured spectrogram line (Hz) or stripe rate (events/second) to the ' +
+    'rotating parts it could be — crank, camshaft, firing rate, accessory pulley, wheel — from ' +
+    'RPM, cylinder count, road speed and tyre circumference, with harmonics to order 6 and the ' +
+    'working shown for every candidate. Arithmetic only: when several rates match, the ' +
+    'elimination tests decide, not this tool. Requires a paid plan.',
+  inputSchema: {
+    type: 'object',
+    properties: {
+      measured_hz: { type: 'number', description: 'A spectrogram line, in Hz. Pass this or events_per_second.' },
+      events_per_second: { type: 'number', description: 'A stripe/impact rate, per second.' },
+      rpm: { type: 'number', description: 'Engine RPM when the measurement was taken.' },
+      cylinders: { type: 'number', description: 'Cylinder count, to compute the firing rate.' },
+      speed_kmh: { type: 'number', description: 'Road speed when the measurement was taken.' },
+      tyre_circumference_m: { type: 'number', description: 'Rolling circumference in metres. Defaults to 2.0 with the assumption stated.' },
+      pulley_ratio: { type: 'number', description: 'A specific accessory pulley ratio, if known. Otherwise the typical 2–3× alternator band is used.' },
+      tolerance_pct: { type: 'number', description: 'Match tolerance. Default 10.' },
+    },
+  },
+  handler: async (args) => {
+    await client.requireFeature('diagnose');
+    return matchOrders(args);
+  },
+});
+
+server.tool('elimination_plan', {
+  description:
+    'The staged elimination protocol over recorded results: pass the tests already run with their ' +
+    'outcomes (survives/gone) and get back what each result mechanically rules in, the derived ' +
+    'side of the vehicle where the tables decide it, a conflict flag when results point both ' +
+    'ways (usually two noises), and the ordered tests still worth running. Pass no results for ' +
+    'the full protocol from the top. Table lookups only — the ear and the drive stay with the ' +
+    'person. Requires a paid plan.',
+  inputSchema: {
+    type: 'object',
+    properties: {
+      results: {
+        type: 'object',
+        description: `Test outcomes recorded so far, e.g. {"neutral_coast": "survives", "surface_change": "gone"}. Test ids: ${ELIMINATION_TESTS.map((t) => t.id).join(', ')}. Outcomes: survives, gone, unchanged.`,
+      },
+    },
+  },
+  handler: async (args) => {
+    await client.requireFeature('diagnose');
+    return planElimination(args);
   },
 });
 
