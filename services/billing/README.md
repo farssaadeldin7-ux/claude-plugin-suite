@@ -48,52 +48,9 @@ tool returns, not a flat tier. From `catalog.js`:
 Env keys follow the plugin codes: `STRIPE_PRICE_<CODE>_PRO` / `_TEAM` for DBS, GPP,
 PMR, FMF, BCS, PVS, CSS, HFM, MHC, NLI, GDT, ERA, CVI and PRA.
 
-## Usage-based pricing inside the plans
-
-Where the honest unit is a thing processed rather than a month, the plan carries an
-included quota on the existing usage meters (`limits` in the catalog, enforced by
-`checkQuota`/`recordUsage` and `/v1/usage`) — no extra plans, the unit economics live
-inside pro and team:
-
-| Plugin | Meter | Pro includes | Team includes | Effective unit price |
-| --- | --- | --- | --- | --- |
-| Ghost Post Preview | `previews_per_month` | 10 | 40 | ≈ $50 per reviewed draft — the per-lead economics of the outreach it powers |
-| Podcast & Video Studio | `episodes_per_month` | 20 | 60 | ≈ $5 per episode processed |
-
-Two more price on units without a meter: Emotional Resonance Analyzer is per editor
-seat (pro ≈ $250/seat at 2 seats, team ≈ $150/seat at 10 — the "$500 per project"
-framing is the pitch, one project a month at pro); Basecamp Split's per-trip
-alternative ($20/trip) is storefront framing — at $5/mo flat, one trip a month already
-beats it. Everything else is flat: the value returned does not divide into countable
-units. Exhausted quotas return `quota_exceeded` with the counts; the reset is the
-subscription period.
-
-## The three tiers
-
-Every plugin ships three tiers without three plan objects:
-
-| Tier | What it is | Price |
-| --- | --- | --- |
-| **Starter** | The open tier that already exists: the skill content and every reference/browse tool, no licence needed. Enough to run the method by hand and evaluate before buying. No compute tools, no history. | $0 |
-| **Pro** | The `pro` plan: every tool, 2 seats, the included usage above. | Per-plugin table |
-| **Enterprise** | The `team` plan: every tool, 10 seats, the larger quotas, priority support, and custom integration by arrangement — volume beyond 10 seats or bespoke quotas are a conversation, priced against the same catalog. | Per-plugin table |
-
-There is no free *paid-features* plan and no trial of the gated tools — Starter is free
-because the method is open, not because the compute is. (A plugin that wants additional
-client-side free features can declare them via `LicenseClient`'s `freeTier` option; see
-`docs/LICENSING.md`.)
-
-## The pilot motion
-
-The three highest-priced plugins — Customer Sales Support, Ghost Post Preview (Sales
-and Outreach) and Predictive Resource Allocation — are never sold cold into an annual
-commitment. Month one of `pro` **is** the paid pilot, with no separate SKU: agree the
-success metric before checkout (regression-set accuracy on the buyer's own tickets;
-replies logged against the outreach log; a prevented out-of-memory failure on a real
-job), run the month, then the subscription either continues on the measured result or
-is cancelled at period end — Stripe subscriptions make the exit free. The pilot price
-is therefore the pro price ($1,000 / $500 / $500), and the pitch is the fraction-of-
-value rule: the tool asks for a slice of what the pilot just measured it returning.
+No plugin has a free plan or a trial — every gated tool needs a paid licence. (A plugin
+that wants client-side free features can declare them via `LicenseClient`'s `freeTier`
+option; see `docs/LICENSING.md`.)
 
 ## Going live — two commands
 

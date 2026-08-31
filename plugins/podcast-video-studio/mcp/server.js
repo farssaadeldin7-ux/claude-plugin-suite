@@ -154,14 +154,6 @@ server.tool('scan_candidates', {
     if (!String(transcript ?? '').trim()) {
       throw new ToolError('empty_transcript', 'The transcript is empty — there is nothing to scan.');
     }
-    // One scan = one episode processed; the plan's included episodes meter this.
-    const quota = await client.checkQuota('episodes_per_month');
-    if (!quota.allowed) {
-      throw new ToolError('quota_exceeded',
-        `This plan includes ${quota.limit} episodes per month and ${quota.used} have been used.`,
-        { ...quota, next_step: 'Call list_plans, then start_checkout to move to the team plan, or wait for the period to reset.' });
-    }
-    await client.recordUsage('episodes_per_month', 1);
     return scanCandidates(transcript);
   },
 });

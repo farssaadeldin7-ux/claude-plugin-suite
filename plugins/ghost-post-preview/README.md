@@ -64,19 +64,13 @@ just a better opening to a post nobody needed.
 - `log_call` / `record_result` / `review_calls` — the prediction log that gives the
   review record an error bar, stored only on this machine
 
-Served by `services/billing` in this repo; the catalog lives in its `catalog.js`. The
-open tools above are the Starter tier — the method is free to run by hand; the licence
-buys the compute and the history.
+There is no free plan and no trial. Served by `services/billing` in this repo; the
+catalog lives in its `catalog.js`.
 
 | Plan | Price | Seats | Lint passes / month |
 | --- | --- | --- | --- |
-| Pro | $500/month | 2 | 10 included |
-| Team (Enterprise) | $2,000/month | 10 | 40 included |
-
-The quota is the unit economics made explicit: ≈ $50 per reviewed draft, the per-lead
-maths of the outreach the skill powers. **Month one of pro is the paid pilot** — agree
-the success metric first (replies and clients landed, logged), run the month, then
-continue on the measured result or cancel at period end. No separate pilot SKU.
+| Pro | $500/month | 2 | unlimited |
+| Team | $2,000/month | 10 | unlimited |
 
 The review method itself — the skill — loads as content and needs no licence; a
 licensing miss never blocks the manual review.

@@ -115,7 +115,7 @@ never sees a trip.
 
 ## Plans
 
-Pricing is defined in the suite catalog: pro $5/month (2 seats) and team $15/month — the $20-per-trip alternative is storefront framing; at $5 flat, one trip a month already beats it. Team pricing is
+Pricing is defined in the suite catalog: pro $5/month (2 seats) and team $15/month
 (10 seats). A licence gates the four ledger computations — `size_consumables`,
 `weight_ledger`, `settle_costs` and `reconcile_plan`. The skill content and the three
 reference-table tools stay open, so the method can be evaluated before buying.
