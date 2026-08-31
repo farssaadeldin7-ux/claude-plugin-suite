@@ -1,4 +1,4 @@
-# Digital Twin Collaborator
+# Generative Digital Twin
 
 Builds an explicit, written style profile from a director's own body of work, so a generative
 apprentice produces first drafts in their voice rather than a generic one. Part of a 14-plugin
@@ -32,7 +32,7 @@ enforces that order.
 
 | Component | Purpose |
 | --- | --- |
-| Skill `digital-twin-collaborator` | The sequence — rights gate, curation, extraction, the never list, the preamble, the scoring pass, drift — and every judgement in it |
+| Skill `generative-digital-twin` | The sequence — rights gate, curation, extraction, the never list, the preamble, the scoring pass, drift — and every judgement in it |
 | MCP server | The deterministic half: taxonomy and rule data, the mechanical corpus check, scoring and re-audit arithmetic, the local profile store, licensing |
 
 ### Tools
@@ -68,14 +68,14 @@ export PLUGIN_SUITE_BILLING_URL=https://billing.yourdomain.com
 
 Then buy a plan from the pricing page (or with `start_checkout` from inside a
 conversation) and paste the key — it will be stored at
-`~/.config/plugin-suite/digital-twin-collaborator.json`.
+`~/.config/plugin-suite/generative-digital-twin.json`.
 
 A key can also be supplied by environment variable, which takes precedence:
 
 ```bash
-export DIGITAL_TWIN_COLLABORATOR_LICENSE_KEY=PS-DTC-...
+export GENERATIVE_DIGITAL_TWIN_LICENSE_KEY=PS-GDT-...
 # or, shared across the whole suite:
-export PLUGIN_SUITE_LICENSE_KEY=PS-DTC-...
+export PLUGIN_SUITE_LICENSE_KEY=PS-GDT-...
 ```
 
 ## Who it is for
@@ -98,7 +98,7 @@ The skill content and the three open tools — taxonomy, curation rules, the sco
 governance reference — need no licence, and are enough to evaluate the method and build a
 profile by hand. The licence gates the tools that save time once the method is trusted: the
 mechanical corpus check, the scoring and drift arithmetic, and the versioned local profile
-store. Profiles are written only to `~/.config/plugin-suite/digital-twin-collaborator-profiles.json`
+store. Profiles are written only to `~/.config/plugin-suite/generative-digital-twin-profiles.json`
 on the machine that created them; the billing service sees a licence key, a plugin id, a hashed
 device identifier — never a profile or a corpus.
 

@@ -1,6 +1,6 @@
 /**
  * The style dimension taxonomy, ported from
- * skills/digital-twin-collaborator/references/style-dimensions.md. Data only —
+ * skills/generative-digital-twin/references/style-dimensions.md. Data only —
  * what to measure, how to extract it, and what a checkable entry looks like.
  * Extracting the values from a real corpus is the skill's job.
  */

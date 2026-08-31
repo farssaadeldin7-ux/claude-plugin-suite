@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Digital Twin Collaborator — MCP server.
+ * Generative Digital Twin — MCP server.
  *
  * The deterministic half of the method: the dimension taxonomy, the curation
  * rules with a mechanical corpus check, the scoring and re-audit arithmetic
@@ -30,8 +30,8 @@ import {
   profileFacts, saveProfile, getProfile, listProfiles, PROFILES_FILE,
 } from './lib/profiles.js';
 
-const PLUGIN_ID = 'digital-twin-collaborator';
-const PLUGIN_NAME = 'Digital Twin Collaborator';
+const PLUGIN_ID = 'generative-digital-twin';
+const PLUGIN_NAME = 'Generative Digital Twin';
 const DEFAULT_BILLING_URL = 'https://billing.example.com';
 
 // No free tier: the taxonomy, curation rules and governance reference stay

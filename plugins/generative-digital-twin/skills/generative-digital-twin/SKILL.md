@@ -1,5 +1,5 @@
 ---
-name: digital-twin-collaborator
+name: generative-digital-twin
 description: >
   This skill should be used when a creative director, designer, writer or studio head wants
   generative output to come back in their own voice rather than a generic one — "make it write
@@ -13,7 +13,7 @@ metadata:
   version: "0.1.0"
 ---
 
-# Digital Twin Collaborator
+# Generative Digital Twin
 
 Build an explicit, written style profile from a director's own body of work, then use it to
 brief and to grade generative output.

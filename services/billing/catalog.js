@@ -257,9 +257,9 @@ export const CATALOG = {
       },
     },
   },
-  'digital-twin-collaborator': {
-    name: 'Digital Twin Collaborator',
-    code: 'DTC',
+  'generative-digital-twin': {
+    name: 'Generative Digital Twin',
+    code: 'GDT',
     // The plugin's MCP server gates its licensed tools on the 'tools' feature.
     plans: {
       pro: {
@@ -269,7 +269,7 @@ export const CATALOG = {
         limits: {},
         seats: 2,
         available: true,
-        stripe_price_env: 'STRIPE_PRICE_DTC_PRO',
+        stripe_price_env: 'STRIPE_PRICE_GDT_PRO',
       },
       team: {
         price: 7000,
@@ -278,7 +278,7 @@ export const CATALOG = {
         limits: {},
         seats: 10,
         available: true,
-        stripe_price_env: 'STRIPE_PRICE_DTC_TEAM',
+        stripe_price_env: 'STRIPE_PRICE_GDT_TEAM',
       },
     },
   },

@@ -24,7 +24,7 @@ answer to "why doesn't this work for everyone".
 | Haptic Feedback Mapper | Creative-tool makers selling Deep-Work Protection, and the artists and freelancers measuring their own workflow | Workflow measurement: quantifying the cognitive load of screen-checking honestly | Deep-work protection priced in billable hours — interruptions are the artist's largest invisible cost |
 | Mental-Health Chatbot | Telehealth platforms, HR wellness programmes | Clinical triage: recognising when to hand to a human. Support, not crisis intervention | Regulated, high-liability, and the compliance artefacts are the product |
 | Neural-Link Intention Layer | Digital artists, UI/UX designers | Workflow optimisation: knowing their own repetitive command patterns | Billable hours recovered from the hotkey tax |
-| Digital Twin Collaborator | Freelance creative directors, studio heads | Style governance: curating high-quality training data from their own work | Lets one director supervise more output without diluting the studio's voice |
+| Generative Digital Twin | Freelance creative directors, studio heads | Style governance: curating high-quality training data from their own work | Lets one director supervise more output without diluting the studio's voice |
 | Emotional Resonance Analyzer | Video editors, documentary filmmakers | Narrative pacing theory: interpreting *why* the audience left | An edit that loses its audience at four minutes has wasted the whole budget |
 | Code-to-Visual Interpreter | Creative technologists, web developers | Computational design: the relationship between geometry and code structure | Bloated generative assets fail on the client's hardware, after delivery |
 | Predictive Resource Allocation | 3D animators, VFX artists, data scientists | System architecture literacy: CPU vs GPU vs RAM vs I/O | Render and training time is the largest line item, and the wrong hardware purchase is expensive |
@@ -32,13 +32,13 @@ answer to "why doesn't this work for everyone".
 ## Detailed application: the six creative-workflow plugins
 
 For the six plugins sold into creative production, the honest pitch is a named value
-proposition computed from the buyer's own numbers. The Digital Twin Collaborator holds
+proposition computed from the buyer's own numbers. The Generative Digital Twin holds
 the generative-twin slot here (in place of a UX-design plugin).
 
 | Plugin | What the skill does (the money-maker) |
 | --- | --- |
 | Neural-Link Intention Layer | Reduces click-fatigue. The audit calculates the time saved by reducing mouse travel and menu navigation, sold as a **Production Capacity Multiplier**: a retoucher handles ~20% more files per day without burnout — computed from their own command log, never promised in advance |
-| Digital Twin Collaborator | Standardises quality control. Prices the cost of senior-level oversight and sells the **Junior-to-Senior Bridge**: junior staff produce work that arrives at review already inside the house style, saving the studio senior-designer hours per deliverable |
+| Generative Digital Twin | Standardises quality control. Prices the cost of senior-level oversight and sells the **Junior-to-Senior Bridge**: junior staff produce work that arrives at review already inside the house style, saving the studio senior-designer hours per deliverable |
 | Emotional Resonance Analyzer | Accelerates ad performance. Sold as an **A/B Testing Accelerator**: the structural read names the pacing fixes worth testing, and a measured retention lift of the order of 10% converts directly into the client's ad revenue — quoted from their curve, never forecast |
 | Code-to-Visual Interpreter | Compresses prototyping cycles. Tracks the time a developer spends refreshing and tweaking, sold as a **Time-to-Market Accelerator**: seeded, decomposed, parameter-exposed assets cut hours from the dev cycle and ship features faster |
 | Haptic Feedback Mapper | Eliminates context-switching. Quantifies the cognitive load of constantly checking a screen, sold as **Deep-Work Protection**: artists stay in the zone, increasing billable hours by reducing interruptions |

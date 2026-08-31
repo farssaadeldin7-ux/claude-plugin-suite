@@ -1,6 +1,6 @@
 /**
  * Corpus curation rules and the mechanical corpus check, ported from
- * skills/digital-twin-collaborator/references/corpus-curation.md and the rights
+ * skills/generative-digital-twin/references/corpus-curation.md and the rights
  * checklist in references/drift-and-governance.md.
  *
  * corpusCheck() reports facts a machine can verify about a labelled corpus

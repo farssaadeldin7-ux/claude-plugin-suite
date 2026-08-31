@@ -52,7 +52,7 @@ function storePath() {
     || (process.platform === 'win32'
       ? process.env.APPDATA || path.join(os.homedir(), 'AppData', 'Roaming')
       : path.join(os.homedir(), '.config'));
-  return path.join(base, 'plugin-suite', 'digital-twin-collaborator-profiles.json');
+  return path.join(base, 'plugin-suite', 'generative-digital-twin-profiles.json');
 }
 
 function readAll() {

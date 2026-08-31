@@ -1,6 +1,6 @@
 /**
  * The scoring pass and the re-audit arithmetic, ported from
- * skills/digital-twin-collaborator/references/drift-and-governance.md.
+ * skills/generative-digital-twin/references/drift-and-governance.md.
  *
  * Everything here is counting against stated thresholds: the 0-4 scale, the
  * hard-fail rule, the mean bands, the regression flags. Assigning a score to a

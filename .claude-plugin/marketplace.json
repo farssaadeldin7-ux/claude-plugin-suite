@@ -19,7 +19,7 @@
     { "source": "./plugins/haptic-feedback-mapper", "category": "design" },
     { "source": "./plugins/mental-health-chatbot", "category": "health" },
     { "source": "./plugins/neural-link-intention-layer", "category": "design" },
-    { "source": "./plugins/digital-twin-collaborator", "category": "design" },
+    { "source": "./plugins/generative-digital-twin", "category": "design" },
     { "source": "./plugins/emotional-resonance-analyzer", "category": "media" },
     { "source": "./plugins/code-to-visual-interpreter", "category": "engineering" },
     { "source": "./plugins/predictive-resource-allocation", "category": "engineering" }
