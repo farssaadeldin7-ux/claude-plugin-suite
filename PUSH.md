@@ -1,11 +1,15 @@
 # Getting this onto GitHub
 
+> Historical setup notes, kept for reference. The repository already exists at
+> `farssaadeldin7-ux/claude-plugin-suite` and is public; nothing here needs doing
+> again.
+
 The repository is already initialised with a commit on `main`. Two steps.
 
 ## 1. Create the empty repo
 
 Go to https://github.com/new and create a repository named `claude-plugin-suite` under
-`farssaadeldin7-ux`. Set it to **Private** (the licence is proprietary). Do **not** add a
+`farssaadeldin7-ux`. Do **not** add a
 README, .gitignore or licence — the repo already has them, and adding them creates a
 conflict on the first push.
 
@@ -28,7 +32,7 @@ git push -u origin main
 If you have the GitHub CLI, both steps collapse into one:
 
 ```bash
-gh repo create farssaadeldin7-ux/claude-plugin-suite --private --source=. --push
+gh repo create farssaadeldin7-ux/claude-plugin-suite --public --source=. --push
 ```
 
 ## Then
@@ -38,8 +42,8 @@ gh repo create farssaadeldin7-ux/claude-plugin-suite --private --source=. --push
 /plugin install ghost-post-preview@plugin-suite
 ```
 
-A private marketplace works for you and anyone you add as a collaborator. Make it public
-when you want others to install it — check `LICENSE` says what you want it to say first.
+The marketplace is public, so anyone can add it and install the open tools; the licensed
+tools still need a plan. Publishing the source grants no rights to it — see `LICENSE`.
 
 ## Before you push, if you want to change the author
 
