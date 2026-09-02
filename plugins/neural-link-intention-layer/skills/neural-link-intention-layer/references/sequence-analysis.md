@@ -89,7 +89,7 @@ Where:
 | F | Occurrences per week, from the log | never from recall |
 | K | Seconds saved per occurrence | keystroke 0.3 s, menu trip 1.5 s, modal dialogue 4 s |
 | C | Context-switch cost, seconds | 0 hand stays put, 1.5 mouse-to-menu, 4 dialogue, 15 leaving the app |
-| S | Setup seconds; `x1.3` adds 30% annualised maintenance | 180 keymap, 300 action, 900 component set, 1200 OS macro, 5000 plugin |
+| S | Setup seconds; `x1.3` adds 30% annualised maintenance | 180 keymap, 300 action, 900 component set, 1200 OS macro, 5400 plugin |
 | R | `(1 − p) x severity` | severity 2 s undoable, 30 s silently wrong, unbounded destructive |
 
 Build when payback is under 8 weeks and the sequence is stable across the whole log.
