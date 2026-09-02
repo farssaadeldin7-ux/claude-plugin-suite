@@ -274,7 +274,7 @@ server.tool('score_candidate', {
       f_per_week: { type: 'number', description: 'Occurrences per week, from the log.' },
       k_seconds: { type: 'number', description: 'Seconds saved per occurrence: keystroke 0.3, menu trip 1.5, modal dialogue 4.' },
       c_seconds: { type: 'number', description: 'Context-switch cost in seconds: 0 hand stays put, 1.5 mouse-to-menu, 4 dialogue, 15 leaving the app. Default 0.' },
-      setup_seconds: { type: 'number', description: 'Setup seconds: ~180 keymap, ~300 action, ~900 component set, ~1200 OS macro, ~5000 plugin. Maintenance (30% annualised) is added by the formula.' },
+      setup_seconds: { type: 'number', description: 'Setup seconds: ~180 keymap, ~300 action, ~900 component set, ~1200 OS macro, ~5400 plugin. Maintenance (30% annualised) is added by the formula.' },
       wrong_fire_p: { type: 'number', description: 'Optional probability the automation fires correctly, 0-1. Supply with wrong_fire_severity_seconds to include R.' },
       wrong_fire_severity_seconds: { type: 'number', description: 'Optional severity of a wrong fire: 2 if easily undone, 30 if silently wrong. If destructive, do not build — R is unbounded.' },
       stable_across_log: { type: 'boolean', description: 'Whether the sequence is stable across the whole log. Without it the verdict stays unconfirmed.' },
