@@ -6,8 +6,8 @@ test (including the ones that changed nothing), and stop as soon as one system i
 
 Safety first, always: handbrake and wheel chocks for stationary running, no loose
 clothing near a running engine, no probing anything that rotates, jack stands — never a
-jack alone — under a raised car. The main skill's `references/safety-and-limits.md` is not
-optional reading.
+jack alone — under a raised car. Road tests are two-person jobs: one drives, one listens,
+never both at once.
 
 ## Stage 1 — cost nothing, sitting in the car
 

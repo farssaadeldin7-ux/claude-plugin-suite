@@ -1,7 +1,13 @@
 ---
 name: neural-link-intention-layer
 description: >
-  This skill should be used when a designer, illustrator or other keyboard-heavy tool user wants to know which parts of their own workflow are worth automating — "which shortcuts should I set up", "what should I turn into a macro", "how do I speed up my workflow", "am I wasting time in Photoshop", "which repetitive tasks should I script", "audit my workflow", "where is my time actually going in Blender". Also use it for planning what to instrument before any log exists, for reading undo and navigation diagnostics from a command history, and for deciding when an automation is too fragile to be worth building.
+  This skill should be used when a designer or digital artist wants to know which parts of
+  their workflow are worth automating — "which of my repetitive tasks should I macro",
+  "audit my command history", "how much time would this shortcut actually save", "I keep
+  doing the same five steps", "is this automation worth building", "reduce my click
+  fatigue", "analyse my editor log". Also use it to design an instrumentation plan when no
+  command log exists yet, to score a proposed macro's payback, and to compute the
+  production-capacity case from a measured audit.
 metadata:
   version: "0.1.0"
 ---
@@ -128,6 +134,21 @@ Mechanism details and examples live in `references/automation-catalogue.md`.
 - Re-measure the same workflow after deployment.
 - Keep the automation only if net saving is visible in the next 2–3 weeks of logs.
 - Refit the sequence model when major tooling or process changes happen.
+
+## The commercial application: the Production Capacity Multiplier
+
+What this sells is the reduction of click-fatigue. The audit prices the invisible tax —
+mouse travel, menu navigation, zoom-pan-zoom, the tool toggle, the undo — in minutes per
+week, counted from the person's own log. Framed for a buyer, that becomes a **Production
+Capacity Multiplier**: minutes recovered per file, times files per day, is extra
+throughput without extra fatigue — the shape of the claim is a retoucher handling on the
+order of 20% more files per day without burnout.
+
+The one rule holds in the pitch exactly as it holds in the audit: **no log, no numbers.**
+The capacity claim is computed from *their* measured audit, after instrumentation, never
+promised in advance — and it lives inside the stated ceiling (20–90 minutes per week for
+a heavy user, nothing for decision-making or client revision). Sell the measurement and
+the payback arithmetic; let their own log produce the multiplier.
 
 ## Deliverable format
 

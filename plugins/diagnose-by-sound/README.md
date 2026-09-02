@@ -23,8 +23,7 @@ fastest. This plugin enforces that order.
 
 | Component | Purpose |
 | --- | --- |
-| Skill `diagnose-by-sound` | The interview protocol, how to read the results, how to present them |
-| Skill `acoustic-signal-processing` | Filtering background noise and isolating the mechanical signal — rattles, whines, knocks — before diagnosis: capture technique, elimination tests, spectrogram reading, frequency/order arithmetic |
+| Skill `acoustic-signal-processing` | Filtering background noise and isolating the mechanical signal — rattles, whines, knocks — before diagnosis: capture technique, elimination tests, spectrogram reading, frequency/order arithmetic — then handing the clean observation to `diagnose` |
 | MCP server | Vocabulary, signature matching, repair planning, case history, licensing |
 
 ### Tools
@@ -33,6 +32,19 @@ fastest. This plugin enforces that order.
 
 - `sound_vocabulary` — the controlled terms, and which ones matter most
 - `list_signatures` / `describe_signature` — browse and inspect the knowledge base
+- `frequency_bands` — where knocks, rattles, whines, bearings and maskers sit in
+  frequency and time, with the harmonic rule
+- `capture_check` — mechanical check of the recording conditions (HVAC, radio, windows,
+  mounting, live reproduction) before a spectrogram is interpreted
+
+The isolation compute tools are licensed with `diagnose`:
+
+- `order_match` — order arithmetic tying a measured spectrogram line or stripe rate to
+  crank, camshaft, firing rate, accessory pulley or wheel, harmonics to order 6, working
+  shown
+- `elimination_plan` — the staged subtraction protocol over recorded results: what each
+  outcome rules in, the derived side of the vehicle, conflicts flagged, next tests
+  ordered
 
 **Licensed** — requires a pro or team key
 
@@ -72,8 +84,8 @@ no free plan and no trial — every diagnosis needs a paid licence.
 
 | Plan | Price | Seats | Diagnoses / month | Includes |
 | --- | --- | --- | --- | --- |
-| Pro | $40/month | 2 | unlimited | `diagnose`, `repair_plan`, case history |
-| Team | $70/month | 10 | unlimited | the same, for a multi-technician shop |
+| Pro | $50/month | 2 | unlimited | `diagnose`, `repair_plan`, case history |
+| Team | $150/month | 10 | unlimited | the same, for a multi-technician shop |
 
 ## Privacy
 
@@ -90,4 +102,7 @@ hypothesis with a test attached — the test is the point.
 
 ## The skill you bring
 
-**Acoustic Signal Processing.** Shipped as a second skill inside this plugin (`skills/acoustic-signal-processing`): filtering background noise and isolating rattles, whines and knocks — capture technique, the elimination protocol, spectrogram reading — before the diagnosis starts.
+**Diagnostic judgement.** The `acoustic-signal-processing` skill isolates the noise and
+the server's `diagnose` tool ranks the candidates with their confirmation tests — but
+running those tests honestly on the actual vehicle, and knowing when a differential does
+not fit what is in front of you, is the mechanic's judgement the plugin cannot supply.

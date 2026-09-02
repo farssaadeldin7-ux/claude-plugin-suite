@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "generative-digital-twin": {
+      "command": "node",
+      "args": ["${CLAUDE_PLUGIN_ROOT}/mcp/server.js"],
+      "env": {
+        "PLUGIN_SUITE_BILLING_URL": "${PLUGIN_SUITE_BILLING_URL}",
+        "GENERATIVE_DIGITAL_TWIN_LICENSE_KEY": "${GENERATIVE_DIGITAL_TWIN_LICENSE_KEY}"
+      }
+    }
+  }
+}

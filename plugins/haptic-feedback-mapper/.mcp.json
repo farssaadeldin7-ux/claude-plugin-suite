@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "haptic-feedback-mapper": {
+      "command": "node",
+      "args": ["${CLAUDE_PLUGIN_ROOT}/mcp/server.js"],
+      "env": {
+        "PLUGIN_SUITE_BILLING_URL": "${PLUGIN_SUITE_BILLING_URL}",
+        "HAPTIC_FEEDBACK_MAPPER_LICENSE_KEY": "${HAPTIC_FEEDBACK_MAPPER_LICENSE_KEY}"
+      }
+    }
+  }
+}

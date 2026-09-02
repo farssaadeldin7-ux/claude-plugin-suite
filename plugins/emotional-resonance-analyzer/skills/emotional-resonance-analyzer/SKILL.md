@@ -159,6 +159,22 @@ convert it into a retention percentage.
 
 Give exactly three. A ranked list of eleven changes is a way of not having an opinion.
 
+## The commercial application: the A/B Testing Accelerator
+
+For branded and ad work, what this sells is faster convergence on the cut that holds
+viewers. Not a guarantee — nothing here senses an audience, and the one rule stands in
+the pitch: the measured curve always wins. An **A/B Testing Accelerator**: instead of
+testing pacing variants blind, the structural read names the sag, the flat stretch and
+the cut most likely to move retention, so the client's A/B budget goes to strong
+candidates instead of guesses.
+
+The pitch has a shape: baseline retention curve → the model explains the drop and
+proposes the re-cut → the re-cut is tested on the same platform → the measured lift is
+priced in the client's own terms (a retention gain of the order of 10% on ad-funded
+distribution is a direct, computable revenue increase — *their* CPM, *their* view-through
+numbers). Quote lifts only from a client's measured before-and-after, never as a
+forecast; the accelerator claim is about how few test cycles it takes to get there.
+
 ## Output
 
 1. The form being judged against, and whether real retention data was supplied

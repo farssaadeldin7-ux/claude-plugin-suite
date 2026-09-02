@@ -48,7 +48,7 @@ just a better opening to a post nobody needed.
 
 | Component | Purpose |
 | --- | --- |
-| Skill `ghost-post-preview` | The judgement: hook audit, persona read, the one named failure, the band |
+| Skill `sales-and-outreach` | The client-getting system: offer, niche, prospect list, cold pitch, follow-up, close |
 | MCP server | The mechanics: fold reconstruction, draft lint, platform data, prediction log, licensing |
 
 **Open** — no licence needed:
@@ -69,8 +69,8 @@ catalog lives in its `catalog.js`.
 
 | Plan | Price | Seats | Lint passes / month |
 | --- | --- | --- | --- |
-| Pro | $40/month | 2 | unlimited |
-| Team | $70/month | 10 | unlimited |
+| Pro | $500/month | 2 | unlimited |
+| Team | $2,000/month | 10 | unlimited |
 
 The review method itself — the skill — loads as content and needs no licence; a
 licensing miss never blocks the manual review.

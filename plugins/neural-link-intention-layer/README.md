@@ -114,7 +114,7 @@ export PLUGIN_SUITE_LICENSE_KEY=PS-NLI-...
 
 ## Plans
 
-Pricing is defined in the suite catalog: pro $40/month (2 seats) and team $70/month
+Pricing is defined in the suite catalog: pro $100/month (2 seats) and team $300/month
 (10 seats). The licence gates the analysis tools — `analyse_log`, `fit_predictor`,
 `score_candidate` and the local build log. The skill content and the reference tools
 (`instrumentation_guide`, `automation_catalogue`, `method_reference`) stay open.

@@ -129,7 +129,7 @@ output rather than hiding it in a footnote.
 ## Plans
 
 Served by `services/billing` in this repo; the catalog lives in its `catalog.js`.
-Pro is $500/month (2 seats) and team is $2,000/month (10 seats). The licence gates the
+Pro is $500/month (2 seats) and team is $2,500/month (10 seats). The licence gates the
 compute tools — capacity arithmetic, bottleneck classification, dispatch arithmetic and
 the estimate log. The skill content and the browsing tools (`triage_reference`,
 `domain_profile`, `remedy_ladder`) stay open, so the method can be evaluated before

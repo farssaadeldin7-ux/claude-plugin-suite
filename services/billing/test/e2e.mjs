@@ -161,17 +161,17 @@ try {
   assert.equal(catalog.name, 'Diagnose by Sound');
   assert.deepEqual(catalog.plans.map((p) => p.id).sort(), ['pro', 'team']);
   const pro = catalog.plans.find((p) => p.id === 'pro');
-  assert.equal(pro.price, 4000);
+  assert.equal(pro.price, 5000);
   assert.equal(pro.seats, 2);
   const team = catalog.plans.find((p) => p.id === 'team');
-  assert.equal(team.price, 7000);
+  assert.equal(team.price, 15000);
   assert.equal(team.seats, 10);
   ok('catalog lists exactly pro and team with correct prices and seats');
 
-  const seaCatalog = (await api('GET', '/v1/catalog/sales-enablement-assistant')).data;
-  assert.equal(seaCatalog.plans.find((p) => p.id === 'pro').price, 50000);
-  assert.equal(seaCatalog.plans.find((p) => p.id === 'team').price, 200000);
-  ok('premium plugins price at $500/$2,000');
+  const cssCatalog = (await api('GET', '/v1/catalog/customer-sales-support')).data;
+  assert.equal(cssCatalog.plans.find((p) => p.id === 'pro').price, 100000);
+  assert.equal(cssCatalog.plans.find((p) => p.id === 'team').price, 500000);
+  ok('customer-sales-support prices at $1,000/$5,000');
 
   assert.equal((await api('GET', '/v1/catalog/nonsense')).status, 404);
   ok('unknown plugin catalog is a 404');
@@ -257,8 +257,8 @@ try {
   // ---- second plugin: ghost-post-preview ---------------------------------
   const gppCatalog = (await api('GET', '/v1/catalog/ghost-post-preview')).data;
   assert.equal(gppCatalog.name, 'Ghost Post Preview');
-  assert.equal(gppCatalog.plans.find((p) => p.id === 'pro').price, 4000);
-  assert.equal(gppCatalog.plans.find((p) => p.id === 'team').price, 7000);
+  assert.equal(gppCatalog.plans.find((p) => p.id === 'pro').price, 50000);
+  assert.equal(gppCatalog.plans.find((p) => p.id === 'team').price, 200000);
   const gppCheckout = completeCheckout('evt_gpp_1', {
     id: 'cs_gpp_1', customer: 'cus_gpp_1', subscription: 'sub_gpp_1',
     customer_details: { email: 'shop@example.com' },
@@ -332,18 +332,18 @@ try {
   assert.match(provisioned, /STRIPE_PRICE_GPP_PRO=price_mock_\d+/);
   assert.match(provisioned, /STRIPE_PRICE_GPP_TEAM=price_mock_\d+/);
   assert.match(provisioned, /STRIPE_WEBHOOK_SECRET=whsec_mock_created/);
-  assert.equal(stripeState.prices.find((p) => p.lookup_key === 'dbs_pro')?.unit_amount, 4000);
-  assert.equal(stripeState.prices.find((p) => p.lookup_key === 'dbs_team')?.unit_amount, 7000);
-  assert.equal(stripeState.prices.find((p) => p.lookup_key === 'gpp_pro')?.unit_amount, 4000);
-  assert.equal(stripeState.prices.find((p) => p.lookup_key === 'gpp_team')?.unit_amount, 7000);
-  assert.equal(stripeState.prices.find((p) => p.lookup_key === 'sea_pro')?.unit_amount, 50000);
-  assert.equal(stripeState.prices.find((p) => p.lookup_key === 'saa_team')?.unit_amount, 200000);
-  assert.equal(stripeState.prices.find((p) => p.lookup_key === 'pra_team')?.unit_amount, 200000);
-  assert.equal(stripeState.prices.find((p) => p.lookup_key === 'pmr_pro')?.unit_amount, 4000);
-  assert.equal(stripeState.prices.find((p) => p.lookup_key === 'wbc_team')?.unit_amount, 7000);
+  assert.equal(stripeState.prices.find((p) => p.lookup_key === 'dbs_pro')?.unit_amount, 5000);
+  assert.equal(stripeState.prices.find((p) => p.lookup_key === 'dbs_team')?.unit_amount, 15000);
+  assert.equal(stripeState.prices.find((p) => p.lookup_key === 'gpp_pro')?.unit_amount, 50000);
+  assert.equal(stripeState.prices.find((p) => p.lookup_key === 'gpp_team')?.unit_amount, 200000);
+  assert.equal(stripeState.prices.find((p) => p.lookup_key === 'hfm_pro')?.unit_amount, 10000);
+  assert.equal(stripeState.prices.find((p) => p.lookup_key === 'css_team')?.unit_amount, 500000);
+  assert.equal(stripeState.prices.find((p) => p.lookup_key === 'pra_team')?.unit_amount, 250000);
+  assert.equal(stripeState.prices.find((p) => p.lookup_key === 'pmr_pro')?.unit_amount, 5000);
+  assert.equal(stripeState.prices.find((p) => p.lookup_key === 'mhc_team')?.unit_amount, 5000);
   assert.equal(stripeState.prices.length, 28);
   assert.equal(stripeState.webhooks[0].url, 'https://billing.example.test/v1/stripe/webhook');
-  ok('setup-stripe provisions both plugins’ products, $40/$70 prices, webhook, and the env file');
+  ok('setup-stripe provisions both plugins’ products, per-plugin prices, webhook, and the env file');
 
   const pricesBefore = stripeState.prices.length;
   const webhooksBefore = stripeState.webhooks.length;

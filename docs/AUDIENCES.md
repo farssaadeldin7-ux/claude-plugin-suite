@@ -20,14 +20,33 @@ answer to "why doesn't this work for everyone".
 | Plugin | Audience | Skill they must bring | Why they will pay |
 | --- | --- | --- | --- |
 | Podcast & Video Studio | Content agencies, solo creators | Content strategy: identifying high-retention hooks. The tool is only as good as the segments it is told to prioritise | Clip production is the agency's per-hour cost centre |
-| Support Agent Architect | E-commerce managers, SaaS founders | Knowledge base architecture: structuring FAQs and manuals into a clean hierarchy | A support agent that hallucinates costs more than no agent. This is the difference |
-| Sales Enablement Assistant | B2B sales teams, account executives | Prospecting psychology: keeping the output human | Reply rate is the metric, and templated outreach has already stopped working |
-| Wellbeing Companion | Telehealth platforms, HR wellness teams | Clinical triage: recognising when to hand to a human. Support, not crisis intervention | Regulated, high-liability, and the compliance artefacts are the product |
+| Customer Sales Support | E-commerce managers, SaaS founders | Knowledge base architecture: structuring FAQs and manuals into a clean hierarchy | A support agent that hallucinates costs more than no agent. This is the difference |
+| Haptic Feedback Mapper | Creative-tool makers selling Deep-Work Protection, and the artists and freelancers measuring their own workflow | Workflow measurement: quantifying the cognitive load of screen-checking honestly | Deep-work protection priced in billable hours — interruptions are the artist's largest invisible cost |
+| Mental-Health Chatbot | Telehealth platforms, HR wellness programmes | Clinical triage: recognising when to hand to a human. Support, not crisis intervention | Regulated, high-liability, and the compliance artefacts are the product |
 | Neural-Link Intention Layer | Digital artists, UI/UX designers | Workflow optimisation: knowing their own repetitive command patterns | Billable hours recovered from the hotkey tax |
-| Digital Twin Collaborator | Freelance creative directors, studio heads | Style governance: curating high-quality training data from their own work | Lets one director supervise more output without diluting the studio's voice |
+| Generative Digital Twin | Freelance creative directors, studio heads | Style governance: curating high-quality training data from their own work | Lets one director supervise more output without diluting the studio's voice |
 | Emotional Resonance Analyzer | Video editors, documentary filmmakers | Narrative pacing theory: interpreting *why* the audience left | An edit that loses its audience at four minutes has wasted the whole budget |
 | Code-to-Visual Interpreter | Creative technologists, web developers | Computational design: the relationship between geometry and code structure | Bloated generative assets fail on the client's hardware, after delivery |
 | Predictive Resource Allocation | 3D animators, VFX artists, data scientists | System architecture literacy: CPU vs GPU vs RAM vs I/O | Render and training time is the largest line item, and the wrong hardware purchase is expensive |
+
+## Detailed application: the six creative-workflow plugins
+
+For the six plugins sold into creative production, the honest pitch is a named value
+proposition computed from the buyer's own numbers. The Generative Digital Twin holds
+the generative-twin slot here (in place of a UX-design plugin).
+
+| Plugin | What the skill does (the money-maker) |
+| --- | --- |
+| Neural-Link Intention Layer | Reduces click-fatigue. The audit calculates the time saved by reducing mouse travel and menu navigation, sold as a **Production Capacity Multiplier**: a retoucher handles ~20% more files per day without burnout — computed from their own command log, never promised in advance |
+| Generative Digital Twin | Standardises quality control. Prices the cost of senior-level oversight and sells the **Junior-to-Senior Bridge**: junior staff produce work that arrives at review already inside the house style, saving the studio senior-designer hours per deliverable |
+| Emotional Resonance Analyzer | Accelerates ad performance. Sold as an **A/B Testing Accelerator**: the structural read names the pacing fixes worth testing, and a measured retention lift of the order of 10% converts directly into the client's ad revenue — quoted from their curve, never forecast |
+| Code-to-Visual Interpreter | Compresses prototyping cycles. Tracks the time a developer spends refreshing and tweaking, sold as a **Time-to-Market Accelerator**: seeded, decomposed, parameter-exposed assets cut hours from the dev cycle and ship features faster |
+| Haptic Feedback Mapper | Eliminates context-switching. Quantifies the cognitive load of constantly checking a screen, sold as **Deep-Work Protection**: artists stay in the zone, increasing billable hours by reducing interruptions |
+| Predictive Resource Allocation | Prevents catastrophic failure. Prices a crashed render (lost labour + lost compute + missed deadline), sold as **Render Insurance**: the plugin pays for itself the first time it prevents a crash on a multi-day render |
+
+Each proposition is elaborated in a "commercial application" section inside the plugin's
+own skill, bounded by that skill's measurement rules — no number is quoted to a buyer
+that was not computed from their own log, curve, codebase or hardware.
 
 ## Reading the pattern
 

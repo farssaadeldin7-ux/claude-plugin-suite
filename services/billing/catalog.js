@@ -14,7 +14,7 @@ export const CATALOG = {
     code: 'DBS',
     plans: {
       pro: {
-        price: 4000,
+        price: 5000,
         interval: 'month',
         features: ['diagnose', 'repair_plan', 'history'],
         limits: { diagnoses_per_month: -1 },
@@ -23,7 +23,7 @@ export const CATALOG = {
         stripe_price_env: 'STRIPE_PRICE_DBS_PRO',
       },
       team: {
-        price: 7000,
+        price: 15000,
         interval: 'month',
         features: ['diagnose', 'repair_plan', 'history'],
         limits: { diagnoses_per_month: -1 },
@@ -38,7 +38,7 @@ export const CATALOG = {
     code: 'GPP',
     plans: {
       pro: {
-        price: 4000,
+        price: 50000,
         interval: 'month',
         features: ['lint', 'history'],
         limits: { previews_per_month: -1 },
@@ -47,7 +47,7 @@ export const CATALOG = {
         stripe_price_env: 'STRIPE_PRICE_GPP_PRO',
       },
       team: {
-        price: 7000,
+        price: 200000,
         interval: 'month',
         features: ['lint', 'history'],
         limits: { previews_per_month: -1 },
@@ -63,7 +63,7 @@ export const CATALOG = {
     // The plugin's MCP server gates its licensed tools on the 'tools' feature.
     plans: {
       pro: {
-        price: 4000,
+        price: 5000,
         interval: 'month',
         features: ['tools'],
         limits: {},
@@ -72,7 +72,7 @@ export const CATALOG = {
         stripe_price_env: 'STRIPE_PRICE_PMR_PRO',
       },
       team: {
-        price: 7000,
+        price: 15000,
         interval: 'month',
         features: ['tools'],
         limits: {},
@@ -88,7 +88,7 @@ export const CATALOG = {
     // The plugin's MCP server gates its licensed tools on the 'tools' feature.
     plans: {
       pro: {
-        price: 4000,
+        price: 1000,
         interval: 'month',
         features: ['tools'],
         limits: {},
@@ -97,7 +97,7 @@ export const CATALOG = {
         stripe_price_env: 'STRIPE_PRICE_FMF_PRO',
       },
       team: {
-        price: 7000,
+        price: 3000,
         interval: 'month',
         features: ['tools'],
         limits: {},
@@ -113,7 +113,7 @@ export const CATALOG = {
     // The plugin's MCP server gates its licensed tools on the 'tools' feature.
     plans: {
       pro: {
-        price: 4000,
+        price: 500,
         interval: 'month',
         features: ['tools'],
         limits: {},
@@ -122,7 +122,7 @@ export const CATALOG = {
         stripe_price_env: 'STRIPE_PRICE_BCS_PRO',
       },
       team: {
-        price: 7000,
+        price: 1500,
         interval: 'month',
         features: ['tools'],
         limits: {},
@@ -138,7 +138,7 @@ export const CATALOG = {
     // The plugin's MCP server gates its licensed tools on the 'tools' feature.
     plans: {
       pro: {
-        price: 4000,
+        price: 10000,
         interval: 'month',
         features: ['tools'],
         limits: {},
@@ -147,7 +147,7 @@ export const CATALOG = {
         stripe_price_env: 'STRIPE_PRICE_PVS_PRO',
       },
       team: {
-        price: 7000,
+        price: 30000,
         interval: 'month',
         features: ['tools'],
         limits: {},
@@ -157,78 +157,78 @@ export const CATALOG = {
       },
     },
   },
-  'support-agent-architect': {
-    name: 'Support Agent Architect',
-    code: 'SAA',
+  'customer-sales-support': {
+    name: 'Customer Sales Support',
+    code: 'CSS',
     // The plugin's MCP server gates its licensed tools on the 'tools' feature.
     plans: {
       pro: {
-        price: 50000,
+        price: 100000,
         interval: 'month',
         features: ['tools'],
         limits: {},
         seats: 2,
         available: true,
-        stripe_price_env: 'STRIPE_PRICE_SAA_PRO',
+        stripe_price_env: 'STRIPE_PRICE_CSS_PRO',
       },
       team: {
-        price: 200000,
+        price: 500000,
         interval: 'month',
         features: ['tools'],
         limits: {},
         seats: 10,
         available: true,
-        stripe_price_env: 'STRIPE_PRICE_SAA_TEAM',
+        stripe_price_env: 'STRIPE_PRICE_CSS_TEAM',
       },
     },
   },
-  'sales-enablement-assistant': {
-    name: 'Sales Enablement Assistant',
-    code: 'SEA',
+  'haptic-feedback-mapper': {
+    name: 'Haptic Feedback Mapper',
+    code: 'HFM',
     // The plugin's MCP server gates its licensed tools on the 'tools' feature.
     plans: {
       pro: {
-        price: 50000,
+        price: 10000,
         interval: 'month',
         features: ['tools'],
         limits: {},
         seats: 2,
         available: true,
-        stripe_price_env: 'STRIPE_PRICE_SEA_PRO',
+        stripe_price_env: 'STRIPE_PRICE_HFM_PRO',
       },
       team: {
-        price: 200000,
+        price: 30000,
         interval: 'month',
         features: ['tools'],
         limits: {},
         seats: 10,
         available: true,
-        stripe_price_env: 'STRIPE_PRICE_SEA_TEAM',
+        stripe_price_env: 'STRIPE_PRICE_HFM_TEAM',
       },
     },
   },
-  'wellbeing-companion': {
-    name: 'Wellbeing Companion',
-    code: 'WBC',
+  'mental-health-chatbot': {
+    name: 'Mental-Health Chatbot',
+    code: 'MHC',
     // The plugin's MCP server gates its licensed tools on the 'tools' feature.
     plans: {
       pro: {
-        price: 4000,
+        price: 2000,
         interval: 'month',
         features: ['tools'],
         limits: {},
         seats: 2,
         available: true,
-        stripe_price_env: 'STRIPE_PRICE_WBC_PRO',
+        stripe_price_env: 'STRIPE_PRICE_MHC_PRO',
       },
       team: {
-        price: 7000,
+        price: 5000,
         interval: 'month',
         features: ['tools'],
         limits: {},
         seats: 10,
         available: true,
-        stripe_price_env: 'STRIPE_PRICE_WBC_TEAM',
+        stripe_price_env: 'STRIPE_PRICE_MHC_TEAM',
       },
     },
   },
@@ -238,7 +238,7 @@ export const CATALOG = {
     // The plugin's MCP server gates its licensed tools on the 'tools' feature.
     plans: {
       pro: {
-        price: 4000,
+        price: 10000,
         interval: 'month',
         features: ['tools'],
         limits: {},
@@ -247,7 +247,7 @@ export const CATALOG = {
         stripe_price_env: 'STRIPE_PRICE_NLI_PRO',
       },
       team: {
-        price: 7000,
+        price: 30000,
         interval: 'month',
         features: ['tools'],
         limits: {},
@@ -257,28 +257,28 @@ export const CATALOG = {
       },
     },
   },
-  'digital-twin-collaborator': {
-    name: 'Digital Twin Collaborator',
-    code: 'DTC',
+  'generative-digital-twin': {
+    name: 'Generative Digital Twin',
+    code: 'GDT',
     // The plugin's MCP server gates its licensed tools on the 'tools' feature.
     plans: {
       pro: {
-        price: 4000,
+        price: 20000,
         interval: 'month',
         features: ['tools'],
         limits: {},
         seats: 2,
         available: true,
-        stripe_price_env: 'STRIPE_PRICE_DTC_PRO',
+        stripe_price_env: 'STRIPE_PRICE_GDT_PRO',
       },
       team: {
-        price: 7000,
+        price: 50000,
         interval: 'month',
         features: ['tools'],
         limits: {},
         seats: 10,
         available: true,
-        stripe_price_env: 'STRIPE_PRICE_DTC_TEAM',
+        stripe_price_env: 'STRIPE_PRICE_GDT_TEAM',
       },
     },
   },
@@ -288,7 +288,7 @@ export const CATALOG = {
     // The plugin's MCP server gates its licensed tools on the 'tools' feature.
     plans: {
       pro: {
-        price: 4000,
+        price: 50000,
         interval: 'month',
         features: ['tools'],
         limits: {},
@@ -297,7 +297,7 @@ export const CATALOG = {
         stripe_price_env: 'STRIPE_PRICE_ERA_PRO',
       },
       team: {
-        price: 7000,
+        price: 150000,
         interval: 'month',
         features: ['tools'],
         limits: {},
@@ -313,7 +313,7 @@ export const CATALOG = {
     // The plugin's MCP server gates its licensed tools on the 'tools' feature.
     plans: {
       pro: {
-        price: 4000,
+        price: 15000,
         interval: 'month',
         features: ['tools'],
         limits: {},
@@ -322,7 +322,7 @@ export const CATALOG = {
         stripe_price_env: 'STRIPE_PRICE_CVI_PRO',
       },
       team: {
-        price: 7000,
+        price: 40000,
         interval: 'month',
         features: ['tools'],
         limits: {},
@@ -347,7 +347,7 @@ export const CATALOG = {
         stripe_price_env: 'STRIPE_PRICE_PRA_PRO',
       },
       team: {
-        price: 200000,
+        price: 250000,
         interval: 'month',
         features: ['tools'],
         limits: {},

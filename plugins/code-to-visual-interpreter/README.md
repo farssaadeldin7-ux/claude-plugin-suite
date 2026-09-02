@@ -123,7 +123,7 @@ export PLUGIN_SUITE_LICENSE_KEY=PS-CVI-...
 ## Plans
 
 Served by `services/billing` in this repo; the catalog lives in its `catalog.js`.
-Pro $40/month (2 seats) and team $70/month (10 seats). Both carry the same `tools`
+Pro $150/month (2 seats) and team $400/month (10 seats). Both carry the same `tools`
 capability: the licence gates the compute tools — `structure_match`, `cost_budget`,
 `svg_export_budget` and `source_scan` — while the skill content and the reference
 tools stay open.
