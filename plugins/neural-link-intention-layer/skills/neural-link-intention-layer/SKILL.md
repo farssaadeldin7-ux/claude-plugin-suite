@@ -1,3 +1,11 @@
+---
+name: neural-link-intention-layer
+description: >
+  This skill should be used when a designer, illustrator or other keyboard-heavy tool user wants to know which parts of their own workflow are worth automating — "which shortcuts should I set up", "what should I turn into a macro", "how do I speed up my workflow", "am I wasting time in Photoshop", "which repetitive tasks should I script", "audit my workflow", "where is my time actually going in Blender". Also use it for planning what to instrument before any log exists, for reading undo and navigation diagnostics from a command history, and for deciding when an automation is too fragile to be worth building.
+metadata:
+  version: "0.1.0"
+---
+
 # Neural Link Intention Layer
 
 A deterministic sequence audit over a designer's own command history.
