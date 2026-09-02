@@ -102,7 +102,7 @@ export const SCORING = {
     { term: 'F', meaning: 'Occurrences per week, from the log', typical: 'never from recall' },
     { term: 'K', meaning: 'Seconds saved per occurrence', typical: 'keystroke 0.3 s, menu trip 1.5 s, modal dialogue 4 s' },
     { term: 'C', meaning: 'Context-switch cost, seconds', typical: '0 hand stays put, 1.5 mouse-to-menu, 4 dialogue, 15 leaving the app' },
-    { term: 'S', meaning: 'Setup seconds; the 1.3 factor adds 30% annualised maintenance', typical: '180 keymap, 300 action, 900 component set, 1200 OS macro, 5000 plugin' },
+    { term: 'S', meaning: 'Setup seconds; the 1.3 factor adds 30% annualised maintenance', typical: '180 keymap, 300 action, 900 component set, 1200 OS macro, 5400 plugin' },
     { term: 'R', meaning: 'Wrong-fire risk, (1 - p) x severity', typical: 'severity 2 s if easily undone, 30 s if silently wrong, unbounded if destructive' },
   ],
   build_rule: 'Build when payback is under 8 weeks and the sequence is stable across the whole log.',
