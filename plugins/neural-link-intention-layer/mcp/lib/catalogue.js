@@ -239,7 +239,7 @@ export const BREAK_EVEN = {
     { mechanism: 'Photoshop or Illustrator Action', setup: '~5 min', break_even_f_per_week: '~16' },
     { mechanism: 'Figma component set', setup: '~15 min', break_even_f_per_week: '~49' },
     { mechanism: 'Keyboard Maestro or AutoHotkey macro', setup: '~20 min', break_even_f_per_week: '~65' },
-    { mechanism: 'Scripted plugin', setup: '~1.4 h', break_even_f_per_week: '~270' },
+    { mechanism: 'Scripted plugin', setup: '~1.5 h', break_even_f_per_week: '~290' },
   ],
   floor:
     'Below roughly 15 occurrences per week a custom macro does not repay its setup and ' +
