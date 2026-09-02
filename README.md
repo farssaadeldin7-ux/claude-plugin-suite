@@ -84,4 +84,7 @@ tools for evaluation before buying.
 
 ## Licence
 
-Proprietary. See [LICENSE](LICENSE).
+Source-available, not open source. The code is published so it can be read and
+evaluated; publication grants no rights to copy, modify, redistribute or create
+derivative works from it. Paid plugin tiers are governed by the commercial terms
+shown at the point of purchase. See [LICENSE](LICENSE).
