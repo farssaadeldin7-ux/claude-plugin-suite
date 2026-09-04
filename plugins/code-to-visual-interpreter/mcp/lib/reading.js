@@ -4,6 +4,8 @@
  * markers the references name. The scan is line-by-line pattern matching, not
  * a parse — every finding quotes its evidence and line number, and the result
  * states what a textual scan cannot see.
+ * Source: skills/code-to-visual-interpreter/SKILL.md (degenerate-parameter table)
+ * and references/toolchain-notes.md (determinism and bloat-trap markers).
  */
 
 import { ToolError } from '../mcp-lite.js';

@@ -4,6 +4,7 @@
  * current-generation defaults and anything load-bearing should be checked
  * before a large batch. The pacing and caption rules move much more slowly
  * than the pixel dimensions.
+ * Source: skills/auto-clip/SKILL.md, step 4 (Format for TikTok / Reels / Shorts).
  */
 
 export const SPEC_CAVEAT =
