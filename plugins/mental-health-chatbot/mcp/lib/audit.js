@@ -9,6 +9,7 @@ import { TRIGGER_CATEGORIES } from './escalation.js';
  * The supervisor-summary template and the local session audit log — the two
  * deliverables the mental-health-chatbot skill's steps 5 and 6 produce, given
  * server support here.
+ * Source: skills/mental-health-chatbot/SKILL.md, steps 5 and 6.
  *
  * The audit log is deliberately categorical: dates, counts, category numbers
  * and enumerated outcomes only. There is no free-text field, so nothing a
