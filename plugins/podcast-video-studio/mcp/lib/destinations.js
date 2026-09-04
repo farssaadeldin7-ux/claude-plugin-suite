@@ -1,6 +1,6 @@
 /**
  * Destination specs: length, aspect, safe areas, captions and pacing per
- * platform, ported from the reference. Specifications change; the numbers are
+ * platform, ported from the auto-clip skill. Specifications change; the numbers are
  * current-generation defaults and anything load-bearing should be checked
  * before a large batch. The pacing and caption rules move much more slowly
  * than the pixel dimensions.
