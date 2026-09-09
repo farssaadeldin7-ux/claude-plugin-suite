@@ -46,9 +46,9 @@ Two lines that move independently are two sources — treat them as two observat
 
 - **Same pitch at 50 km/h in third and fifth gear** → tracks road speed → wheels, tyres,
   driveline. Pitch changes with the gear → engine side.
-- **Stripes at idle: count them.** ~12/s on a four-cylinder idling at 700 RPM is
-  half-crank (valvetrain); ~23/s is firing rate; ~12 vs ~23 is countable by ear in a
-  slowed-down recording.
+- **Stripes at idle: count them.** On a four-cylinder idling at 700 RPM, ~12/s is
+  crank rate (700/60), ~23/s is firing rate, and ~6/s is half-crank (valvetrain);
+  ~6 vs ~12 vs ~23 is countable by ear in a slowed-down recording.
 - **Tone appears revving in neutral, parked** → engine or accessory, never wheels or
   driveline. It disappears when the belt is briefly run off (where safe) → accessory.
 - **Growl that loads up steering one way** → wheel bearing on the outside of the curve —

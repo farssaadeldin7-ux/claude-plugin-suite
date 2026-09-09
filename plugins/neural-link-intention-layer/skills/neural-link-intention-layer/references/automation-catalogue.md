@@ -51,7 +51,8 @@ Figma's real answer to repetition is structural, not procedural.
 | **Quick actions (Cmd+/)** | Reach almost any command in three or four keystrokes | Chain commands |
 
 A component set is expensive to build — call it 15 minutes — but saves far more than
-3 seconds per use, so the break-even table in `sequence-analysis.md` must be rescaled.
+3 seconds per use, so the break-even table (served by the `automation_catalogue` tool,
+built on the payback formula in `sequence-analysis.md`) must be rescaled.
 At 40 seconds saved it repays after roughly four uses a week.
 
 Note the hotkey gap. Figma gives you one shortcut for re-running the last plugin, and

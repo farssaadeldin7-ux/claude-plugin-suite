@@ -116,8 +116,8 @@ Where:
 - **S** = setup cost in seconds,
 - **R** = wrong-fire risk.
 
-Only build when payback is under 8 weeks **and** the sequence is stable across at least
-three sessions.
+Only build when payback is under 8 weeks **and** the sequence is stable across the whole
+log — which step 2 requires to span at least three sessions.
 
 Then choose the cheapest mechanism that works:
 
