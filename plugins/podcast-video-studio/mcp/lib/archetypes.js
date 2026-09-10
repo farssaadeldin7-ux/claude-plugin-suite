@@ -2,7 +2,7 @@
  * The seven moment archetypes and the transcript scan that finds their tells.
  *
  * Everything here is pattern-matching on language — the tells are literal
- * surface markers ported from the reference, and a match is a candidate, not
+ * surface markers ported from the auto-clip skill, and a match is a candidate, not
  * a clip. Roughly a third of archetype matches die on the scoring rubric.
  * Nothing in this module scores, ranks or judges a moment.
  * Source: skills/auto-clip/SKILL.md, step 2 (Find the engaging segments automatically).
