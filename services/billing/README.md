@@ -48,6 +48,15 @@ tool returns, not a flat tier. From `catalog.js`:
 Env keys follow the plugin codes: `STRIPE_PRICE_<CODE>_PRO` / `_TEAM` for DBS, GPP,
 PMR, FMF, BCS, PVS, CSS, HFM, MHC, NLI, GDT, ERA, CVI and PRA.
 
+**The pro/team split is seats, deliberately.** Both plans of every plugin carry
+identical `features` and `limits`; the licence gates what a plugin's server checks, not
+which plan bought it, and team is the same product at 10 seats instead of 2. This is a
+design decision, not an omission: a feature or quota split between the plans was built
+once and removed on purpose, so any future difference between pro and team beyond seat
+count is a product decision to make explicitly — and the e2e test's plan assertions and
+the per-plugin READMEs are the places that change with it. Until then, the honest team
+pitch is per-seat arithmetic against the table above, nothing more.
+
 No plugin has a free plan or a trial — every gated tool needs a paid licence. (A plugin
 that wants client-side free features can declare them via `LicenseClient`'s `freeTier`
 option; see `docs/LICENSING.md`.)

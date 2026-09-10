@@ -20,7 +20,7 @@
 import http from 'node:http';
 import path from 'node:path';
 import { Store } from './lib/store.js';
-import { plan as planFor, publicCatalog } from './catalog.js';
+import { CATALOG, plan as planFor, publicCatalog } from './catalog.js';
 import {
   issueLicense, entitlementFor, recordUsage, usageFor, looksLikeKey, currentPeriod,
 } from './lib/licenses.js';
@@ -261,4 +261,13 @@ const server = http.createServer((req, res) => {
 
 server.listen(PORT, () => {
   console.error(`[billing] listening on ${PORT}, store at ${STORE_FILE}`);
+  // Every plan whose STRIPE_PRICE_* env var is unset returns 503
+  // plan_not_configured at checkout — say so at boot instead of at the sale.
+  const missing = Object.values(CATALOG)
+    .flatMap((plugin) => Object.values(plugin.plans).map((p) => p.stripe_price_env))
+    .filter((env) => !process.env[env]);
+  if (missing.length > 0) {
+    console.error(`[billing] ${missing.length} plan(s) not purchasable — missing env: ${missing.join(', ')}`);
+    console.error('[billing] run scripts/setup-stripe.mjs to provision them (see .env.example).');
+  }
 });
