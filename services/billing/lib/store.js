@@ -34,8 +34,17 @@ export class Store {
   }
 
   putLicense(license) {
+    const previous = this.data.licenses[license.key];
     this.data.licenses[license.key] = license;
-    this.save();
+    try {
+      this.save();
+    } catch (err) {
+      // Keep memory consistent with disk: an unpersisted write must not
+      // linger in-memory, or a later successful save would resurrect it.
+      if (previous === undefined) delete this.data.licenses[license.key];
+      else this.data.licenses[license.key] = previous;
+      throw err;
+    }
     return license;
   }
 
@@ -49,8 +58,26 @@ export class Store {
   claimEvent(id) {
     if (!id || this.data.events[id]) return false;
     this.data.events[id] = Date.now();
-    this.save();
+    try {
+      this.save();
+    } catch (err) {
+      // Same reasoning as putLicense: an unpersisted claim must not block
+      // the retry that a failed webhook handler depends on.
+      delete this.data.events[id];
+      throw err;
+    }
     return true;
+  }
+
+  /**
+   * Reverses claimEvent. Used when a claimed event's handler throws, so the
+   * next delivery of the same event is reprocessed instead of being
+   * swallowed as a duplicate — see server.js's /v1/stripe/webhook route.
+   */
+  releaseEvent(id) {
+    if (!id || !(id in this.data.events)) return;
+    delete this.data.events[id];
+    this.save();
   }
 
 }
