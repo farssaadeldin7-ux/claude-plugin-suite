@@ -31,19 +31,13 @@ replaced. The channel works because it is scarce and trusted.
 
 ## Who it is for
 
-Two readers, deliberately:
+**The tool maker** — drawing, rendering, audio, video products — who ships the haptic
+mapping and sells it as Deep-Work Protection. Steps 1–5 of the skill are the product
+work; step 6 is their pitch.
 
-- **The tool maker** — drawing, rendering, audio, video products — who ships the haptic
-  mapping and sells it as Deep-Work Protection. Steps 1–5 of the skill are the product
-  work; step 6 is their pitch.
-- **The artist or freelancer** who bills by the hour and wants their own interruption
-  cost measured. Steps 1–5 stand alone as a self-measurement, whether or not anyone is
-  selling them anything.
-
-You bring the product and the users (or, as the artist, your own sessions). The plugin
-supplies the measurement method, the mapping discipline and the ROI framing; the
-before/after numbers must come from real sessions, and the skill will say so rather than
-invent them.
+You bring the product and the users. The plugin supplies the measurement method, the
+mapping discipline and the ROI framing; the before/after numbers must come from real
+sessions, and the skill will say so rather than invent them.
 
 ## Components
 
