@@ -19,6 +19,32 @@ import { ToolError } from './mcp-lite.js';
 
 const CACHE_TTL_MS = 5 * 60 * 1000;
 const REQUEST_TIMEOUT_MS = 8000;
+// The placeholder every plugin ships with until scripts/bake-billing-url.mjs
+// (or PLUGIN_SUITE_BILLING_URL) points it at a real, deployed billing host.
+// A build that was never pointed anywhere real should say so plainly, not
+// surface as an ordinary network failure that looks like a transient outage.
+const PLACEHOLDER_BILLING_URL = 'https://billing.example.com';
+
+// The finite, known vocabulary of error codes the billing service itself
+// ever emits (services/billing/server.js's own fail() calls, plus the
+// stripe_* codes it relays from lib/stripe.js). A server response outside
+// this set — a proxy's own error page, a future server bug, anything not
+// written by this codebase — must never be forwarded as-is: its code would
+// be branched on as if this client understood it, and its message shown to
+// a user as if it were meant to be read by one.
+const KNOWN_SERVER_ERROR_CODES = new Set([
+  'activation_failed', 'internal_error', 'invalid_request', 'no_billing_account',
+  'not_found', 'plan_not_configured', 'unknown_license', 'unknown_plan', 'unknown_plugin',
+  'wrong_plugin', 'stripe_error', 'stripe_not_configured', 'stripe_unreachable', 'invalid_json',
+]);
+
+/** A server error, only if it's shaped like one this codebase actually wrote. */
+function safeServerError(data, fallbackCode, fallbackMessage) {
+  if (data && KNOWN_SERVER_ERROR_CODES.has(data.error)) {
+    return { code: data.error, message: typeof data.message === 'string' ? data.message : fallbackMessage, detail: data.detail };
+  }
+  return { code: fallbackCode, message: fallbackMessage, detail: undefined };
+}
 
 /** Hosts pass .mcp.json env through verbatim, so an unset variable can arrive as
  *  an empty string or a literal "${VAR}" — both count as absent. */
@@ -94,6 +120,13 @@ export class LicenseClient {
   // ---- billing service ---------------------------------------------------
 
   async #request(method, endpoint, { body, auth = true } = {}) {
+    if (this.billingUrl === PLACEHOLDER_BILLING_URL) {
+      throw new ToolError(
+        'billing_not_configured',
+        'This plugin was never pointed at a real billing service — it still has the placeholder URL baked in.',
+        'Set PLUGIN_SUITE_BILLING_URL, or rebuild the archive with scripts/bake-billing-url.mjs after deploying services/billing.'
+      );
+    }
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
     try {
@@ -177,13 +210,27 @@ export class LicenseClient {
     if (peek) query.set('peek', 'true');
     let data;
     try {
-      ({ data } = await this.#request('GET', `/v1/entitlement?${query}`));
+      const response = await this.#request('GET', `/v1/entitlement?${query}`);
+      if (!response.ok) {
+        // A 429 or 5xx still carries a JSON body — but treating that body as
+        // a real entitlement (active/free/features left undefined) reads as
+        // "not entitled" to every caller downstream, telling a paying
+        // customer their licence had failed because the service hiccuped.
+        // This is the same "could not get a real answer" case as a network
+        // failure below, not a real entitlement.
+        throw new ToolError('billing_error', `The licensing service returned HTTP ${response.status}.`, response.data);
+      }
+      data = response.data;
     } catch (err) {
       // Documented failure behaviour: a previously valid entitlement keeps
       // working even past its cache TTL, and an unknown state degrades to the
-      // free tier with a clear message — never to an error.
+      // free tier with a clear message — never to an error. The reason
+      // carries the actual failure (billing_not_configured, billing_error,
+      // billing_unreachable, ...) instead of a single hardcoded guess, so a
+      // caller two layers up isn't stuck inferring what kind of "down" this
+      // was from a free-text note.
       if (this.cache) return { ...this.cache.value, stale: true, stale_reason: err.code };
-      return { ...this.#freeEntitlement('billing_unreachable'), degraded: true, note: err.message };
+      return { ...this.#freeEntitlement(err.code ?? 'billing_unreachable'), degraded: true, note: err.message };
     }
     // A peek result must never satisfy a later real (registering) lookup —
     // caching it here would let a status check that ran first silently skip
@@ -199,9 +246,14 @@ export class LicenseClient {
   async requireFeature(feature) {
     const entitlement = await this.entitlement();
     // A plugin with no free features has no free tier: with no key, every
-    // gated tool is a licensing miss, not an upgrade prompt.
+    // gated tool is a licensing miss, not an upgrade prompt. entitlement
+    // itself is passed here (not a synthesised { reason: 'missing_license' })
+    // so the real reason — which during an outage is billing_unreachable or
+    // billing_not_configured, not a missing key — reaches the explanation. A
+    // paying customer whose key is fine but whose check failed to complete
+    // must never be told their licence was never set up.
     if (entitlement.free && !entitlement.features.length) {
-      throw new ToolError('license_required', explainDenial({ reason: 'missing_license' }, this.pluginId), {
+      throw new ToolError('license_required', explainDenial(entitlement, this.pluginId), {
         reason: entitlement.reason,
         next_step: 'Call license_activate with an existing key, or start_checkout to buy a plan.',
       });
@@ -230,8 +282,17 @@ export class LicenseClient {
     return entitlement;
   }
 
-  /** Record metered usage. Failures here never block work already done. */
-  async recordUsage(meter, quantity = 1) {
+  /**
+   * Record metered usage. Failures here never block work already done.
+   *
+   * idempotencyKey defaults to a fresh one per call, which is only safe for
+   * a genuine one-shot recording. A caller that might retry the *same*
+   * logical usage event (the work already happened; only reporting it
+   * failed) must generate its own key once and pass it on every attempt —
+   * otherwise each retry mints a new key, the server's deduplication has
+   * nothing to match against, and a retried report double-counts.
+   */
+  async recordUsage(meter, quantity = 1, idempotencyKey = crypto.randomUUID()) {
     if (!this.licenseKey) return { recorded: false, reason: 'missing_license' };
     try {
       const { data } = await this.#request('POST', '/v1/usage', {
@@ -239,7 +300,7 @@ export class LicenseClient {
           plugin_id: this.pluginId,
           meter,
           quantity,
-          idempotency_key: crypto.randomUUID(),
+          idempotency_key: idempotencyKey,
         },
       });
       this.cache = null;
@@ -263,7 +324,7 @@ export class LicenseClient {
 
   async activate(licenseKey) {
     const key = licenseKey.trim().toUpperCase();
-    const { ok, status, data } = await this.#request('POST', '/v1/license/activate', {
+    const { ok, data } = await this.#request('POST', '/v1/license/activate', {
       auth: false,
       body: {
         license_key: key,
@@ -273,7 +334,12 @@ export class LicenseClient {
       },
     });
     if (!ok) {
-      throw new ToolError(data.error || 'activation_failed', data.message || `Activation failed (HTTP ${status}).`, data.detail);
+      // Only a code and message this codebase's own server actually writes
+      // are forwarded as-is — see safeServerError. Anything else (a proxy's
+      // own error page, a future server bug) falls back to a fixed,
+      // generic one instead of being relayed to whatever reads this error.
+      const { code, message, detail } = safeServerError(data, 'activation_failed', 'Activation failed.');
+      throw new ToolError(code, message, detail);
     }
     this.saveLicenseKey(key);
     return data;
@@ -284,10 +350,12 @@ export class LicenseClient {
       auth: false,
       body: { plugin_id: this.pluginId, plan, email: email || undefined },
     });
-    if (!ok) throw new ToolError(data.error || 'checkout_failed', data.message || 'Could not start checkout.', data.detail);
+    if (!ok) {
+      const { code, message, detail } = safeServerError(data, 'checkout_failed', 'Could not start checkout.');
+      throw new ToolError(code, message, detail);
+    }
     return data;
   }
-
 
   async plans() {
     const { ok, data } = await this.#request('GET', `/v1/catalog/${this.pluginId}`, { auth: false });
@@ -301,7 +369,10 @@ export class LicenseClient {
       auth: false,
       body: { license_key: this.licenseKey },
     });
-    if (!ok) throw new ToolError(data.error || 'portal_failed', data.message || 'Could not open the billing portal.');
+    if (!ok) {
+      const { code, message, detail } = safeServerError(data, 'portal_failed', 'Could not open the billing portal.');
+      throw new ToolError(code, message, detail);
+    }
     return data;
   }
 }
@@ -314,6 +385,12 @@ function configDir() {
   return path.join(base, 'plugin-suite');
 }
 
+/**
+ * The one place service-failure and denial explanations are written. A
+ * second, independently-worded copy of the same idea living inline in
+ * license_status's degraded-entitlement branch used to say something
+ * similar but not identical — the two could drift, and did.
+ */
 function explainDenial(entitlement, pluginId) {
   const messages = {
     missing_license: `No licence key is set up for ${pluginId} on this machine.`,
@@ -323,6 +400,10 @@ function explainDenial(entitlement, pluginId) {
     inactive: 'This subscription is not currently active.',
     expired: 'This licence has expired.',
     seat_limit_reached: 'Every seat on this licence is already in use on other machines.',
+    billing_unreachable: 'The licensing service could not be reached — this could not be checked. A previously working licence keeps working until it can be.',
+    billing_not_configured: 'This plugin was never pointed at a real billing service — that is a setup problem, not a licence problem.',
+    billing_bad_response: 'The licensing service returned a response that could not be understood — this could not be checked.',
+    billing_error: 'The licensing service returned an error while checking this — this could not be confirmed.',
   };
   return messages[entitlement.reason] || 'The licence check did not pass.';
 }
@@ -342,12 +423,18 @@ export function registerLicenseTools(server, client, { pluginName }) {
       if (entitlement.free) {
         return {
           licensed: false,
+          // entitlement.reason here, not a hardcoded 'missing_license': this
+          // branch is also reached when the licensing service is down and
+          // there's no cache to fall back on, and a paying customer must
+          // never be told their key was never set up when the real story
+          // is that the check couldn't complete.
           ...(entitlement.features.length
             ? { plan: entitlement.plan, free_tier_includes: entitlement.features }
-            : { reason: 'missing_license', explanation: explainDenial({ reason: 'missing_license' }, client.pluginId) }),
-          ...(entitlement.degraded
-            ? { note: 'The licensing service was unreachable, so this reflects what works without it.' }
-            : {}),
+            : { reason: entitlement.reason, explanation: explainDenial(entitlement, client.pluginId) }),
+          // Reuses explainDenial rather than its own wording: a second,
+          // independently-maintained copy of the same explanation is how
+          // the two used to drift apart.
+          ...(entitlement.degraded ? { note: explainDenial(entitlement, client.pluginId) } : {}),
           billing_service: client.billingUrl,
           next_step: 'Use license_activate with an existing key, or start_checkout to buy a plan.',
         };
