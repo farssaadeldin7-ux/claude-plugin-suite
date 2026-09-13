@@ -1,5 +1,5 @@
 import crypto from 'node:crypto';
-import { plan as planFor, plugin as pluginFor } from '../catalog.js';
+import { plan as planFor, plugin as pluginFor, outwardLimits } from '../catalog.js';
 
 /** Charset avoids 0/O and 1/I so keys survive being read out over the phone. */
 const KEY_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -72,16 +72,25 @@ export function recordUsage(store, license, meter, quantity, now = Date.now()) {
 
 /**
  * The entitlement decision, in the shape the suite's license-client expects.
- * Registers the calling device against a seat when one is free.
+ * Registers the calling device against a seat when one is free and `register`
+ * is true (the default) — set it false for a check that must never itself be
+ * the thing that spends a seat, e.g. `license_status`, which promises to only
+ * report, or a caller probing before it has decided to actually proceed.
  */
-export function entitlementFor(store, { key, pluginId, deviceId, deviceLabel = null, now = Date.now() }) {
+export function entitlementFor(store, { key, pluginId, deviceId, deviceLabel = null, now = Date.now(), register = true }) {
   if (!key || !looksLikeKey(key)) return { active: false, reason: 'malformed_license' };
 
   const license = store.getLicense(key);
   if (!license) return { active: false, reason: 'unknown_license' };
   if (pluginId && license.plugin_id !== pluginId) return { active: false, reason: 'wrong_plugin' };
 
-  if (['canceled', 'inactive', 'past_due'].includes(license.status)) {
+  // Allow-list, deliberately: 'active' is the one status a subscription
+  // normalises to on success (see customer.subscription.updated in
+  // server.js). Everything else — past_due, unpaid, incomplete,
+  // incomplete_expired, paused, canceled, or a Stripe status this service
+  // has never seen yet — must fall through to denied by default, not the
+  // other way round.
+  if (license.status !== 'active') {
     return { active: false, reason: 'inactive' };
   }
   if (deviceId) {
@@ -90,8 +99,10 @@ export function entitlementFor(store, { key, pluginId, deviceId, deviceLabel = n
       if (license.seats.devices.length >= license.seats.limit) {
         return { active: false, reason: 'seat_limit_reached' };
       }
-      license.seats.devices.push({ id: deviceId, label: deviceLabel, activated_at: new Date(now).toISOString() });
-      store.putLicense(license);
+      if (register) {
+        license.seats.devices.push({ id: deviceId, label: deviceLabel, activated_at: new Date(now).toISOString() });
+        store.putLicense(license);
+      }
     }
   }
 
@@ -100,7 +111,7 @@ export function entitlementFor(store, { key, pluginId, deviceId, deviceLabel = n
     plan: license.plan,
     status: license.status,
     features: license.features,
-    limits: license.limits,
+    limits: outwardLimits(license.limits),
     usage: usageFor(license, now),
     seats: { limit: license.seats.limit, used: license.seats.devices.length },
     periodEnd: license.period_end,

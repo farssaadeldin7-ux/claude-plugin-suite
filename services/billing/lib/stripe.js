@@ -27,14 +27,26 @@ async function stripeRequest(method, endpoint, params = null) {
     err.code = 'stripe_not_configured';
     throw err;
   }
-  const response = await fetch(`${apiBase()}${endpoint}`, {
-    method,
-    headers: {
-      authorization: `Bearer ${secretKey}`,
-      'content-type': 'application/x-www-form-urlencoded',
-    },
-    body: params ? formEncode(params) : undefined,
-  });
+  let response;
+  try {
+    response = await fetch(`${apiBase()}${endpoint}`, {
+      method,
+      headers: {
+        authorization: `Bearer ${secretKey}`,
+        'content-type': 'application/x-www-form-urlencoded',
+      },
+      body: params ? formEncode(params) : undefined,
+    });
+  } catch (networkErr) {
+    // fetch() failing means we never reached Stripe at all — DNS, TLS, a
+    // proxy in between. That error's message can name internal hosts and
+    // must never reach the public caller; only Stripe's own JSON error
+    // (below) is written to be shown to a user.
+    console.error('[billing] Stripe request failed before a response arrived', method, endpoint, networkErr);
+    const err = new Error('Could not reach Stripe.');
+    err.code = 'stripe_unreachable';
+    throw err;
+  }
   const data = await response.json().catch(() => ({}));
   if (!response.ok) {
     const err = new Error(data.error?.message || `Stripe returned HTTP ${response.status}.`);

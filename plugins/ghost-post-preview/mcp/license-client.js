@@ -96,37 +96,54 @@ export class LicenseClient {
   async #request(method, endpoint, { body, auth = true } = {}) {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
-    let response;
     try {
-      response = await fetch(`${this.billingUrl}${endpoint}`, {
-        method,
-        headers: {
-          'content-type': 'application/json',
-          ...(auth && this.licenseKey ? { authorization: `Bearer ${this.licenseKey}` } : {}),
-        },
-        body: body ? JSON.stringify(body) : undefined,
-        signal: controller.signal,
-      });
-    } catch (err) {
-      throw new ToolError(
-        'billing_unreachable',
-        err.name === 'AbortError'
-          ? `The licensing service did not respond within ${REQUEST_TIMEOUT_MS / 1000}s.`
-          : `Could not reach the licensing service at ${this.billingUrl}.`,
-        err.message
-      );
+      let response;
+      try {
+        response = await fetch(`${this.billingUrl}${endpoint}`, {
+          method,
+          headers: {
+            'content-type': 'application/json',
+            ...(auth && this.licenseKey ? { authorization: `Bearer ${this.licenseKey}` } : {}),
+          },
+          body: body ? JSON.stringify(body) : undefined,
+          signal: controller.signal,
+        });
+      } catch (err) {
+        throw new ToolError(
+          'billing_unreachable',
+          err.name === 'AbortError'
+            ? `The licensing service did not respond within ${REQUEST_TIMEOUT_MS / 1000}s.`
+            : `Could not reach the licensing service at ${this.billingUrl}.`,
+          err.message
+        );
+      }
+
+      // The abort signal must still cover this: fetch() resolves once
+      // headers arrive, not once the body does, so a connection that stalls
+      // mid-body would otherwise hang past the budget above with nothing
+      // left watching it.
+      let text;
+      try {
+        text = await response.text();
+      } catch (err) {
+        throw new ToolError(
+          'billing_unreachable',
+          err.name === 'AbortError'
+            ? `The licensing service did not respond within ${REQUEST_TIMEOUT_MS / 1000}s.`
+            : `Could not reach the licensing service at ${this.billingUrl}.`,
+          err.message
+        );
+      }
+      let data;
+      try {
+        data = text ? JSON.parse(text) : {};
+      } catch {
+        throw new ToolError('billing_bad_response', 'The licensing service returned a response that was not JSON.', text.slice(0, 300));
+      }
+      return { status: response.status, ok: response.ok, data };
     } finally {
       clearTimeout(timer);
     }
-
-    const text = await response.text();
-    let data;
-    try {
-      data = text ? JSON.parse(text) : {};
-    } catch {
-      throw new ToolError('billing_bad_response', 'The licensing service returned a response that was not JSON.', text.slice(0, 300));
-    }
-    return { status: response.status, ok: response.ok, data };
   }
 
   /** The entitlement a user has with no key, or when the service cannot say. */
@@ -142,8 +159,13 @@ export class LicenseClient {
     };
   }
 
-  /** Cached entitlement lookup. Set force to bypass the cache after a change. */
-  async entitlement({ force = false } = {}) {
+  /**
+   * Cached entitlement lookup. Set force to bypass the cache after a change.
+   * Set peek to check status without it being the thing that registers this
+   * device against a seat — license_status uses this, since a tool that
+   * promises to only report must never itself spend a seat.
+   */
+  async entitlement({ force = false, peek = false } = {}) {
     if (!force && this.cache && Date.now() - this.cache.at < CACHE_TTL_MS) {
       return this.cache.value;
     }
@@ -152,6 +174,7 @@ export class LicenseClient {
     }
 
     const query = new URLSearchParams({ plugin_id: this.pluginId, device_id: this.deviceId });
+    if (peek) query.set('peek', 'true');
     let data;
     try {
       ({ data } = await this.#request('GET', `/v1/entitlement?${query}`));
@@ -162,7 +185,10 @@ export class LicenseClient {
       if (this.cache) return { ...this.cache.value, stale: true, stale_reason: err.code };
       return { ...this.#freeEntitlement('billing_unreachable'), degraded: true, note: err.message };
     }
-    this.cache = { at: Date.now(), value: data };
+    // A peek result must never satisfy a later real (registering) lookup —
+    // caching it here would let a status check that ran first silently skip
+    // this device ever actually being registered against a seat.
+    if (!peek) this.cache = { at: Date.now(), value: data };
     return data;
   }
 
@@ -227,8 +253,10 @@ export class LicenseClient {
   async checkQuota(meter, requested = 1) {
     const entitlement = await this.entitlement();
     const limit = entitlement.limits?.[meter];
-    if (limit === undefined) return { allowed: true, limit: null };
-    if (limit === -1) return { allowed: true, limit: -1 };
+    // No ceiling reads the same whether the meter was never declared or was
+    // declared uncapped — a caller has no reason to tell those apart, and
+    // the server itself no longer emits -1 (see outwardLimits in catalog.js).
+    if (limit === undefined || limit === null || limit === -1) return { allowed: true, limit: null };
     const used = entitlement.usage?.[meter] ?? 0;
     return { allowed: used + requested <= limit, used, limit, remaining: Math.max(0, limit - used) };
   }
@@ -310,7 +338,7 @@ export function registerLicenseTools(server, client, { pluginName }) {
       'Call this when a paid tool reports a licence problem, or when the user asks what their plan includes.',
     inputSchema: { type: 'object', properties: {} },
     handler: async () => {
-      const entitlement = await client.entitlement({ force: true });
+      const entitlement = await client.entitlement({ force: true, peek: true });
       if (entitlement.free) {
         return {
           licensed: false,

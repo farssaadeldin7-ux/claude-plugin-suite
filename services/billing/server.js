@@ -56,14 +56,45 @@ const bearerKey = (req) => {
 const readBody = (req) => new Promise((resolve, reject) => {
   const chunks = [];
   let size = 0;
+  let tooLarge = false;
   req.on('data', (chunk) => {
+    if (tooLarge) return;
     size += chunk.length;
-    if (size > 64 * 1024) { reject(new Error('body too large')); req.destroy(); return; }
+    if (size > 64 * 1024) {
+      // Stop buffering, but never destroy the socket here: req and res share
+      // one connection, and a destroyed req can't carry a 413 back on res.
+      tooLarge = true;
+      const err = new Error('Request body too large.');
+      err.status = 413;
+      reject(err);
+      return;
+    }
     chunks.push(chunk);
   });
-  req.on('end', () => resolve(Buffer.concat(chunks).toString('utf8')));
+  req.on('end', () => { if (!tooLarge) resolve(Buffer.concat(chunks).toString('utf8')); });
   req.on('error', reject);
 });
+
+/** JSON.parse that fails as a clean 400 instead of an uncaught 500. */
+const readJsonBody = async (req) => {
+  const raw = await readBody(req);
+  if (!raw) return {};
+  try {
+    return JSON.parse(raw);
+  } catch {
+    const err = new Error('Request body is not valid JSON.');
+    err.status = 400;
+    err.code = 'invalid_json';
+    throw err;
+  }
+};
+
+// __proto__ already fails the pattern (leading underscore); constructor and
+// prototype would not, and are exactly as able to reach a shared object's
+// internals as __proto__ is, so they're excluded explicitly.
+const SAFE_METER_PATTERN = /^[a-z][a-z0-9_]*$/;
+const UNSAFE_METER_NAMES = new Set(['constructor', 'prototype', '__proto__']);
+const isSafeMeter = (meter) => typeof meter === 'string' && SAFE_METER_PATTERN.test(meter) && !UNSAFE_METER_NAMES.has(meter);
 
 const escapeHtml = (s) => String(s).replace(/[&<>"']/g, (c) => (
   { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
@@ -111,19 +142,29 @@ async function handle(req, res) {
       key: bearerKey(req),
       pluginId: url.searchParams.get('plugin_id'),
       deviceId: url.searchParams.get('device_id'),
+      // license_status calls this with peek=true: a status check must never
+      // itself be the thing that spends a seat on an unregistered device.
+      register: url.searchParams.get('peek') !== 'true',
     });
     return json(res, 200, entitlement);
   }
 
   if (route === 'POST /v1/usage') {
     const key = bearerKey(req);
-    const body = JSON.parse(await readBody(req) || '{}');
+    const body = await readJsonBody(req);
     const license = key && looksLikeKey(key) ? store.getLicense(key) : null;
     if (!license) return fail(res, 401, 'unknown_license', 'No licence matches this key.');
-    if (!body.meter) return fail(res, 400, 'invalid_request', 'A meter name is required.');
+    if (!isSafeMeter(body.meter)) {
+      return fail(res, 400, 'invalid_request', 'A valid meter name is required.');
+    }
+    if (body.plugin_id && body.plugin_id !== license.plugin_id) {
+      return fail(res, 403, 'wrong_plugin', 'This licence is not for the plugin named in the request.');
+    }
     const usageEventId = `usage:${body.idempotency_key}`;
     if (store.isEventClaimed(usageEventId)) {
-      return json(res, 200, { recorded: true, deduplicated: true, used: usageFor(license)[body.meter] ?? 0 });
+      return json(res, 200, {
+        recorded: true, deduplicated: true, meter: body.meter, period: currentPeriod(), used: usageFor(license)[body.meter] ?? 0,
+      });
     }
     const used = recordUsage(store, license, body.meter, Number(body.quantity) || 1);
     store.claimEvent(usageEventId);
@@ -131,7 +172,7 @@ async function handle(req, res) {
   }
 
   if (route === 'POST /v1/license/activate') {
-    const body = JSON.parse(await readBody(req) || '{}');
+    const body = await readJsonBody(req);
     const key = String(body.license_key ?? '').trim().toUpperCase();
     const entitlement = entitlementFor(store, {
       key,
@@ -140,7 +181,12 @@ async function handle(req, res) {
       deviceLabel: body.device_label,
     });
     if (!entitlement.active) {
-      return fail(res, 403, entitlement.reason, 'This key could not be activated on this device.');
+      // One generic code for every failure reason: echoing entitlement.reason
+      // here would let a caller distinguish "no such key" from "right key,
+      // wrong plugin" from "seats full" — an oracle for enumerating which
+      // keys actually exist. The reason is still there in the log.
+      console.error('[billing] activation denied', key.slice(0, 6), entitlement.reason);
+      return fail(res, 403, 'activation_failed', 'This key could not be activated on this device.');
     }
     return json(res, 200, { activated: true, plan: entitlement.plan, features: entitlement.features, seats: entitlement.seats });
   }
@@ -153,7 +199,7 @@ async function handle(req, res) {
   }
 
   if (route === 'POST /v1/checkout') {
-    const body = JSON.parse(await readBody(req) || '{}');
+    const body = await readJsonBody(req);
     const { plugin_id: pluginId, plan: planId, email } = body;
     const planDef = planFor(pluginId, planId);
     if (!planDef) return fail(res, 404, 'unknown_plan', `No plan "${planId}" for "${pluginId}".`);
@@ -169,7 +215,7 @@ async function handle(req, res) {
   }
 
   if (route === 'POST /v1/portal') {
-    const body = JSON.parse(await readBody(req) || '{}');
+    const body = await readJsonBody(req);
     const key = String(body.license_key ?? '').trim().toUpperCase();
     const license = looksLikeKey(key) ? store.getLicense(key) : null;
     if (!license) return fail(res, 404, 'unknown_license', 'No licence matches this key.');
@@ -230,7 +276,23 @@ function handleStripeEvent(event) {
   switch (event.type) {
     case 'checkout.session.completed': {
       const { plugin_id: pluginId, plan: planId } = object.metadata ?? {};
-      if (!planFor(pluginId, planId)) return;
+      if (!planFor(pluginId, planId)) {
+        console.error('[billing] checkout.session.completed named no sellable plan', event.id, object.id, { pluginId, planId });
+        return;
+      }
+      // Event-id idempotency (above, in the caller) only catches Stripe
+      // resending the identical delivery. A dashboard resend, or this event
+      // being reprocessed after the process died between here and the claim
+      // being recorded, arrives as a genuinely different event id for the
+      // same session — so the session id, not the event id, is the thing
+      // that must never issue a licence twice.
+      if (store.findLicense((l) => l.checkout_session_id === object.id)) return;
+      // For delayed-notification payment methods a session can complete
+      // before payment actually lands; issuing here would hand out a
+      // licence for money that was never received. checkout.session.async_
+      // payment_succeeded (unhandled below, acknowledged and ignored) is
+      // where that licence would need to be issued instead.
+      if (object.payment_status && object.payment_status !== 'paid') return;
       issueLicense(store, {
         pluginId,
         planId,
@@ -242,7 +304,10 @@ function handleStripeEvent(event) {
     }
     case 'customer.subscription.updated': {
       const license = store.findLicense((l) => l.stripe?.subscription_id === object.id);
-      if (!license) return;
+      if (!license) {
+        console.error('[billing] customer.subscription.updated matches no licence', event.id, object.id);
+        return;
+      }
       license.status = object.status === 'active' || object.status === 'trialing' ? 'active' : object.status;
       license.period_end = object.current_period_end ? new Date(object.current_period_end * 1000).toISOString() : license.period_end;
       license.cancel_at_period_end = Boolean(object.cancel_at_period_end);
@@ -251,7 +316,10 @@ function handleStripeEvent(event) {
     }
     case 'customer.subscription.deleted': {
       const license = store.findLicense((l) => l.stripe?.subscription_id === object.id);
-      if (!license) return;
+      if (!license) {
+        console.error('[billing] customer.subscription.deleted matches no licence', event.id, object.id);
+        return;
+      }
       license.status = 'canceled';
       store.putLicense(license);
       return;
@@ -263,7 +331,10 @@ function handleStripeEvent(event) {
 
 const server = http.createServer((req, res) => {
   handle(req, res).catch((err) => {
-    // Never leak internals to a caller; the detail goes to the service log.
+    // A request-shaped failure (oversized or malformed body) is the
+    // caller's mistake, not ours, and safe to describe; anything else stays
+    // generic, with the detail going to the service log instead.
+    if (err.status) return fail(res, err.status, err.code ?? 'bad_request', err.message);
     console.error('[billing]', err);
     fail(res, 500, 'internal_error', 'The billing service hit an unexpected error.');
   });
