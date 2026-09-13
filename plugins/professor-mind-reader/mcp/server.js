@@ -280,7 +280,7 @@ server.tool('log_audit', {
   description:
     'Record an audit\'s band-range call and top fix in the local audit log so the actual result can ' +
     'be checked against it later. A positioning that is never checked has no error bar. Requires a ' +
-    'paid plan. Nothing leaves this machine.',
+    'paid plan; the licence check is the only thing this tool sends anywhere.',
   inputSchema: {
     type: 'object',
     properties: {

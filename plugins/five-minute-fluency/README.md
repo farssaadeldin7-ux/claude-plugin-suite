@@ -132,5 +132,5 @@ knowledge-base tools stay open.
 
 The sheet log — games, diagnoses, success checks, results — is written only to
 `~/.config/plugin-suite/five-minute-fluency-sheets.json` on the machine that created it.
-The billing service sees a licence key, a plugin id and a hashed device identifier. It
-never sees a sheet.
+The billing service sees a licence key, a plugin id, a hashed device identifier and a
+device label (your machine's hostname). It never sees a sheet.

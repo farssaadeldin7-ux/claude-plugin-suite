@@ -219,7 +219,7 @@ server.tool('log_clip', {
   description:
     'Record a threshold-clearing clip in the local log so the footage-pass result can be recorded ' +
     'against it later. The skill budgets for around a third of clips failing that pass; the log ' +
-    'replaces the assumption with your own count. Requires a paid plan. Nothing leaves this machine.',
+    'replaces the assumption with your own count. Requires a paid plan; the licence check is the only thing this tool sends anywhere.',
   inputSchema: {
     type: 'object',
     properties: {

@@ -103,7 +103,8 @@ The skill content is readable without a licence, and no ticket data leaves your 
 the audit, lint, screen and scorer run locally, and the regression-run history is written
 only to `~/.config/plugin-suite/customer-sales-support-runs.json` on the machine that
 created it. The billing service sees a licence key, a plugin id, a hashed device
-identifier — never a ticket, an article or a metric.
+identifier and a device label (your machine's hostname) — never a ticket, an article or
+a metric.
 
 ## What this is not
 

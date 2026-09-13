@@ -76,11 +76,23 @@ for (const id of onDisk) {
     }
   }
 
-  if (!fs.existsSync(path.join(dir, 'README.md'))) err(`plugins/${id}: no README.md`);
+  const readmePath = path.join(dir, 'README.md');
+  if (!fs.existsSync(readmePath)) {
+    err(`plugins/${id}: no README.md`);
+  } else {
+    // Every plugin sends a hashed device identifier AND a device label (the
+    // raw hostname) at activation — a README documenting the first without
+    // the second is describing less than the billing service actually sees.
+    const readme = fs.readFileSync(readmePath, 'utf8');
+    if (/hashed device identifier/.test(readme) && !/device label/.test(readme)) {
+      err(`plugins/${id}: README.md mentions the hashed device identifier the billing service sees, but not the device label (hostname) sent alongside it`);
+    }
+  }
 
   const mcpPath = path.join(dir, '.mcp.json');
   if (fs.existsSync(mcpPath)) {
     const mcp = readJson(mcpPath);
+    const licenseKeyVar = `${id.toUpperCase().replace(/-/g, '_')}_LICENSE_KEY`;
     for (const [name, cfg] of Object.entries(mcp?.mcpServers || {})) {
       const args = cfg.args || [];
       for (const a of args) {
@@ -88,6 +100,36 @@ for (const id of onDisk) {
         if (local.includes('/') && !fs.existsSync(local)) {
           err(`plugins/${id}: .mcp.json server "${name}" points at missing file ${a}`);
         }
+      }
+      // Checked for every declared server, not just the first — a plugin
+      // with a second MCP server missing this passthrough would otherwise
+      // ship silently unable to license itself.
+      const env = cfg.env || {};
+      if (!('PLUGIN_SUITE_BILLING_URL' in env)) {
+        err(`plugins/${id}: .mcp.json server "${name}" does not pass through PLUGIN_SUITE_BILLING_URL`);
+      }
+      if (!(licenseKeyVar in env)) {
+        err(`plugins/${id}: .mcp.json server "${name}" does not pass through ${licenseKeyVar}`);
+      }
+    }
+  }
+
+  const serverPath = path.join(dir, 'mcp', 'server.js');
+  if (fs.existsSync(serverPath)) {
+    const server = fs.readFileSync(serverPath, 'utf8');
+    // Every server.tool('name', { ... }) block, matched by brace depth so a
+    // nested inputSchema object doesn't end the match early.
+    const toolRe = /server\.tool\('([a-z_]+)',\s*\{/g;
+    let m;
+    while ((m = toolRe.exec(server))) {
+      let depth = 0, i = m.index + m[0].length - 1;
+      for (; i < server.length; i++) {
+        if (server[i] === '{') depth++;
+        else if (server[i] === '}' && --depth === 0) break;
+      }
+      const block = server.slice(m.index, i + 1);
+      if (/requireFeature/.test(block) && !/paid plan/.test(block)) {
+        err(`plugins/${id}: mcp/server.js tool "${m[1]}" requires a paid plan but its description never says so`);
       }
     }
   }

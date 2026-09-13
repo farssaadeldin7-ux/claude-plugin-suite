@@ -103,7 +103,7 @@ server. The licence gates the compute: the mechanical tell checks, the arc arith
 curve reconciliation and the local analysis history. Analysis history is written only to
 `~/.config/plugin-suite/emotional-resonance-analyzer-analyses.json` on the machine that
 created it — the billing service sees a licence key, a plugin id, a hashed device
-identifier and nothing about any film.
+identifier and a device label (your machine's hostname) — nothing about any film.
 
 ## What this is not
 

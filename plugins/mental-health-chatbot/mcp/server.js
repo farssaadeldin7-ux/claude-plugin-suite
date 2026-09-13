@@ -239,8 +239,8 @@ server.tool('evaluation_gate', {
 server.tool('record_redteam_run', {
   description:
     'Record a red-team run in the local change-control record — version, what changed, counts, and ' +
-    'who approved it — with the gate computed here, not taken on trust. Requires a paid plan. ' +
-    'Nothing leaves this machine.',
+    'who approved it — with the gate computed here, not taken on trust. Requires a paid plan; the licence check is ' +
+    'the only thing this tool sends anywhere.',
   inputSchema: {
     type: 'object',
     properties: {
@@ -397,7 +397,7 @@ server.tool('record_session', {
     'escalated and whether the handover packet was delivered, resources shown, how it ended. ' +
     'There is no free-text field, so nothing a user typed can enter the log. A trigger recorded ' +
     'without an escalation is accepted and flagged — the log captures misses, it does not hide ' +
-    'them. Requires a paid plan. Nothing leaves this machine.',
+    'them. Requires a paid plan; the licence check is the only thing this tool sends anywhere.',
   inputSchema: {
     type: 'object',
     properties: {

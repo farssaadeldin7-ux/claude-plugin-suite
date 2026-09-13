@@ -294,7 +294,7 @@ server.tool('record_build', {
     'Record an automation that was actually built — mechanism, sequence, predicted weekly ' +
     'firing rate, payback — in the local build log, so the two-week re-measure has something ' +
     'to check against. Given a build_id and observed_f_per_week instead, records the follow-up ' +
-    'measurement on an existing build. Requires a paid plan. Nothing leaves this machine.',
+    'measurement on an existing build. Requires a paid plan; the licence check is the only thing this tool sends anywhere.',
   inputSchema: {
     type: 'object',
     properties: {

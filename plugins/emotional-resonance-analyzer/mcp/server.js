@@ -292,8 +292,8 @@ server.tool('log_analysis', {
   description:
     'Record an analysis in the local log — film, cut version, form, what was flagged, the three ' +
     'chosen cuts with effort ratings, and whether real retention data was supplied. Logging two ' +
-    'versions of the same film is how a recut gets compared honestly. Requires a paid plan. ' +
-    'Nothing leaves this machine.',
+    'versions of the same film is how a recut gets compared honestly. Requires a paid plan; the licence check is ' +
+    'the only thing this tool sends anywhere.',
   inputSchema: {
     type: 'object',
     properties: {

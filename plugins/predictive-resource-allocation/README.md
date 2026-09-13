@@ -93,8 +93,9 @@ export PLUGIN_SUITE_LICENSE_KEY=PS-PRA-...
 
 The estimate log is written only to
 `~/.config/plugin-suite/predictive-resource-allocation-estimates.json` on the machine
-that created it. The billing service sees a licence key, a plugin id and a hashed
-device identifier — never a scene, a model or an estimate.
+that created it. The billing service sees a licence key, a plugin id, a hashed
+device identifier and a device label (your machine's hostname) — never a scene, a
+model or an estimate.
 
 ## Honest limits
 

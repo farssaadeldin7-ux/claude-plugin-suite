@@ -34,9 +34,19 @@ jobs:
           node plugins/five-minute-fluency/mcp/test/yield.test.mjs
           node plugins/ghost-post-preview/mcp/test/fold.test.mjs
           node test/plugin-table-lookups.test.mjs
+          node test/build.test.mjs
       - name: Check vendored runtime is in sync
         run: |
           node scripts/vendor-runtime.mjs
-          git diff --exit-code || (echo "::error::vendored runtime is stale — run scripts/vendor-runtime.mjs and commit" && exit 1)
+          # `git diff` alone only reports changes to files git already tracks —
+          # a shared runtime file added since the last vendoring pass would
+          # copy out as a brand-new, untracked file in every plugin's mcp/
+          # directory, and `git diff --exit-code` would see nothing and pass.
+          # `git status --porcelain` reports untracked files too.
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "::error::vendored runtime is stale — run scripts/vendor-runtime.mjs and commit"
+            git status --porcelain
+            exit 1
+          fi
       - name: Build archives
         run: node scripts/build.mjs

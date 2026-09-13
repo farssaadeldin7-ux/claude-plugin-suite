@@ -50,6 +50,22 @@ try {
   }
   ok('a genuine truncation with real hidden text still reports the first hidden line');
 
+  // ---- a char-cap cut cannot split a character in half ---------------------
+  // Regression test: .slice() counts UTF-16 code units, not characters — an
+  // astral character (an emoji, here) is two code units, and a cut landing
+  // between them left a lone, invalid surrogate at the end of visible_text,
+  // which renders as a broken character rather than being cleanly dropped.
+  {
+    const text = 'a'.repeat(279) + '\u{1F44D}' + 'rest of text'; // 👍, a surrogate pair
+    const result = foldTest('x', text); // "x": 280 char cap
+    for (const ch of result.visible_text) {
+      const code = ch.codePointAt(0);
+      assert.ok(code < 0xd800 || code > 0xdfff, `visible_text must contain no lone surrogate, found U+${code.toString(16)}`);
+    }
+    assert.equal(result.visible_text, 'a'.repeat(279), 'the incomplete character must be dropped entirely, not left half-cut');
+  }
+  ok('a char-cap cut that would split a surrogate pair drops the whole character instead of leaving it broken');
+
   console.log(`\n${passed} fold.js checks passed`);
 } catch (err) {
   console.error('\nFAILED:', err.message);
