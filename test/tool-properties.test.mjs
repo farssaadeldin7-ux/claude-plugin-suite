@@ -251,10 +251,20 @@ function collectToolBlocks(relPath) {
   return blocks;
 }
 
+function walk(dir) {
+  const entries = fs.readdirSync(dir, { withFileTypes: true });
+  return entries.flatMap((entry) => {
+    const abs = path.join(dir, entry.name);
+    if (entry.isDirectory()) return walk(abs);
+    return abs;
+  });
+}
+
 try {
-  const toolFiles = fs.readdirSync(path.join(root, 'plugins'))
-    .map((id) => path.join('plugins', id, 'mcp', 'server.js'))
-    .filter((relPath) => fs.existsSync(path.join(root, relPath)))
+  const toolFiles = walk(path.join(root, 'plugins'))
+    .filter((absPath) => absPath.endsWith('.js'))
+    .filter((absPath) => fs.readFileSync(absPath, 'utf8').includes('new McpServer('))
+    .map((absPath) => path.relative(root, absPath))
     .sort();
 
   let total = 0;
