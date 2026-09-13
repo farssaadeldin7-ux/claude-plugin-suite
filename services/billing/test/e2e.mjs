@@ -19,6 +19,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawn } from 'node:child_process';
 import { signWebhookPayload } from '../lib/stripe.js';
+import { Store } from '../lib/store.js';
 
 const serverPath = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'server.js');
 const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'billing-test-'));
@@ -150,6 +151,18 @@ const completeCheckout = (eventId, session) => {
 };
 
 try {
+  // ---- a corrupted store must never look like an empty one ----------------
+  // Regression test: the Store constructor caught every read error alike,
+  // so a truncated/corrupted (but existing) file was silently treated as
+  // "first run, start empty" — and the next save() would overwrite it for
+  // good. A file that genuinely doesn't exist yet must still start empty.
+  const corruptStorePath = path.join(tmpDir, 'corrupt-store.json');
+  fs.writeFileSync(corruptStorePath, '{ this is not valid JSON');
+  assert.throws(() => new Store(corruptStorePath), /not valid JSON/);
+  const missingStorePath = path.join(tmpDir, 'never-created-store.json');
+  assert.doesNotThrow(() => new Store(missingStorePath));
+  ok('a store file that exists but fails to parse refuses to start; one that never existed starts empty');
+
   await until(async () => {
     const { data } = await api('GET', '/health');
     assert.equal(data.ok, true);
@@ -224,6 +237,46 @@ try {
   const badSig = await api('POST', '/v1/stripe/webhook', { raw: dbsCheckout.payload, headers: { 'stripe-signature': 't=1,v1=deadbeef' } });
   assert.equal(badSig.status, 400);
   ok('a bad webhook signature is rejected');
+
+  // ---- a garbage v1 value is a clean 400, never a crash --------------------
+  // Regression test: the signature check compared given.length (JS string
+  // length, UTF-16 code units) to expected.length, then handed both to
+  // timingSafeEqual as Buffers. A multibyte character in v1 can make its
+  // UTF-8 byte length differ from its string length while the string
+  // lengths still matched, and timingSafeEqual throws — not returns false —
+  // on Buffers of unequal byte length, turning a bad signature into a 500.
+  const multibyteSigTime = Math.floor(Date.now() / 1000);
+  const multibyteSig = await api('POST', '/v1/stripe/webhook', {
+    raw: dbsCheckout.payload,
+    headers: { 'stripe-signature': `t=${multibyteSigTime},v1=${'é'.repeat(64)}` },
+  });
+  assert.equal(multibyteSig.status, 400, 'a multibyte v1 value must be a clean 400, not an uncaught crash');
+  ok('a malformed (multibyte) signature value is rejected cleanly, not a 500');
+
+  // ---- signature rotation: any active secret's v1 must verify -------------
+  // Regression test: the header was parsed with Object.fromEntries, which
+  // keeps only the last value for a repeated key — so of the several v1
+  // values Stripe sends during signing-secret rotation (one per active
+  // secret), only the last one in the header was ever actually checked.
+  const rotationTime = Math.floor(Date.now() / 1000);
+  const correctV1 = signWebhookPayload(dbsCheckout.payload, WEBHOOK_SECRET, rotationTime * 1000).split('v1=')[1];
+  const rotatedHeader = `t=${rotationTime},v1=deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef,v1=${correctV1}`;
+  const rotated = await api('POST', '/v1/stripe/webhook', { raw: dbsCheckout.payload, headers: { 'stripe-signature': rotatedHeader } });
+  assert.equal(rotated.status, 200, 'the correct v1 must verify no matter where it falls among several');
+  ok('any matching v1 in a multi-secret signature header verifies, not only the last one');
+
+  // ---- the webhook route has its own, larger body budget -------------------
+  // Regression test: every route shared one 64 kB body cap, which a
+  // legitimately large Stripe event (many line items, heavy metadata) can
+  // exceed; the webhook route needs its own, bigger budget.
+  const bigCheckout = completeCheckout('evt_big_1', {
+    id: 'cs_big_1', customer: 'cus_big_1', subscription: 'sub_big_1',
+    customer_details: { email: 'owner@example.com' },
+    metadata: { plugin_id: 'diagnose-by-sound', plan: 'pro', padding: 'x'.repeat(100 * 1024) },
+  });
+  const bigWebhook = await api('POST', '/v1/stripe/webhook', { raw: bigCheckout.payload, headers: bigCheckout.headers });
+  assert.equal(bigWebhook.status, 200, 'a webhook body over 64kB but under the webhook budget must not be a 413');
+  ok('a webhook body well over 64kB, under its own larger budget, is accepted');
 
   assert.equal((await api('POST', '/v1/stripe/webhook', { raw: dbsCheckout.payload, headers: dbsCheckout.headers })).status, 200);
   const replayed = (await api('POST', '/v1/stripe/webhook', { raw: dbsCheckout.payload, headers: dbsCheckout.headers })).data;
@@ -350,6 +403,18 @@ try {
   assert.ok(key, 'success page shows the issued key');
   ok('the success page shows the new pro licence key');
 
+  // ---- a page carrying a licence key is never cached, sniffed, or scripted -
+  // Regression test: the page holding a live key had no cache-control (a
+  // proxy or browser could keep re-serving it long after the fact), no
+  // x-content-type-options (a misconfigured server upstream could let a
+  // browser sniff it as something executable), no CSP, and no doctype.
+  const successResponse = await fetch(`${BASE}/success?session_id=cs_dbs_1`);
+  assert.equal(successResponse.headers.get('cache-control'), 'no-store');
+  assert.equal(successResponse.headers.get('x-content-type-options'), 'nosniff');
+  assert.ok(successResponse.headers.get('content-security-policy'), 'a licence-key page needs a CSP');
+  assert.match(await successResponse.text(), /^<!doctype html>/i);
+  ok('the success page is never cached, sniffed, or missing a doctype');
+
   // ---- a status check must never itself spend a seat ----------------------
   // Regression test: GET /v1/entitlement registered the calling device on
   // any check, so license_status — which promises to only report — silently
@@ -386,6 +451,14 @@ try {
   assert.equal((await api('GET', '/v1/entitlement?plugin_id=diagnose-by-sound', { key: 'garbage' })).data.reason, 'malformed_license');
   ok('unknown and malformed keys are told apart');
 
+  // ---- device_id is validated before it can be stored on a seat -----------
+  // Regression test: device_id reached the seat list with no validation at
+  // all — a caller could burn every seat on a shared key with arbitrary
+  // invented strings (and store arbitrary blobs against a licence).
+  const badDeviceId = await api('GET', `/v1/entitlement?plugin_id=diagnose-by-sound&device_id=${encodeURIComponent('not a real device id!!')}`, { key });
+  assert.equal(badDeviceId.status, 400);
+  ok('a malformed device_id is refused before it can reach the seat list');
+
   // ---- usage metering -----------------------------------------------------
   const use = (idem) => api('POST', '/v1/usage', { key, body: { plugin_id: 'diagnose-by-sound', meter: 'diagnoses_per_month', quantity: 1, idempotency_key: idem } });
   assert.equal((await use('u-1')).data.used, 1);
@@ -395,6 +468,29 @@ try {
   const after = (await api('GET', '/v1/entitlement?plugin_id=diagnose-by-sound&device_id=device-a', { key })).data;
   assert.equal(after.usage.diagnoses_per_month, 2);
   ok('usage is metered, idempotent on replay, and visible in the entitlement');
+
+  // ---- an idempotency_key is required and scoped to the licence -----------
+  // Regression test: an omitted idempotency_key became the literal string
+  // "usage:undefined" for every caller, in one flat namespace shared by
+  // every licence — so the first customer anywhere to omit it claimed a
+  // single shared slot, and no key-less usage from any customer was ever
+  // recorded again.
+  assert.equal((await api('POST', '/v1/usage', {
+    key, body: { plugin_id: 'diagnose-by-sound', meter: 'diagnoses_per_month', quantity: 1 },
+  })).status, 400, 'a missing idempotency_key must be refused, not default to a shared bucket');
+  ok('idempotency_key is required on /v1/usage');
+
+  // ---- usage quantity is validated, never silently coerced -----------------
+  // Regression test: Number(body.quantity) || 1 let a negative quantity
+  // through as-is (walking the ledger backwards) and silently defaulted any
+  // non-numeric garbage to 1 instead of refusing it.
+  for (const badQuantity of [-5, 1.5, 0, 999_999_999]) {
+    const res = await api('POST', '/v1/usage', {
+      key, body: { plugin_id: 'diagnose-by-sound', meter: 'diagnoses_per_month', quantity: badQuantity, idempotency_key: `u-bad-${badQuantity}` },
+    });
+    assert.equal(res.status, 400, `quantity ${badQuantity} must be refused, not coerced`);
+  }
+  ok('a negative, fractional, or absurdly large quantity is refused, not silently coerced');
 
   // ---- usage is scoped to the plugin the key was sold for ------------------
   // Regression test: /v1/usage read plugin_id off the body and never checked
@@ -453,6 +549,15 @@ try {
 
   assert.equal((await api('POST', '/v1/checkout', { body: { plugin_id: 'diagnose-by-sound', plan: 'enterprise' } })).status, 404);
   ok('unknown plan is refused');
+
+  // ---- email is validated before it reaches Stripe --------------------------
+  // Regression test: email went to Stripe's customer_email straight off an
+  // unauthenticated body with no validation at all.
+  const badEmailCheckout = await api('POST', '/v1/checkout', {
+    body: { plugin_id: 'diagnose-by-sound', plan: 'pro', email: 'not-an-email' },
+  });
+  assert.equal(badEmailCheckout.status, 400);
+  ok('a malformed email is refused before it reaches Stripe');
 
   // ---- a network failure reaching Stripe never reaches the public caller --
   // Regression test: stripeRequest() only distinguished a Stripe API error
@@ -563,6 +668,41 @@ try {
   assert.equal(strangerGet.headers.get('access-control-allow-origin'), null);
   ok('CORS allows the storefront origins and nobody else');
 
+  // ---- SIGTERM shuts down gracefully, not mid-response ---------------------
+  // Regression test: with no SIGTERM handler, a redeploy's kill signal cut
+  // every in-flight request off immediately — including a webhook handler
+  // that had already run and was about to record its claim. server.close()
+  // stops accepting new connections and lets the process exit only once
+  // existing ones finish, instead of the default (immediate) termination.
+  {
+    const sigtermPort = 20787 + Math.floor(Math.random() * 1000);
+    const sigtermChild = spawn(process.execPath, [serverPath], {
+      env: {
+        ...process.env,
+        PORT: String(sigtermPort),
+        BILLING_PUBLIC_URL: `http://127.0.0.1:${sigtermPort}`,
+        BILLING_STORE_FILE: path.join(tmpDir, 'sigterm-store.json'),
+        STRIPE_API_BASE: `http://127.0.0.1:${stripePort}`,
+        STRIPE_SECRET_KEY: 'sk_test_mock',
+        STRIPE_WEBHOOK_SECRET: WEBHOOK_SECRET,
+      },
+      stdio: ['ignore', 'ignore', 'ignore'],
+    });
+    await until(async () => {
+      const r = await fetch(`http://127.0.0.1:${sigtermPort}/health`);
+      assert.equal(r.status, 200);
+    });
+    const exited = new Promise((resolve) => sigtermChild.on('exit', (code, signal) => resolve({ code, signal })));
+    sigtermChild.kill('SIGTERM');
+    const result = await Promise.race([
+      exited,
+      new Promise((resolve) => setTimeout(() => resolve('timeout'), 3000)),
+    ]);
+    assert.notEqual(result, 'timeout', 'SIGTERM must be handled, not ignored until the host force-kills it');
+    assert.equal(result.code, 0, 'a graceful shutdown must exit 0, not be force-killed');
+  }
+  ok('SIGTERM triggers a graceful shutdown instead of being left unhandled');
+
   // ---- stripe provisioning script ----------------------------------------
   const setupScript = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'scripts', 'setup-stripe.mjs');
   const envFile = path.join(tmpDir, 'provision.env');
@@ -612,6 +752,59 @@ try {
   assert.equal(stripeState.webhooks.length, webhooksBefore);
   assert.match(second.out, /already correct/);
   ok('re-running setup-stripe creates nothing new');
+
+  // ---- the generated .env is always 0600, even over an existing file -----
+  // Regression test: fs.writeFileSync's `mode` option only applies when the
+  // file is newly created; on a re-run against an existing .env it silently
+  // keeps whatever permissions the file already had.
+  fs.chmodSync(envFile, 0o644);
+  const third = await runSetup();
+  assert.equal(third.code, 0, third.out);
+  assert.equal(fs.statSync(envFile).mode & 0o777, 0o600, 'the env file holding a live Stripe secret must be 0600 after every write');
+  ok('the generated .env is chmod 0600 unconditionally, not just on first creation');
+
+  // ---- a write that 404s must fail the script, not write "undefined" -----
+  // Regression test: the script's own Stripe client treated any 404 —
+  // including on a POST/write, not just the existence-check GETs it was
+  // meant for — as "not a failure", so a broken or deprecated endpoint let
+  // provisioning appear to succeed while writing the literal string
+  // "undefined" into .env as a Stripe price id.
+  {
+    const brokenStripe = http.createServer((req, res) => {
+      let body = '';
+      req.on('data', (c) => { body += c; });
+      req.on('end', () => {
+        // Every write 404s; only the product-existence GET is allowed to,
+        // and even that path here is irrelevant since we never reach it.
+        res.statusCode = 404;
+        res.setHeader('content-type', 'application/json');
+        res.end(JSON.stringify({ error: { message: 'not found' } }));
+      });
+    });
+    await new Promise((resolve) => brokenStripe.listen(0, resolve));
+    try {
+      const brokenEnvFile = path.join(tmpDir, 'broken-provision.env');
+      const proc = spawn(process.execPath, [setupScript], {
+        env: {
+          ...process.env,
+          STRIPE_API_BASE: `http://127.0.0.1:${brokenStripe.address().port}`,
+          STRIPE_SECRET_KEY: 'sk_test_mock',
+          BILLING_PUBLIC_URL: 'https://billing.example.test',
+          BILLING_ENV_FILE: brokenEnvFile,
+        },
+        stdio: ['ignore', 'pipe', 'pipe'],
+      });
+      let out = '';
+      proc.stdout.on('data', (d) => { out += d; });
+      proc.stderr.on('data', (d) => { out += d; });
+      const code = await new Promise((resolve) => proc.on('close', resolve));
+      assert.notEqual(code, 0, 'a 404 on a write must fail the script, not exit 0');
+      assert.equal(fs.existsSync(brokenEnvFile), false, 'no .env should be written after a failed provisioning run');
+    } finally {
+      brokenStripe.close();
+    }
+  }
+  ok('a 404 on a Stripe write fails the script instead of writing a broken .env');
 
   console.log(`\n${passed} billing checks passed`);
 } catch (err) {

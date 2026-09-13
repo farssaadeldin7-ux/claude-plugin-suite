@@ -80,21 +80,36 @@ export function createPortalSession({ customerId, publicUrl }) {
 const SIGNATURE_TOLERANCE_S = 300;
 
 /**
- * Stripe's signing scheme: header `t=<unix>,v1=<hmac>` where the hmac is
- * HMAC-SHA256 of `<t>.<raw body>` under the endpoint secret.
+ * Stripe's signing scheme: header `t=<unix>,v1=<hmac>,v1=<hmac>,...` — one
+ * v1 per currently-active signing secret, since Stripe signs with all of
+ * them during a rotation — where each hmac is HMAC-SHA256 of
+ * `<t>.<raw body>` under that secret.
  */
 export function verifyWebhookSignature(rawBody, signatureHeader, secret, now = Date.now()) {
   if (!signatureHeader || !secret) return false;
-  const parts = Object.fromEntries(
-    signatureHeader.split(',').map((p) => p.split('=', 2)).filter((p) => p.length === 2)
-  );
-  const timestamp = Number(parts.t);
+
+  let timestamp = null;
+  const signatures = [];
+  for (const part of signatureHeader.split(',')) {
+    const eq = part.indexOf('=');
+    if (eq === -1) continue;
+    const key = part.slice(0, eq);
+    const value = part.slice(eq + 1);
+    if (key === 't') timestamp = Number(value);
+    else if (key === 'v1') signatures.push(value);
+  }
   if (!timestamp || Math.abs(now / 1000 - timestamp) > SIGNATURE_TOLERANCE_S) return false;
 
-  const expected = crypto.createHmac('sha256', secret).update(`${parts.t}.${rawBody}`).digest('hex');
-  const given = parts.v1 ?? '';
-  return given.length === expected.length &&
-    crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(given));
+  const expected = Buffer.from(crypto.createHmac('sha256', secret).update(`${timestamp}.${rawBody}`).digest('hex'));
+  return signatures.some((sig) => {
+    // Byte length, not string length: a v1 value with multibyte characters
+    // (malformed, or simply attacker-supplied garbage) can have a UTF-16
+    // string length equal to expected's while its UTF-8 byte length differs
+    // — and timingSafeEqual throws on unequal-length buffers rather than
+    // returning false, turning a bad signature into a 500 instead of a 400.
+    const given = Buffer.from(sig);
+    return given.length === expected.length && crypto.timingSafeEqual(expected, given);
+  });
 }
 
 /** Produce a valid header for tests. */
