@@ -121,10 +121,12 @@ async function handle(req, res) {
     const license = key && looksLikeKey(key) ? store.getLicense(key) : null;
     if (!license) return fail(res, 401, 'unknown_license', 'No licence matches this key.');
     if (!body.meter) return fail(res, 400, 'invalid_request', 'A meter name is required.');
-    if (!store.claimEvent(`usage:${body.idempotency_key}`)) {
+    const usageEventId = `usage:${body.idempotency_key}`;
+    if (store.isEventClaimed(usageEventId)) {
       return json(res, 200, { recorded: true, deduplicated: true, used: usageFor(license)[body.meter] ?? 0 });
     }
     const used = recordUsage(store, license, body.meter, Number(body.quantity) || 1);
+    store.claimEvent(usageEventId);
     return json(res, 200, { recorded: true, meter: body.meter, period: currentPeriod(), used });
   }
 
@@ -189,10 +191,18 @@ async function handle(req, res) {
       return fail(res, 400, 'bad_signature', 'Webhook signature verification failed.');
     }
     const event = JSON.parse(raw);
-    if (!store.claimEvent(event.id)) {
+    if (store.isEventClaimed(event.id)) {
       return json(res, 200, { received: true, deduplicated: true });
     }
-    handleStripeEvent(event);
+    try {
+      handleStripeEvent(event);
+    } catch (err) {
+      // Do NOT claim the event: it must look unhandled so Stripe's retry
+      // gets a real second attempt instead of being deduplicated away.
+      console.error('[billing] webhook handler failed, Stripe will retry', event.id, event.type, err);
+      return fail(res, 500, 'webhook_handler_error', 'The webhook handler failed; Stripe will retry this event.');
+    }
+    store.claimEvent(event.id);
     return json(res, 200, { received: true });
   }
 
