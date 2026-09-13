@@ -195,6 +195,68 @@ try {
   assert.equal(replayed.deduplicated, true);
   ok('a signed checkout.session.completed lands once and replays are ignored');
 
+  // ---- a handler failure must not burn the idempotency id -----------------
+  // Regression test: claimEvent() used to record an event as seen before
+  // handleStripeEvent() ran. If the handler then failed (here: the store
+  // write itself fails), the id was already claimed, so Stripe's retry of
+  // the identical event came back "deduplicated" with a 200 and the paid
+  // licence was never issued — silently, and for good. A failed delivery
+  // must instead keep failing (real 5xx, never deduplicated) until the
+  // underlying problem clears and the retry actually gets to run.
+  {
+    const brokenPort = 20787 + Math.floor(Math.random() * 1000);
+    const blockerFile = path.join(tmpDir, 'store-write-blocker');
+    fs.writeFileSync(blockerFile, 'a file, not a directory');
+    // Every store.save() throws ENOTDIR here, regardless of the OS user
+    // running the test — a structural error, not a permission one.
+    const brokenStoreFile = path.join(blockerFile, 'nested', 'store.json');
+
+    const brokenChild = spawn(process.execPath, [serverPath], {
+      env: {
+        ...process.env,
+        PORT: String(brokenPort),
+        BILLING_PUBLIC_URL: `http://127.0.0.1:${brokenPort}`,
+        BILLING_STORE_FILE: brokenStoreFile,
+        STRIPE_API_BASE: `http://127.0.0.1:${stripePort}`,
+        STRIPE_SECRET_KEY: 'sk_test_mock',
+        STRIPE_WEBHOOK_SECRET: WEBHOOK_SECRET,
+        STRIPE_PRICE_DBS_PRO: 'price_pro_mock',
+        STRIPE_PRICE_DBS_TEAM: 'price_team_mock',
+      },
+      stdio: ['ignore', 'ignore', 'ignore'],
+    });
+
+    try {
+      await until(async () => {
+        const r = await fetch(`http://127.0.0.1:${brokenPort}/health`);
+        assert.equal(r.status, 200);
+      });
+
+      const failing = completeCheckout('evt_store_write_failure', {
+        id: 'cs_store_write_failure', customer: 'cus_x', subscription: 'sub_x',
+        customer_details: { email: 'owner@example.com' },
+        metadata: { plugin_id: 'diagnose-by-sound', plan: 'pro' },
+      });
+      const deliver = () => fetch(`http://127.0.0.1:${brokenPort}/v1/stripe/webhook`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', ...failing.headers },
+        body: failing.payload,
+      }).then(async (r) => ({ status: r.status, data: await r.json().catch(() => null) }));
+
+      const first = await deliver();
+      assert.equal(first.status, 500, 'a handler failure must surface as a real error, not a false 200');
+      assert.notEqual(first.data?.deduplicated, true);
+
+      const second = await deliver();
+      assert.equal(second.status, 500, 'the retry of the SAME event must actually run the handler again');
+      assert.notEqual(second.data?.deduplicated, true, 'a failed delivery must never read as deduplicated — that is exactly how the licence gets lost');
+
+      ok("a webhook handler failure never claims the event, so Stripe's retry is not silently dropped");
+    } finally {
+      brokenChild.kill();
+    }
+  }
+
   const success = await api('GET', '/success?session_id=cs_dbs_1');
   const key = /PS-DBS(?:-[A-Z2-9]+){4}/.exec(success.data)?.[0];
   assert.ok(key, 'success page shows the issued key');
