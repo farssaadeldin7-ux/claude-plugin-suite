@@ -170,6 +170,22 @@ try {
   }
   ok('recordUsage sends a caller-supplied idempotency key unchanged, so a retry can actually be deduplicated');
 
+  // ---- the config directory is tightened even if it already existed ------
+  // Regression test (#68): mkdirSync's `mode` option is only honoured for a
+  // directory it actually creates — recursive:true on an already-existing
+  // directory silently succeeds without touching its permissions, so the
+  // licence config could sit in a world-readable folder indefinitely.
+  {
+    const configDir = path.join(tmpConfigHome, 'plugin-suite');
+    fs.mkdirSync(configDir, { recursive: true });
+    fs.chmodSync(configDir, 0o755);
+    assert.equal(fs.statSync(configDir).mode & 0o777, 0o755, 'test setup: directory must start loose');
+    const client = makeClient();
+    client.saveLicenseKey('PS-TST-AAAAA-BBBBB-CCCCC-DDDD');
+    assert.equal(fs.statSync(configDir).mode & 0o777, 0o700, 'the config directory must be tightened even though it already existed');
+  }
+  ok('the config directory is chmod 0700 even when it already existed with looser permissions');
+
   console.log(`\n${passed} license-client checks passed`);
 } catch (err) {
   console.error('\nFAILED:', err.message);

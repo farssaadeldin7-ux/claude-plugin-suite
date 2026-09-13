@@ -86,16 +86,40 @@ export function createJsonArrayStore(fileName, key, lockOptions = {}) {
   };
 
   function readRaw() {
+    let raw;
     try {
-      const parsed = JSON.parse(fs.readFileSync(file, 'utf8'));
-      return Array.isArray(parsed[key]) ? parsed[key] : [];
+      raw = fs.readFileSync(file, 'utf8');
     } catch {
+      // No file we can even open yet — a first run, or the directory not
+      // created. Not corruption; nothing to load.
       return [];
     }
+    let parsed;
+    try {
+      parsed = JSON.parse(raw);
+    } catch (err) {
+      // The file exists and was readable, but isn't valid JSON — most likely
+      // truncated or corrupted. Treating that as "empty, start fresh" would
+      // let the very next update() overwrite real history with nothing.
+      // Fail loudly instead, the same way services/billing/lib/store.js does.
+      throw new Error(`${file} exists but is not valid JSON (${err.message}) — refusing to treat it as empty and risk overwriting it.`);
+    }
+    return Array.isArray(parsed[key]) ? parsed[key] : [];
+  }
+
+  function ensureDir() {
+    const dir = path.dirname(file);
+    fs.mkdirSync(dir, { recursive: true, mode: 0o700 });
+    // mkdirSync's mode is only honoured for a directory it actually creates —
+    // if the directory already existed (from an older version of this code,
+    // or anything else), recursive:true silently succeeds without touching
+    // its mode at all, and a private history could sit in a world-readable
+    // folder indefinitely. chmod unconditionally rather than trusting mkdir.
+    fs.chmodSync(dir, 0o700);
   }
 
   function writeRaw(items) {
-    fs.mkdirSync(path.dirname(file), { recursive: true, mode: 0o700 });
+    ensureDir();
     // Write-then-rename so a crash mid-write can never truncate the file.
     const tmp = `${file}.tmp`;
     fs.writeFileSync(tmp, JSON.stringify({ version: 1, [key]: items }, null, 2), { mode: 0o600 });
@@ -115,7 +139,7 @@ export function createJsonArrayStore(fileName, key, lockOptions = {}) {
      * same snapshot and silently overwrite this one.
      */
     update(updater) {
-      fs.mkdirSync(path.dirname(file), { recursive: true, mode: 0o700 });
+      ensureDir();
       acquireLock(lockPath, lock);
       try {
         const { items, result } = updater(readRaw());
