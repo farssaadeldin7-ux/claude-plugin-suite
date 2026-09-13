@@ -29,6 +29,16 @@ server.tool('bounded_number', {
   handler: async ({ n }) => ({ n }),
 });
 
+server.tool('broken_pattern', {
+  description: 'Uses an invalid regex pattern in its schema.',
+  inputSchema: {
+    type: 'object',
+    properties: { text: { type: 'string', pattern: '([/' } },
+    required: ['text'],
+  },
+  handler: async ({ text }) => ({ text }),
+});
+
 server.tool('overflows', {
   description: 'A handler whose result carries Infinity and NaN — simulates a runaway computation.',
   inputSchema: { type: 'object', properties: {} },

@@ -71,6 +71,21 @@ function releaseLock(lockPath) {
   try { fs.rmSync(lockPath, { force: true }); } catch { /* already gone */ }
 }
 
+function fsyncDirIfSupported(dir) {
+  let fd;
+  try {
+    fd = fs.openSync(dir, 'r');
+    fs.fsyncSync(fd);
+  } catch (err) {
+    // Some platforms do not allow opening or fsyncing a directory at all.
+    // The file fsync above still buys durable contents there; best-effort the
+    // directory flush rather than failing the whole write on that platform.
+    if (!['EISDIR', 'EINVAL', 'EPERM', 'ENOTSUP'].includes(err.code)) throw err;
+  } finally {
+    if (fd !== undefined) fs.closeSync(fd);
+  }
+}
+
 /**
  * @param {string} fileName e.g. "diagnose-by-sound-cases.json"
  * @param {string} key the array's key inside the JSON file, e.g. "cases"
@@ -122,8 +137,15 @@ export function createJsonArrayStore(fileName, key, lockOptions = {}) {
     ensureDir();
     // Write-then-rename so a crash mid-write can never truncate the file.
     const tmp = `${file}.tmp`;
-    fs.writeFileSync(tmp, JSON.stringify({ version: 1, [key]: items }, null, 2), { mode: 0o600 });
+    const fd = fs.openSync(tmp, 'w', 0o600);
+    try {
+      fs.writeFileSync(fd, JSON.stringify({ version: 1, [key]: items }, null, 2), 'utf8');
+      fs.fsyncSync(fd);
+    } finally {
+      fs.closeSync(fd);
+    }
     fs.renameSync(tmp, file);
+    fsyncDirIfSupported(path.dirname(file));
   }
 
   return {
