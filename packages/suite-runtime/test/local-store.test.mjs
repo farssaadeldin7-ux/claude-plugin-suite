@@ -104,10 +104,15 @@ try {
     };
     try {
       fs.openSync = (target, flags, mode) => {
-        const fd = original.openSync(target, flags, mode);
-        openPaths.set(fd, target);
-        events.push(['open', target, flags]);
-        return fd;
+        try {
+          const fd = original.openSync(target, flags, mode);
+          openPaths.set(fd, target);
+          events.push(['open', target, flags]);
+          return fd;
+        } catch (err) {
+          events.push(['open_failed', target, err.code]);
+          throw err;
+        }
       };
       fs.fsyncSync = (fd) => {
         events.push(['fsync', openPaths.get(fd)]);
@@ -139,11 +144,20 @@ try {
     const renameIndex = events.findIndex(([kind]) => kind === 'rename');
     const tmpFsyncIndex = events.findIndex(([kind, target]) => kind === 'fsync' && target === tmpPath);
     const dirFsyncIndex = events.findIndex(([kind, target]) => kind === 'fsync' && target === path.dirname(store.file));
+    const dirOpenFailed = events.some(([kind, target]) => kind === 'open_failed' && target === path.dirname(store.file));
     assert.ok(tmpFsyncIndex !== -1, 'the temporary file must be fsynced before it is renamed into place');
     assert.ok(renameIndex !== -1, 'the temporary file must be atomically renamed into place');
-    assert.ok(dirFsyncIndex !== -1, 'the containing directory must be fsynced after the rename');
     assert.ok(tmpFsyncIndex < renameIndex, 'the temporary file must be fsynced before rename');
-    assert.ok(renameIndex < dirFsyncIndex, 'the containing directory must be fsynced after rename');
+    if (dirOpenFailed) {
+      assert.equal(
+        dirFsyncIndex,
+        -1,
+        'directory fsync should be skipped only when the platform refuses opening the directory'
+      );
+    } else {
+      assert.ok(dirFsyncIndex !== -1, 'the containing directory must be fsynced after the rename when the platform supports it');
+      assert.ok(renameIndex < dirFsyncIndex, 'the containing directory must be fsynced after rename');
+    }
     assert.deepEqual(store.readAll(), [{ ok: true }]);
     assert.equal(fs.existsSync(tmpPath), false, 'no temporary file should be left behind after a successful replace');
   }

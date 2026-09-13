@@ -80,7 +80,7 @@ function fsyncDirIfSupported(dir) {
     // Some platforms do not allow opening or fsyncing a directory at all.
     // The file fsync above still buys durable contents there; best-effort the
     // directory flush rather than failing the whole write on that platform.
-    if (!['EISDIR', 'EINVAL', 'EPERM', 'ENOTSUP'].includes(err.code)) throw err;
+    if (!['EACCES', 'EISDIR', 'EINVAL', 'EPERM', 'ENOTSUP'].includes(err.code)) throw err;
   } finally {
     if (fd !== undefined) fs.closeSync(fd);
   }
