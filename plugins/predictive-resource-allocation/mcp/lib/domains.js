@@ -129,5 +129,10 @@ export const REMEDY_LADDER = {
 };
 
 export function domainFor(name) {
-  return DOMAINS[String(name ?? '').trim().toLowerCase().replace(/[\s-]+/g, '_')] ?? null;
+  // hasOwn, not `?? null`: an inherited name like "constructor" returns
+  // Object.prototype.constructor — truthy, so `?? null` would not catch it
+  // and the tool would hand back a function object instead of rejecting an
+  // unrecognised domain.
+  const key = String(name ?? '').trim().toLowerCase().replace(/[\s-]+/g, '_');
+  return Object.hasOwn(DOMAINS, key) ? DOMAINS[key] : null;
 }

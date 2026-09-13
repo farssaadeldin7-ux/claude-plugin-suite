@@ -22,7 +22,10 @@ function checkGear(gear) {
   gear.forEach((line, index) => {
     const item = name(line.item) || `line ${index + 1}`;
     const tag = line.tag;
-    if (!TAGS[tag]) {
+    // hasOwn: tag is caller-supplied, and a plain object indexed by an
+    // inherited name like "constructor" returns a truthy value that would
+    // otherwise slip past this guard as if it were a real tag.
+    if (!Object.hasOwn(TAGS, tag)) {
       failures.push(`"${item}" has ${tag ? `unknown tag "${tag}"` : 'no tag'}. A line with no tag is the line that gets forgotten or doubled.`);
       return;
     }

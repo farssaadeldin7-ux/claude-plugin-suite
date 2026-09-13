@@ -115,5 +115,9 @@ export const BASELINES = {
 };
 
 export function formFor(id) {
-  return FORMS[String(id ?? '').trim().toLowerCase()] ?? null;
+  // hasOwn, not `?? null`: an inherited name like "constructor" returns
+  // Object.prototype.constructor — truthy, so `?? null` would not catch it
+  // and callers would get a function object back instead of a rejection.
+  const key = String(id ?? '').trim().toLowerCase();
+  return Object.hasOwn(FORMS, key) ? FORMS[key] : null;
 }

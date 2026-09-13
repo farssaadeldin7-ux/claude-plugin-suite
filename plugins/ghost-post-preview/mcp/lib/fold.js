@@ -9,7 +9,13 @@ export const PLATFORMS = data.platforms;
 export const APPROXIMATION_NOTE = data.note;
 
 export function platformFor(name) {
-  return PLATFORMS[String(name ?? '').trim().toLowerCase()] ?? null;
+  // hasOwn, not `?? null`: an inherited name like "constructor" returns
+  // Object.prototype.constructor — truthy, so `?? null` would not catch it,
+  // and every caller of this (requirePlatform, foldTest, lintDraft) treats a
+  // truthy result as a real, resolved platform and crashes reading .fold or
+  // .label off it instead of getting the unknown-platform error.
+  const key = String(name ?? '').trim().toLowerCase();
+  return Object.hasOwn(PLATFORMS, key) ? PLATFORMS[key] : null;
 }
 
 /**
@@ -65,7 +71,15 @@ export function foldTest(platformId, text, part = 'body') {
   }
 
   const visible = visibleLines.join('\n');
-  const hidden = draft.slice(visible.length).replace(/^\n+/, '');
+  // Whether the draft was actually truncated is decided by the loop that
+  // just ran (it set truncatedBy the moment it broke early on a real cap),
+  // not re-derived from what's left over — when everything past the cut is
+  // blank lines, stripping *leading* newlines for the human-readable
+  // preview below can leave nothing to show, which must not be read back
+  // as "nothing was truncated" while characters_hidden still reports a
+  // nonzero count for the very same cut.
+  const truncated = truncatedBy !== null;
+  const hiddenPreview = draft.slice(visible.length).replace(/^\n+/, '');
   const openingBlankLines = /^\n/.test(draft) ? draft.match(/^\n+/)[0].length : 0;
 
   return {
@@ -83,11 +97,11 @@ export function foldTest(platformId, text, part = 'body') {
       blank_lines_cost_a_line: blanksCost,
     },
     visible_text: visible,
-    truncated: hidden.length > 0,
-    truncated_by: hidden.length ? truncatedBy ?? 'char_cap' : null,
+    truncated,
+    truncated_by: truncated ? truncatedBy : null,
     characters_visible: visible.length,
-    characters_hidden: Math.max(0, draft.length - visible.length),
-    first_hidden_line: hidden ? hidden.split('\n').find((l) => l.trim()) ?? null : null,
+    characters_hidden: truncated ? Math.max(0, draft.length - visible.length) : 0,
+    first_hidden_line: truncated && hiddenPreview ? hiddenPreview.split('\n').find((l) => l.trim()) ?? null : null,
     opening_blank_lines: openingBlankLines,
     ...(openingBlankLines && blanksCost
       ? { note: 'The draft opens with a blank line, which spends part of the visible allowance on nothing.' }

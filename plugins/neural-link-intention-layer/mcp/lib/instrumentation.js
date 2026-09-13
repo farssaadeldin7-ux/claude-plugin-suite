@@ -201,5 +201,7 @@ export const LOG_FORMAT = {
 
 export function applicationFor(name) {
   const key = String(name ?? '').trim().toLowerCase().replace(/[\s-]+/g, '_');
-  return APPLICATIONS[key] ?? null;
+  // hasOwn, not `?? null`: an inherited name like "constructor" returns
+  // Object.prototype.constructor — truthy, so `?? null` would not catch it.
+  return Object.hasOwn(APPLICATIONS, key) ? APPLICATIONS[key] : null;
 }

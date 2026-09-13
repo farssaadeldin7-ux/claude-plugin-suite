@@ -140,5 +140,10 @@ export const OVERLAP_NOTE =
   'running through it.';
 
 export function causeFor(id) {
-  return CAUSES[String(id ?? '').trim().toLowerCase()] ?? null;
+  // hasOwn, not `?? null`: an inherited name like "constructor" returns
+  // Object.prototype.constructor — truthy, so `?? null` would not catch it
+  // and an unknown cause id would spread into a near-empty result instead of
+  // being rejected.
+  const key = String(id ?? '').trim().toLowerCase();
+  return Object.hasOwn(CAUSES, key) ? CAUSES[key] : null;
 }

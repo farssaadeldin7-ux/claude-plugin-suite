@@ -166,10 +166,14 @@ export function safetyVerdict(ranked, { threshold = 35 } = {}) {
 }
 
 export function normaliseObservation(raw = {}) {
+  // hasOwn: v is a caller-supplied term, and a plain object (including the
+  // ones parsed from taxonomy.json) indexed by an inherited name like
+  // "constructor" returns a truthy value, so a bare `vocabulary[v]` would
+  // wrongly accept a term that was never in the controlled vocabulary.
   const clean = (values, vocabulary) =>
     asArray(values)
       .map((v) => String(v).trim().toLowerCase().replace(/[\s-]+/g, '_'))
-      .filter((v) => vocabulary[v]);
+      .filter((v) => Object.hasOwn(vocabulary, v));
 
   return {
     character: clean(raw.character, TAXONOMY.character),
@@ -189,7 +193,7 @@ export function rejectedTerms(raw = {}) {
   for (const [field, vocab] of Object.entries(dims)) {
     const bad = asArray(raw[field])
       .map((v) => String(v).trim().toLowerCase().replace(/[\s-]+/g, '_'))
-      .filter((v) => v && !TAXONOMY[vocab][v]);
+      .filter((v) => v && !Object.hasOwn(TAXONOMY[vocab], v));
     if (bad.length) rejected[field] = bad;
   }
   return rejected;

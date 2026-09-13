@@ -157,7 +157,11 @@ const KIND_ALIASES = {
 };
 
 export function normaliseKind(kind) {
-  return KIND_ALIASES[String(kind ?? '').trim().toLowerCase()] ?? null;
+  // hasOwn, not `?? null`: an inherited name like "constructor" returns
+  // Object.prototype.constructor — truthy, so `?? null` would not catch it
+  // and an invalid kind would be treated as normalised instead of rejected.
+  const key = String(kind ?? '').trim().toLowerCase();
+  return Object.hasOwn(KIND_ALIASES, key) ? KIND_ALIASES[key] : null;
 }
 
 const round1 = (n) => Math.round(n * 10) / 10;

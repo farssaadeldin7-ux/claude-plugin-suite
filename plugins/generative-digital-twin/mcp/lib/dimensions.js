@@ -199,5 +199,8 @@ export const BRIEF_DRIVEN = {
 };
 
 export function mediumFor(name) {
-  return DIMENSIONS[String(name ?? '').trim().toLowerCase()] ?? null;
+  // hasOwn, not `?? null`: an inherited name like "constructor" returns
+  // Object.prototype.constructor — truthy, so `?? null` would not catch it.
+  const key = String(name ?? '').trim().toLowerCase();
+  return Object.hasOwn(DIMENSIONS, key) ? DIMENSIONS[key] : null;
 }

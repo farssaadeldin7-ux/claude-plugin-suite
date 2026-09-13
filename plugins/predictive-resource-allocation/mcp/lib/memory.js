@@ -197,7 +197,11 @@ export function trainingVramEstimate({
 }) {
   const budget = usableBudget(vram_gb);
   if (!(parameters_billion > 0)) throw new ToolError('invalid_input', 'parameters_billion must be a positive number.');
-  const config = BYTES_PER_PARAMETER[configuration];
+  // hasOwn: configuration is caller-supplied, and a plain object indexed by
+  // an inherited name like "constructor" returns a truthy value that would
+  // otherwise slip past this guard and produce NaN downstream instead of
+  // reporting an unrecognised configuration.
+  const config = Object.hasOwn(BYTES_PER_PARAMETER, configuration) ? BYTES_PER_PARAMETER[configuration] : undefined;
   if (!config) {
     throw new ToolError('invalid_configuration', `"${configuration}" is not a configuration.`, { available: Object.keys(BYTES_PER_PARAMETER) });
   }

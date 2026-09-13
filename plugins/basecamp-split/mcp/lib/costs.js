@@ -81,7 +81,10 @@ export function buildLedger(people, expenses) {
     const amountMinor = toMinor(expense.amount, `Amount for "${label}"`);
     const payer = requireKnown(String(expense.payer ?? '').trim(), `"${label}"`);
     const model = expense.model;
-    if (!SPLIT_MODELS[model]) {
+    // hasOwn: model is a caller-supplied string, and a plain object indexed by
+    // an inherited name like "constructor" returns a truthy value that would
+    // otherwise slip past this guard and fall through to the itemised branch.
+    if (!Object.hasOwn(SPLIT_MODELS, model)) {
       throw new ToolError('unknown_model', `"${label}" has model "${model}".`, { available: Object.keys(SPLIT_MODELS) });
     }
 

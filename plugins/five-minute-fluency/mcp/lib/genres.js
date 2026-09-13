@@ -167,5 +167,8 @@ export const AXIS_CHECK =
   + 'unusual and the sheet should say why, or the sheet has drifted.';
 
 export function genreFor(id) {
-  return GENRES[String(id ?? '').trim().toLowerCase()] ?? null;
+  // hasOwn, not `?? null`: an inherited name like "constructor" returns
+  // Object.prototype.constructor — truthy, so `?? null` would not catch it.
+  const key = String(id ?? '').trim().toLowerCase();
+  return Object.hasOwn(GENRES, key) ? GENRES[key] : null;
 }

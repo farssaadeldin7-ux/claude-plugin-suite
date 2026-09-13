@@ -202,6 +202,14 @@ export function checkCapture({
   const findings = [];
   const flag = (condition, finding, fix) => { if (condition) findings.push({ finding, fix }); };
 
+  // A condition left unset is not the same as one confirmed good — `flag`
+  // only fires on an explicit `false`, so an omitted field silently reads
+  // as "fine" unless it's counted separately here. Without this, calling
+  // checkCapture with nothing described at all reports a clean five-of-five
+  // rather than the "nothing was actually checked" that it is.
+  const fields = { windows_closed, hvac_off, radio_off, phone_mounted, reproduced_live };
+  const notDescribed = Object.entries(fields).filter(([, v]) => v === undefined).map(([k]) => k);
+
   flag(hvac_off === false, 'HVAC was running — the blower is a broadband masker and one more source in the mixture.', 'Re-record with HVAC off; sweep the fan separately as its own test.');
   flag(radio_off === false, 'Audio system was on — music and speech sit exactly where mechanical structure lives on a spectrogram.', 'Re-record with the radio off.');
   flag(windows_closed === false, 'Windows open — wind buffeting produces full-height wash that drowns structure.', 'Windows up for the capture; compare windows-cracked separately for the aeroacoustic test.');
@@ -209,11 +217,15 @@ export function checkCapture({
   flag(reproduced_live === false, 'The noise was not reproduced during the capture — a clip of the car not making the noise carries no signal.', 'Record while the noise is actually happening, in the condition that produces it.');
 
   return {
-    conditions_checked: 5,
+    conditions_total: 5,
+    conditions_checked: 5 - notDescribed.length,
+    ...(notDescribed.length ? { conditions_not_described: notDescribed } : {}),
     findings,
-    verdict: findings.length === 0
-      ? 'No capture-rule failures in the described conditions.'
-      : 'Fix the capture before interpreting the spectrogram — wash and maskers cannot be removed after the fact.',
+    verdict: notDescribed.length
+      ? `${notDescribed.length} of 5 capture conditions were not described — this checklist can only flag what was stated as a problem, not confirm what was left unsaid. Describe the rest before treating this as a clean capture.`
+      : findings.length === 0
+        ? 'No capture-rule failures in the described conditions.'
+        : 'Fix the capture before interpreting the spectrogram — wash and maskers cannot be removed after the fact.',
     note: 'Mechanical checks on the described conditions only. Nothing here has heard the recording; if wash dominates the spectrogram anyway, the capture failed regardless of this checklist.',
   };
 }

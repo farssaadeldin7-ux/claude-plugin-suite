@@ -167,7 +167,10 @@ export const CROSS_POSTING =
   'length to that destination\'s band and rewrite the caption\'s first line — the title can stay.';
 
 export function destinationFor(id) {
-  return DESTINATIONS[String(id ?? '').trim().toLowerCase()] ?? null;
+  // hasOwn, not `?? null`: an inherited name like "constructor" returns
+  // Object.prototype.constructor — truthy, so `?? null` would not catch it.
+  const key = String(id ?? '').trim().toLowerCase();
+  return Object.hasOwn(DESTINATIONS, key) ? DESTINATIONS[key] : null;
 }
 
 /**

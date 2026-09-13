@@ -18,7 +18,7 @@ export function scoreCandidate({
   k_seconds,
   c_seconds = 0,
   setup_seconds,
-  wrong_fire_p,
+  correct_fire_p,
   wrong_fire_severity_seconds,
   stable_across_log,
 }) {
@@ -38,22 +38,30 @@ export function scoreCandidate({
     throw new ToolError('invalid_term', 'F and K + C must both be above zero, or the payback is undefined.');
   }
 
-  // R = (1 - p) x severity — only when both parts are supplied.
+  // R = (1 - p) x severity — only when both parts are supplied. The
+  // parameter is named for what it feeds (a probability of firing
+  // *correctly*, per the schema description) rather than "wrong_fire_p",
+  // which read the other way round would have a caller supply a small
+  // number for a reliable automation and get it multiplied straight into a
+  // large risk instead of a small one.
   let r = 0;
-  if (wrong_fire_p != null || wrong_fire_severity_seconds != null) {
+  if (correct_fire_p != null || wrong_fire_severity_seconds != null) {
     if (
-      typeof wrong_fire_p !== 'number' || wrong_fire_p < 0 || wrong_fire_p > 1 ||
+      typeof correct_fire_p !== 'number' || correct_fire_p < 0 || correct_fire_p > 1 ||
       typeof wrong_fire_severity_seconds !== 'number' || wrong_fire_severity_seconds < 0
     ) {
       throw new ToolError(
         'invalid_term',
-        'wrong_fire_p must be between 0 and 1 and wrong_fire_severity_seconds a non-negative number — supply both or neither.'
+        'correct_fire_p must be between 0 and 1 and wrong_fire_severity_seconds a non-negative number — supply both or neither.'
       );
     }
-    r = (1 - wrong_fire_p) * wrong_fire_severity_seconds;
+    r = (1 - correct_fire_p) * wrong_fire_severity_seconds;
   }
 
   const perOccurrence = k_seconds + c_seconds;
+  if (setup_seconds + r === 0) {
+    throw new ToolError('invalid_term', 'setup_seconds and R cannot both be zero — value would divide by zero.');
+  }
   const value = (f_per_week * perOccurrence) / (setup_seconds + r);
   const paybackWeeks = (setup_seconds * SCORING.maintenance_factor) / (f_per_week * perOccurrence);
   const underThreshold = paybackWeeks < SCORING.payback_threshold_weeks;

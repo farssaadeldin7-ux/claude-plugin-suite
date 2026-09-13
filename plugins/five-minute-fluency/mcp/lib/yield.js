@@ -138,6 +138,11 @@ export function scoreChanges(candidates) {
     top_three: selected.map(strip),
     cut_list: cut.map((c) => ({ change: c.change, yield: c.yield, verdict: c.verdict })),
     constraint_violations: violations,
-    ...(scored.every((c) => c._exact <= 1.5) ? { note: NOTHING_SCORES_NOTE } : {}),
+    // "Nothing scores above 1.5" must agree with the same boundary the band
+    // table and each candidate's own verdict use — a candidate scoring
+    // exactly 1.5 is "fill_only", not cut, so checking `<= 1.5` here would
+    // print this note (and its "the bottleneck is not knowledge" reading)
+    // in the same result that just selected that candidate onto the sheet.
+    ...(scored.every((c) => c.verdict === 'cut') ? { note: NOTHING_SCORES_NOTE } : {}),
   };
 }
