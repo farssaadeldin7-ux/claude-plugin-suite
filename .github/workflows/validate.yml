@@ -35,6 +35,10 @@ jobs:
           node plugins/ghost-post-preview/mcp/test/fold.test.mjs
           node test/plugin-table-lookups.test.mjs
           node test/build.test.mjs
+      - name: Check regression-test coverage of tracked defect fixes
+        run: |
+          node test/check-regressions.test.mjs
+          node scripts/check-regressions.mjs
       - name: Check vendored runtime is in sync
         run: |
           node scripts/vendor-runtime.mjs
