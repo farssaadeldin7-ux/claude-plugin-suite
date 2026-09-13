@@ -17,6 +17,10 @@ jobs:
         run: node scripts/validate.mjs
       - name: Billing service end-to-end tests
         run: node services/billing/test/e2e.mjs
+      - name: Shared runtime tests
+        run: |
+          node packages/suite-runtime/test/mcp-lite.test.mjs
+          node packages/suite-runtime/test/license-client.test.mjs
       - name: Check vendored runtime is in sync
         run: |
           node scripts/vendor-runtime.mjs
