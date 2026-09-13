@@ -1,7 +1,5 @@
-import fs from 'node:fs';
-import os from 'node:os';
-import path from 'node:path';
 import crypto from 'node:crypto';
+import { createJsonArrayStore } from '../local-store.js';
 
 /**
  * The local style-profile store. A profile is the deliverable of the whole
@@ -47,31 +45,9 @@ export const PREAMBLE_RULES = {
   trim_rule: 'Keep the never list uncut when trimming for length. It does the work; the positive dimensions can be summarised.',
 };
 
-function storePath() {
-  const base = process.env.XDG_CONFIG_HOME
-    || (process.platform === 'win32'
-      ? process.env.APPDATA || path.join(os.homedir(), 'AppData', 'Roaming')
-      : path.join(os.homedir(), '.config'));
-  return path.join(base, 'plugin-suite', 'generative-digital-twin-profiles.json');
-}
-
-function readAll() {
-  try {
-    const parsed = JSON.parse(fs.readFileSync(storePath(), 'utf8'));
-    return Array.isArray(parsed.profiles) ? parsed.profiles : [];
-  } catch {
-    return [];
-  }
-}
-
-function writeAll(profiles) {
-  const file = storePath();
-  fs.mkdirSync(path.dirname(file), { recursive: true, mode: 0o700 });
-  // Write-then-rename so a crash mid-write can never truncate the store.
-  const tmp = `${file}.tmp`;
-  fs.writeFileSync(tmp, JSON.stringify({ version: 1, profiles }, null, 2), { mode: 0o600 });
-  fs.renameSync(tmp, file);
-}
+const store = createJsonArrayStore('generative-digital-twin-profiles.json', 'profiles');
+const readAll = store.readAll;
+const storePath = () => store.file;
 
 const countWords = (text) => String(text ?? '').trim().split(/\s+/).filter(Boolean).length;
 
@@ -135,37 +111,38 @@ export function profileFacts(profile) {
 }
 
 export function saveProfile(input, changeNote) {
-  const profiles = readAll();
-  const now = new Date().toISOString();
-  const existing = input.profile_id ? profiles.find((p) => p.profile_id === input.profile_id) : null;
+  return store.update((profiles) => {
+    const now = new Date().toISOString();
+    const existingIndex = input.profile_id ? profiles.findIndex((p) => p.profile_id === input.profile_id) : -1;
+    const existing = existingIndex === -1 ? null : profiles[existingIndex];
 
-  const profile = {
-    profile_id: existing?.profile_id ?? `prof_${crypto.randomBytes(6).toString('hex')}`,
-    created_at: existing?.created_at ?? now,
-    updated_at: now,
-    name: input.name ?? existing?.name ?? null,
-    version: input.version,
-    scope: input.scope ?? existing?.scope ?? null,
-    never_list: input.never_list ?? existing?.never_list ?? [],
-    dimensions: input.dimensions ?? existing?.dimensions ?? [],
-    anchors: input.anchors ?? existing?.anchors ?? [],
-    boundary: input.boundary ?? existing?.boundary ?? [],
-    provenance: input.provenance ?? existing?.provenance ?? null,
-    baseline: input.baseline ?? existing?.baseline ?? null,
-    preamble: input.preamble ?? existing?.preamble ?? null,
-    changelog: [
-      ...(existing?.changelog ?? []),
-      { date: now.slice(0, 10), version: input.version, note: changeNote ?? (existing ? 'Updated.' : 'Profile created.') },
-    ],
-  };
+    const profile = {
+      profile_id: existing?.profile_id ?? `prof_${crypto.randomBytes(6).toString('hex')}`,
+      created_at: existing?.created_at ?? now,
+      updated_at: now,
+      name: input.name ?? existing?.name ?? null,
+      version: input.version,
+      scope: input.scope ?? existing?.scope ?? null,
+      never_list: input.never_list ?? existing?.never_list ?? [],
+      dimensions: input.dimensions ?? existing?.dimensions ?? [],
+      anchors: input.anchors ?? existing?.anchors ?? [],
+      boundary: input.boundary ?? existing?.boundary ?? [],
+      provenance: input.provenance ?? existing?.provenance ?? null,
+      baseline: input.baseline ?? existing?.baseline ?? null,
+      preamble: input.preamble ?? existing?.preamble ?? null,
+      changelog: [
+        ...(existing?.changelog ?? []),
+        { date: now.slice(0, 10), version: input.version, note: changeNote ?? (existing ? 'Updated.' : 'Profile created.') },
+      ],
+    };
 
-  if (existing) {
-    profiles[profiles.indexOf(existing)] = profile;
-  } else {
-    profiles.unshift(profile);
-  }
-  writeAll(profiles.slice(0, 100));
-  return profile;
+    if (existing) {
+      profiles[existingIndex] = profile;
+    } else {
+      profiles.unshift(profile);
+    }
+    return { items: profiles.slice(0, 100), result: profile };
+  });
 }
 
 export function getProfile(profileId) {

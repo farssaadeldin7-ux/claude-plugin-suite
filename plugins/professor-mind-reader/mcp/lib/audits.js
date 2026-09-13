@@ -1,8 +1,6 @@
-import fs from 'node:fs';
-import os from 'node:os';
-import path from 'node:path';
 import crypto from 'node:crypto';
 import { BAND_ORDER, bandIndex } from './bands.js';
+import { createJsonArrayStore } from '../local-store.js';
 
 /**
  * The audit log behind "position honestly, then check": every band-range call
@@ -11,62 +9,40 @@ import { BAND_ORDER, bandIndex } from './bands.js';
  * machine only.
  */
 
-function storePath() {
-  const base = process.env.XDG_CONFIG_HOME
-    || (process.platform === 'win32'
-      ? process.env.APPDATA || path.join(os.homedir(), 'AppData', 'Roaming')
-      : path.join(os.homedir(), '.config'));
-  return path.join(base, 'plugin-suite', 'professor-mind-reader-audits.json');
-}
-
-function readAll() {
-  try {
-    const parsed = JSON.parse(fs.readFileSync(storePath(), 'utf8'));
-    return Array.isArray(parsed.audits) ? parsed.audits : [];
-  } catch {
-    return [];
-  }
-}
-
-function writeAll(audits) {
-  const file = storePath();
-  fs.mkdirSync(path.dirname(file), { recursive: true, mode: 0o700 });
-  // Write-then-rename so a crash mid-write can never truncate the log.
-  const tmp = `${file}.tmp`;
-  fs.writeFileSync(tmp, JSON.stringify({ version: 1, audits }, null, 2), { mode: 0o600 });
-  fs.renameSync(tmp, file);
-}
+const store = createJsonArrayStore('professor-mind-reader-audits.json', 'audits');
+const readAll = store.readAll;
+const storePath = () => store.file;
 
 export function logAudit({ assignment, band_floor, band_ceiling, total_marks_at_stake, top_fix, notes }) {
-  const audits = readAll();
-  const record = {
-    id: `audit_${crypto.randomBytes(6).toString('hex')}`,
-    created_at: new Date().toISOString(),
-    assignment: assignment ?? null,
-    band_floor: band_floor ?? null,
-    band_ceiling: band_ceiling ?? null,
-    total_marks_at_stake: total_marks_at_stake ?? null,
-    top_fix: top_fix ?? null,
-    notes: notes ?? null,
-    actual_band: null,
-  };
-  audits.unshift(record);
-  writeAll(audits.slice(0, 2000));
-  return record;
+  return store.update((audits) => {
+    const record = {
+      id: `audit_${crypto.randomBytes(6).toString('hex')}`,
+      created_at: new Date().toISOString(),
+      assignment: assignment ?? null,
+      band_floor: band_floor ?? null,
+      band_ceiling: band_ceiling ?? null,
+      total_marks_at_stake: total_marks_at_stake ?? null,
+      top_fix: top_fix ?? null,
+      notes: notes ?? null,
+      actual_band: null,
+    };
+    audits.unshift(record);
+    return { items: audits.slice(0, 2000), result: record };
+  });
 }
 
 export function recordResult(id, { actual_band, notes }) {
-  const audits = readAll();
-  const index = audits.findIndex((a) => a.id === id);
-  if (index === -1) return null;
-  audits[index] = {
-    ...audits[index],
-    actual_band,
-    ...(notes ? { result_notes: notes } : {}),
-    resolved_at: new Date().toISOString(),
-  };
-  writeAll(audits);
-  return audits[index];
+  return store.update((audits) => {
+    const index = audits.findIndex((a) => a.id === id);
+    if (index === -1) return { items: audits, result: null };
+    audits[index] = {
+      ...audits[index],
+      actual_band,
+      ...(notes ? { result_notes: notes } : {}),
+      resolved_at: new Date().toISOString(),
+    };
+    return { items: audits, result: audits[index] };
+  });
 }
 
 /**

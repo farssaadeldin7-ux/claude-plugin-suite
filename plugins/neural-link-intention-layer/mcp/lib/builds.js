@@ -1,7 +1,5 @@
-import fs from 'node:fs';
-import os from 'node:os';
-import path from 'node:path';
 import crypto from 'node:crypto';
+import { createJsonArrayStore } from '../local-store.js';
 
 /**
  * The build log behind the two-week re-measure: every automation built is
@@ -11,62 +9,40 @@ import crypto from 'node:crypto';
  * find it is to look. Stored on the user's machine only.
  */
 
-function storePath() {
-  const base = process.env.XDG_CONFIG_HOME
-    || (process.platform === 'win32'
-      ? process.env.APPDATA || path.join(os.homedir(), 'AppData', 'Roaming')
-      : path.join(os.homedir(), '.config'));
-  return path.join(base, 'plugin-suite', 'neural-link-intention-layer-builds.json');
-}
-
-function readAll() {
-  try {
-    const parsed = JSON.parse(fs.readFileSync(storePath(), 'utf8'));
-    return Array.isArray(parsed.builds) ? parsed.builds : [];
-  } catch {
-    return [];
-  }
-}
-
-function writeAll(builds) {
-  const file = storePath();
-  fs.mkdirSync(path.dirname(file), { recursive: true, mode: 0o700 });
-  // Write-then-rename so a crash mid-write can never truncate the log.
-  const tmp = `${file}.tmp`;
-  fs.writeFileSync(tmp, JSON.stringify({ version: 1, builds }, null, 2), { mode: 0o600 });
-  fs.renameSync(tmp, file);
-}
+const store = createJsonArrayStore('neural-link-intention-layer-builds.json', 'builds');
+const readAll = store.readAll;
+const storePath = () => store.file;
 
 export function recordBuild({ mechanism, application, sequence, predicted_f_per_week, payback_weeks, notes }) {
-  const builds = readAll();
-  const record = {
-    id: `build_${crypto.randomBytes(6).toString('hex')}`,
-    created_at: new Date().toISOString(),
-    mechanism: mechanism ?? null,
-    application: application ?? null,
-    sequence: sequence ?? null,
-    predicted_f_per_week: predicted_f_per_week ?? null,
-    payback_weeks: payback_weeks ?? null,
-    notes: notes ?? null,
-    observed_f_per_week: null,
-  };
-  builds.unshift(record);
-  writeAll(builds.slice(0, 2000));
-  return record;
+  return store.update((builds) => {
+    const record = {
+      id: `build_${crypto.randomBytes(6).toString('hex')}`,
+      created_at: new Date().toISOString(),
+      mechanism: mechanism ?? null,
+      application: application ?? null,
+      sequence: sequence ?? null,
+      predicted_f_per_week: predicted_f_per_week ?? null,
+      payback_weeks: payback_weeks ?? null,
+      notes: notes ?? null,
+      observed_f_per_week: null,
+    };
+    builds.unshift(record);
+    return { items: builds.slice(0, 2000), result: record };
+  });
 }
 
 export function recordFollowup(id, { observed_f_per_week, notes }) {
-  const builds = readAll();
-  const index = builds.findIndex((b) => b.id === id);
-  if (index === -1) return null;
-  builds[index] = {
-    ...builds[index],
-    observed_f_per_week,
-    ...(notes ? { followup_notes: notes } : {}),
-    followed_up_at: new Date().toISOString(),
-  };
-  writeAll(builds);
-  return builds[index];
+  return store.update((builds) => {
+    const index = builds.findIndex((b) => b.id === id);
+    if (index === -1) return { items: builds, result: null };
+    builds[index] = {
+      ...builds[index],
+      observed_f_per_week,
+      ...(notes ? { followup_notes: notes } : {}),
+      followed_up_at: new Date().toISOString(),
+    };
+    return { items: builds, result: builds[index] };
+  });
 }
 
 /**

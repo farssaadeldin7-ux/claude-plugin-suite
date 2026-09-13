@@ -1,7 +1,5 @@
-import fs from 'node:fs';
-import os from 'node:os';
-import path from 'node:path';
 import crypto from 'node:crypto';
+import { createJsonArrayStore } from '../local-store.js';
 
 /**
  * The estimate log behind "one measured run beats any estimate": every
@@ -12,62 +10,40 @@ import crypto from 'node:crypto';
  * machine only.
  */
 
-function storePath() {
-  const base = process.env.XDG_CONFIG_HOME
-    || (process.platform === 'win32'
-      ? process.env.APPDATA || path.join(os.homedir(), 'AppData', 'Roaming')
-      : path.join(os.homedir(), '.config'));
-  return path.join(base, 'plugin-suite', 'predictive-resource-allocation-estimates.json');
-}
-
-function readAll() {
-  try {
-    const parsed = JSON.parse(fs.readFileSync(storePath(), 'utf8'));
-    return Array.isArray(parsed.estimates) ? parsed.estimates : [];
-  } catch {
-    return [];
-  }
-}
-
-function writeAll(estimates) {
-  const file = storePath();
-  fs.mkdirSync(path.dirname(file), { recursive: true, mode: 0o700 });
-  // Write-then-rename so a crash mid-write can never truncate the log.
-  const tmp = `${file}.tmp`;
-  fs.writeFileSync(tmp, JSON.stringify({ version: 1, estimates }, null, 2), { mode: 0o600 });
-  fs.renameSync(tmp, file);
-}
+const store = createJsonArrayStore('predictive-resource-allocation-estimates.json', 'estimates');
+const readAll = store.readAll;
+const storePath = () => store.file;
 
 export function logEstimate({ job, quantity, unit, predicted_value, assumptions, notes }) {
-  const estimates = readAll();
-  const record = {
-    id: `est_${crypto.randomBytes(6).toString('hex')}`,
-    created_at: new Date().toISOString(),
-    job: job ?? null,
-    quantity: quantity ?? null,
-    unit: unit ?? null,
-    predicted_value,
-    assumptions: assumptions ?? null,
-    notes: notes ?? null,
-    actual_value: null,
-  };
-  estimates.unshift(record);
-  writeAll(estimates.slice(0, 2000));
-  return record;
+  return store.update((estimates) => {
+    const record = {
+      id: `est_${crypto.randomBytes(6).toString('hex')}`,
+      created_at: new Date().toISOString(),
+      job: job ?? null,
+      quantity: quantity ?? null,
+      unit: unit ?? null,
+      predicted_value,
+      assumptions: assumptions ?? null,
+      notes: notes ?? null,
+      actual_value: null,
+    };
+    estimates.unshift(record);
+    return { items: estimates.slice(0, 2000), result: record };
+  });
 }
 
 export function recordActual(id, { actual_value, notes }) {
-  const estimates = readAll();
-  const index = estimates.findIndex((e) => e.id === id);
-  if (index === -1) return null;
-  estimates[index] = {
-    ...estimates[index],
-    actual_value,
-    ...(notes ? { result_notes: notes } : {}),
-    resolved_at: new Date().toISOString(),
-  };
-  writeAll(estimates);
-  return estimates[index];
+  return store.update((estimates) => {
+    const index = estimates.findIndex((e) => e.id === id);
+    if (index === -1) return { items: estimates, result: null };
+    estimates[index] = {
+      ...estimates[index],
+      actual_value,
+      ...(notes ? { result_notes: notes } : {}),
+      resolved_at: new Date().toISOString(),
+    };
+    return { items: estimates, result: estimates[index] };
+  });
 }
 
 /**

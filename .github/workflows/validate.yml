@@ -21,6 +21,7 @@ jobs:
         run: |
           node packages/suite-runtime/test/mcp-lite.test.mjs
           node packages/suite-runtime/test/license-client.test.mjs
+          node packages/suite-runtime/test/local-store.test.mjs
       - name: Check vendored runtime is in sync
         run: |
           node scripts/vendor-runtime.mjs

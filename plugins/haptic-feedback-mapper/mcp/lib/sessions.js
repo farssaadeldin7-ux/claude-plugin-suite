@@ -1,8 +1,6 @@
-import fs from 'node:fs';
-import os from 'node:os';
-import path from 'node:path';
 import crypto from 'node:crypto';
 import { ToolError } from '../mcp-lite.js';
+import { createJsonArrayStore } from '../local-store.js';
 
 /**
  * The local measurement log: working sessions recorded before and after the
@@ -31,31 +29,9 @@ export const NOT_DROPPED_CAUSES = [
   'The user does not yet trust silence to mean "nothing needs you" — fixed by reliability, not by more feedback.',
 ];
 
-function storePath() {
-  const base = process.env.XDG_CONFIG_HOME
-    || (process.platform === 'win32'
-      ? process.env.APPDATA || path.join(os.homedir(), 'AppData', 'Roaming')
-      : path.join(os.homedir(), '.config'));
-  return path.join(base, 'plugin-suite', 'haptic-feedback-mapper-sessions.json');
-}
-
-function readAll() {
-  try {
-    const parsed = JSON.parse(fs.readFileSync(storePath(), 'utf8'));
-    return Array.isArray(parsed.sessions) ? parsed.sessions : [];
-  } catch {
-    return [];
-  }
-}
-
-function writeAll(sessions) {
-  const file = storePath();
-  fs.mkdirSync(path.dirname(file), { recursive: true, mode: 0o700 });
-  // Write-then-rename so a crash mid-write can never truncate the log.
-  const tmp = `${file}.tmp`;
-  fs.writeFileSync(tmp, JSON.stringify({ version: 1, sessions }, null, 2), { mode: 0o600 });
-  fs.renameSync(tmp, file);
-}
+const store = createJsonArrayStore('haptic-feedback-mapper-sessions.json', 'sessions');
+const readAll = store.readAll;
+const storePath = () => store.file;
 
 function isoDayOf(value, field) {
   if (value === undefined) return new Date().toISOString().slice(0, 10);
@@ -90,33 +66,35 @@ export function logSession({
     throw new ToolError('invalid_request', 'A baseline session predates the mapping — it has no delivered haptics. Record it under phase "after".');
   }
 
-  const sessions = readAll();
-  const record = {
-    id: `sess_${crypto.randomBytes(6).toString('hex')}`,
-    created_at: new Date().toISOString(),
-    phase,
-    session_date: isoDayOf(session_date, 'session_date'),
-    duration_minutes: minutes,
-    checks: checkCount,
-    haptics_delivered: delivered,
-    haptics_acted_on: acted,
-    notes: notes ?? null,
-  };
-  sessions.unshift(record);
-  writeAll(sessions.slice(0, 2000));
-
-  const phaseCount = sessions.filter((s) => s.phase === phase).length;
-  return {
-    logged: true,
-    session_id: record.id,
-    phase,
-    checks_per_hour: Number(((checkCount / minutes) * 60).toFixed(1)),
-    sessions_in_phase: phaseCount,
-    ...(phaseCount < MIN_SESSIONS
-      ? { sample_note: `Fewer than ${MIN_SESSIONS} ${phase} sessions — averages over this phase are noise until there are more.` }
-      : {}),
-    stored_at: storePath(),
-  };
+  return store.update((sessions) => {
+    const record = {
+      id: `sess_${crypto.randomBytes(6).toString('hex')}`,
+      created_at: new Date().toISOString(),
+      phase,
+      session_date: isoDayOf(session_date, 'session_date'),
+      duration_minutes: minutes,
+      checks: checkCount,
+      haptics_delivered: delivered,
+      haptics_acted_on: acted,
+      notes: notes ?? null,
+    };
+    sessions.unshift(record);
+    const phaseCount = sessions.filter((s) => s.phase === phase).length;
+    return {
+      items: sessions.slice(0, 2000),
+      result: {
+        logged: true,
+        session_id: record.id,
+        phase,
+        checks_per_hour: Number(((checkCount / minutes) * 60).toFixed(1)),
+        sessions_in_phase: phaseCount,
+        ...(phaseCount < MIN_SESSIONS
+          ? { sample_note: `Fewer than ${MIN_SESSIONS} ${phase} sessions — averages over this phase are noise until there are more.` }
+          : {}),
+        stored_at: storePath(),
+      },
+    };
+  });
 }
 
 function phaseStats(sessions) {
