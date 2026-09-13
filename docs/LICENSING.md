@@ -1,7 +1,10 @@
 # Licensing
 
-One billing service across all fourteen plugins. A user holds a single account; entitlements
-are per plugin, or one suite entitlement covering all of them. The service itself lives in
+One billing service across all fourteen plugins. A user holds a single account, but every
+entitlement is per plugin — there is no suite-wide plan that unlocks all fourteen at once.
+`PLUGIN_SUITE_LICENSE_KEY` (below) is a lookup convenience, letting one key value be reused
+across several plugins' env blocks; each lookup still checks that key against that specific
+plugin's own catalog of licences. The service itself lives in
 [`services/billing/`](../services/billing/), with the plan catalog in its `catalog.js`.
 
 ## Resolution order

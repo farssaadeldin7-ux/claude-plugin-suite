@@ -73,8 +73,8 @@ The skill content is open — install it and the whole procedure is available. T
 reference tools stay open too: the taxonomy, the toolchain notes and the edge-condition
 table need no key. The compute tools — structure matching, budget arithmetic, export
 sizing, source scanning — require a paid licence. Everything runs locally: the billing
-service sees a licence key, a plugin id, a hashed device identifier and nothing else —
-never your code. It works best if you paste the actual source rather than describing it,
+service sees a licence key, a plugin id, a hashed device identifier and a device label
+(your machine's hostname), and nothing else — never your code. It works best if you paste the actual source rather than describing it,
 and — for a visual → code request — supply a reference image or a precise description of
 spacing, overlap and how neighbouring elements relate.
 

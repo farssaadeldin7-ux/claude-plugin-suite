@@ -286,7 +286,7 @@ server.tool('save_profile', {
     'provenance, baseline means and preamble, with a version and an automatic dated changelog. Returns the ' +
     'countable facts about it — never-list and anchor counts against target, entries with no number or ' +
     'prohibition, preamble word budget and any never entries missing verbatim from it. Facts, not verdicts. ' +
-    'Nothing leaves this machine. Requires a paid plan.',
+    'Requires a paid plan; the licence check is the only thing this tool sends anywhere.',
   inputSchema: {
     type: 'object',
     properties: {

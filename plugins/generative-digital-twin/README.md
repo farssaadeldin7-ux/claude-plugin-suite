@@ -100,7 +100,7 @@ profile by hand. The licence gates the tools that save time once the method is t
 mechanical corpus check, the scoring and drift arithmetic, and the versioned local profile
 store. Profiles are written only to `~/.config/plugin-suite/generative-digital-twin-profiles.json`
 on the machine that created them; the billing service sees a licence key, a plugin id, a hashed
-device identifier — never a profile or a corpus.
+device identifier and a device label (your machine's hostname) — never a profile or a corpus.
 
 ## What this is not
 

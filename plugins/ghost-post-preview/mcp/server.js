@@ -101,7 +101,8 @@ server.tool('draft_lint', {
     'Mechanical checks on a draft with the evidence quoted: links in the body where the platform ' +
     'punishes them, hashtags on X, throat-clearing openers, yes/no question openers, engagement ' +
     'bait, wall-of-text shape, plus counts (characters, first-line words, position of the first ' +
-    'number). Facts only — no scores, no verdicts. Counts against the monthly preview quota.',
+    'number). Facts only — no scores, no verdicts. Requires a paid plan; counts against the ' +
+    'monthly preview quota.',
   inputSchema: {
     type: 'object',
     properties: {
@@ -140,7 +141,7 @@ server.tool('log_call', {
   description:
     'Record the review\'s call — verdict, band, confidence — in the local prediction log so the ' +
     'actual result can be checked against it later. A prediction that is never checked has no ' +
-    'error bar. Requires a paid plan. Nothing leaves this machine.',
+    'error bar. Requires a paid plan; the licence check is the only thing this tool sends anywhere.',
   inputSchema: {
     type: 'object',
     properties: {

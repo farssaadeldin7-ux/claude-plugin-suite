@@ -148,8 +148,9 @@ The change-control record written by `record_redteam_run` is stored only at
 written by `record_session` only at
 `~/.config/plugin-suite/mental-health-chatbot-audit.json`, both on the machine that
 created them. The audit log is categorical by construction — no free-text field exists.
-The billing service sees a licence key, a plugin id and a hashed device identifier. It
-never sees a run, a session record, a resource block or anything a user typed.
+The billing service sees a licence key, a plugin id, a hashed device identifier and a
+device label (your machine's hostname). It never sees a run, a session record, a
+resource block or anything a user typed.
 
 ## If you are here because you are struggling
 

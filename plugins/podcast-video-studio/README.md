@@ -95,8 +95,8 @@ scan, the threshold arithmetic and the clip log.
 
 The server runs locally over stdio, so no part of your recording leaves the machine.
 The clip log is written only to `~/.config/plugin-suite/podcast-video-studio-clips.json`;
-the billing service sees a licence key, a plugin id and a hashed device identifier — never
-a transcript.
+the billing service sees a licence key, a plugin id, a hashed device identifier and a
+device label (your machine's hostname) — never a transcript.
 
 ## What this is not
 

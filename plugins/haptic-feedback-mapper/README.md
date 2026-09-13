@@ -114,8 +114,8 @@ arithmetic, the mapping audit, the vocabulary check and the session log.
 The server runs locally over stdio, so no session data leaves the machine. The
 measurement log is written only to
 `~/.config/plugin-suite/haptic-feedback-mapper-sessions.json`; the billing service sees a
-licence key, a plugin id and a hashed device identifier — never a session, a mapping or a
-rate.
+licence key, a plugin id, a hashed device identifier and a device label (your machine's
+hostname) — never a session, a mapping or a rate.
 
 ## What this is not
 

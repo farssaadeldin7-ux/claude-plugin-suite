@@ -128,7 +128,7 @@ server.tool('diagnose', {
   description:
     'Rank likely causes for a vehicle noise from a structured description of it. Returns candidates with ' +
     'calibrated confidence, the questions that would most narrow the field, and a safety verdict. ' +
-    'Use sound_vocabulary first. Counts against the monthly diagnosis quota.',
+    'Use sound_vocabulary first. Requires a paid plan; counts against the monthly diagnosis quota.',
   inputSchema: {
     type: 'object',
     properties: {

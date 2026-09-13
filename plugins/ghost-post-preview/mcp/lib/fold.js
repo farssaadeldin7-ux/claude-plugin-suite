@@ -60,7 +60,17 @@ export function foldTest(platformId, text, part = 'body') {
 
     if (charsUsed + line.length > charCap) {
       const remaining = charCap - charsUsed;
-      if (remaining > 0) visibleLines.push(line.slice(0, remaining));
+      if (remaining > 0) {
+        let cut = line.slice(0, remaining);
+        // .slice() counts UTF-16 code units, not characters — an emoji or
+        // other astral character is two code units, and a cut landing
+        // between them leaves a lone, invalid surrogate at the end, which
+        // renders as a broken character rather than the cut character
+        // being cleanly dropped or kept.
+        const lastCode = cut.charCodeAt(cut.length - 1);
+        if (lastCode >= 0xd800 && lastCode <= 0xdbff) cut = cut.slice(0, -1);
+        visibleLines.push(cut);
+      }
       truncatedBy = 'char_cap';
       break;
     }

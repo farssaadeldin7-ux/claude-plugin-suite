@@ -307,7 +307,7 @@ server.tool('regression_score', {
           required: ['outcome'],
         },
       },
-      record: { type: 'boolean', description: 'Also record this run in the local history on this machine. Nothing leaves this computer.' },
+      record: { type: 'boolean', description: 'Also record this run in the local history on this machine. Nothing about the run itself leaves this computer — the licence check this tool requires still does.' },
       label: { type: 'string', description: 'Short name for the recorded run, e.g. "v3 articles".' },
       change_note: { type: 'string', description: 'What changed since the previous run — article edit, prompt change, retriever change.' },
     },
@@ -338,8 +338,8 @@ server.tool('regression_history', {
   description:
     'The recorded regression runs on this machine, newest first, each with the arithmetic ' +
     'difference from the previous run in percentage points. Counting and subtraction only — it ' +
-    'does not say whether a movement is significant, and nothing leaves this computer. Requires a ' +
-    'paid plan.',
+    'does not say whether a movement is significant. Requires a paid plan; the licence check is ' +
+    'the only thing this tool sends anywhere.',
   inputSchema: {
     type: 'object',
     properties: { limit: { type: 'number', description: 'Default 20.' } },

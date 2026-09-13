@@ -207,7 +207,7 @@ server.tool('log_sheet', {
   description:
     'Record a delivered sheet — diagnosis, the three changes, the success check and its bar — in ' +
     'the local sheet log, so next session\'s result can be scored against it. A check that is ' +
-    'never scored taught nothing. Requires a paid plan. Nothing leaves this machine.',
+    'never scored taught nothing. Requires a paid plan; the licence check is the only thing this tool sends anywhere.',
   inputSchema: {
     type: 'object',
     properties: {

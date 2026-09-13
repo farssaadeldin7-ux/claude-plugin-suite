@@ -89,8 +89,8 @@ personal kit weight per person. Without body weights the weight ledger falls bac
 self-declared target loads and says so, rather than assuming a 70 kg carrier.
 
 Trip data — rosters, loads, expenses — is passed through the tools and stored nowhere.
-The billing service sees a licence key, a plugin id and a hashed device identifier; it
-never sees a trip.
+The billing service sees a licence key, a plugin id, a hashed device identifier and a
+device label (your machine's hostname); it never sees a trip.
 
 ## What this is not
 

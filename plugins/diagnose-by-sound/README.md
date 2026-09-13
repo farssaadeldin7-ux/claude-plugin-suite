@@ -91,8 +91,8 @@ no free plan and no trial — every diagnosis needs a paid licence.
 
 Case history — vehicles, observations, outcomes — is written only to
 `~/.config/plugin-suite/diagnose-by-sound-cases.json` on the machine that created it.
-The billing service sees a licence key, a plugin id, a hashed device identifier and
-usage counts. It never sees a diagnosis.
+The billing service sees a licence key, a plugin id, a hashed device identifier, a
+device label (your machine's hostname) and usage counts. It never sees a diagnosis.
 
 ## Limits
 
