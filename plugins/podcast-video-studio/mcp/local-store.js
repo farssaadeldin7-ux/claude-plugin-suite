@@ -73,6 +73,7 @@ function releaseLock(lockPath) {
 
 function fsyncDirIfSupported(dir) {
   let fd;
+  let bestEffort = false;
   try {
     fd = fs.openSync(dir, 'r');
     fs.fsyncSync(fd);
@@ -81,8 +82,15 @@ function fsyncDirIfSupported(dir) {
     // The file fsync above still buys durable contents there; best-effort the
     // directory flush rather than failing the whole write on that platform.
     if (!['EACCES', 'EISDIR', 'EINVAL', 'EPERM', 'ENOTSUP'].includes(err.code)) throw err;
+    bestEffort = true;
   } finally {
-    if (fd !== undefined) fs.closeSync(fd);
+    if (fd !== undefined) {
+      try {
+        fs.closeSync(fd);
+      } catch (err) {
+        if (!(bestEffort && ['EACCES', 'EISDIR', 'EINVAL', 'EPERM', 'ENOTSUP'].includes(err.code))) throw err;
+      }
+    }
   }
 }
 

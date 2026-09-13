@@ -71,6 +71,18 @@ function matchBrace(source, openIndex) {
   throw new Error(`Unterminated tool spec object starting at line ${lineOf(source, openIndex)}`);
 }
 
+function findStringEnd(source, start) {
+  const quote = source[start];
+  for (let i = start + 1; i < source.length; i++) {
+    if (source[i] === '\\') {
+      i++;
+      continue;
+    }
+    if (source[i] === quote) return i;
+  }
+  throw new Error(`Unterminated string starting at line ${lineOf(source, start)}`);
+}
+
 function topLevelKeys(objectSource) {
   const keys = new Set();
   let depth = 0;
@@ -125,12 +137,28 @@ function topLevelKeys(objectSource) {
       continue;
     }
 
-    if (depth !== 1 || !/[A-Za-z_$]/.test(ch)) continue;
-    const rest = objectSource.slice(i);
-    const match = rest.match(/^([A-Za-z_$][\w$]*)\s*:/);
-    if (!match) continue;
-    keys.add(match[1]);
-    i += match[0].length - 1;
+    if (depth !== 1) continue;
+
+    if (/[A-Za-z_$]/.test(ch)) {
+      const rest = objectSource.slice(i);
+      const match = rest.match(/^([A-Za-z_$][\w$]*)\s*:/);
+      if (!match) continue;
+      keys.add(match[1]);
+      i += match[0].length - 1;
+      continue;
+    }
+
+    if (ch === '\'' || ch === '"') {
+      const end = findStringEnd(objectSource, i);
+      const rest = objectSource.slice(end + 1);
+      const match = rest.match(/^\s*:/);
+      if (!match) {
+        i = end;
+        continue;
+      }
+      keys.add(objectSource.slice(i + 1, end));
+      i = end + match[0].length;
+    }
   }
 
   return keys;
@@ -139,10 +167,78 @@ function topLevelKeys(objectSource) {
 function collectToolBlocks(relPath) {
   const source = fs.readFileSync(path.join(root, relPath), 'utf8');
   const blocks = [];
-  const toolStart = /server\.tool\(\s*(["'`])((?:\\.|(?!\1)[^\\])*)\1\s*,/g;
+  const toolStart = /server\.tool\(\s*(["'`])((?:\\.|(?!\1)[^\\])*)\1/g;
+
+  function findSpecObjectStart(from) {
+    let depth = 1;
+    let quote = null;
+    let lineComment = false;
+    let blockComment = false;
+    let expectingArg = false;
+
+    for (let i = from; i < source.length; i++) {
+      const ch = source[i];
+      const next = source[i + 1];
+
+      if (lineComment) {
+        if (ch === '\n') lineComment = false;
+        continue;
+      }
+      if (blockComment) {
+        if (ch === '*' && next === '/') {
+          blockComment = false;
+          i++;
+        }
+        continue;
+      }
+      if (quote) {
+        if (ch === '\\') {
+          i++;
+          continue;
+        }
+        if (ch === quote) quote = null;
+        continue;
+      }
+      if (ch === '/' && next === '/') {
+        lineComment = true;
+        i++;
+        continue;
+      }
+      if (ch === '/' && next === '*') {
+        blockComment = true;
+        i++;
+        continue;
+      }
+      if (ch === '\'' || ch === '"' || ch === '`') {
+        quote = ch;
+        expectingArg = false;
+        continue;
+      }
+      if (ch === '(') {
+        depth++;
+        expectingArg = false;
+        continue;
+      }
+      if (ch === ')') {
+        depth--;
+        if (depth === 0) break;
+        expectingArg = false;
+        continue;
+      }
+      if (/\s/.test(ch)) continue;
+      if (ch === ',' && depth === 1) {
+        expectingArg = true;
+        continue;
+      }
+      if (ch === '{' && depth === 1 && expectingArg) return i;
+      expectingArg = false;
+    }
+
+    throw new Error(`No tool spec object found in ${relPath} after line ${lineOf(source, from)}`);
+  }
 
   for (const match of source.matchAll(toolStart)) {
-    const objectStart = source.indexOf('{', match.index + match[0].length);
+    const objectStart = findSpecObjectStart(match.index + match[0].length);
     assert.notEqual(objectStart, -1, `${relPath}:${lineOf(source, match.index)} has no tool spec object`);
     const objectEnd = matchBrace(source, objectStart);
     blocks.push({
