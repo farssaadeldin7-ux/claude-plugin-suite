@@ -84,12 +84,59 @@ Then start the service:
 node --env-file=services/billing/.env services/billing/server.js
 ```
 
-or as a container on any host (Cloud Run, Fly, Railway, a VPS):
+or as a container on any host with a persistent volume — Fly, Railway, a VPS:
 
 ```bash
 docker build -t plugin-suite-billing services/billing
 docker run -p 8787:8787 --env-file services/billing/.env -v billing-data:/data plugin-suite-billing
 ```
+
+### Deploying to Cloud Run
+
+Cloud Run works too, but only if it is deliberately configured to behave like a single
+long-lived host rather than its default stateless, autoscaled shape — the store is one
+local JSON file with no database behind it yet, so more than one live instance means two
+processes independently believing they hold the source of truth. Pin the instance count
+and mount a real volume; do not deploy this service to Cloud Run with its defaults.
+
+```bash
+PROJECT=your-gcp-project
+REGION=us-central1
+BUCKET=${PROJECT}-billing-store   # holds store.json; survives redeploys and restarts
+
+gcloud services enable run.googleapis.com secretmanager.googleapis.com \
+  storage.googleapis.com --project "$PROJECT"
+
+gcloud storage buckets create "gs://$BUCKET" --project "$PROJECT" --location "$REGION"
+
+# Credentials go into Secret Manager, never into a --set-env-vars flag or this repo.
+# Run these yourself and paste the real values at the prompt:
+printf '%s' "$STRIPE_SECRET_KEY"    | gcloud secrets create STRIPE_SECRET_KEY    --data-file=- --project "$PROJECT"
+printf '%s' "$STRIPE_WEBHOOK_SECRET" | gcloud secrets create STRIPE_WEBHOOK_SECRET --data-file=- --project "$PROJECT"
+
+gcloud run deploy plugin-suite-billing \
+  --project "$PROJECT" --region "$REGION" \
+  --source services/billing \
+  --execution-environment gen2 \
+  --min-instances 1 --max-instances 1 \
+  --concurrency 80 \
+  --port 8787 \
+  --add-volume name=store-vol,type=cloud-storage,bucket=$BUCKET,readonly=false \
+  --add-volume-mount volume=store-vol,mount-path=/data \
+  --set-secrets STRIPE_SECRET_KEY=STRIPE_SECRET_KEY:latest,STRIPE_WEBHOOK_SECRET=STRIPE_WEBHOOK_SECRET:latest \
+  --set-env-vars "$(grep -v -E '^(STRIPE_SECRET_KEY|STRIPE_WEBHOOK_SECRET)=' services/billing/.env | tr '\n' ',' | sed 's/,$//')"
+
+gcloud run domain-mappings create --service plugin-suite-billing \
+  --domain billing.codestudioplugin.com --region "$REGION" --project "$PROJECT"
+# then add the DNS records it prints at your domain registrar
+```
+
+`--min-instances 1 --max-instances 1` is what makes this safe: exactly one process ever
+holds `/data/store.json`, so its atomic-rename writes behave the same as on a VPS.
+`gcloud` flag names for volume mounts have changed across releases — check
+`gcloud run deploy --help` in your installed version before running this, and re-run
+`node services/billing/scripts/setup-stripe.mjs` (see above) any time `catalog.js`
+prices change, since Cloud Run does not pick up a new `.env` on its own.
 
 Finally point the plugins at the deployment — baked into the archives in one command:
 
