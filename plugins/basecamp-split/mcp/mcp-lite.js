@@ -228,7 +228,16 @@ export function toolResult(output, { isError = false } = {}) {
     return { content: [{ type: 'text', text: output }], isError };
   }
   try {
-    return { content: [{ type: 'text', text: JSON.stringify(output, null, 2) }], isError };
+    // JSON has no representation for Infinity or NaN — JSON.stringify
+    // silently turns either into null, so a computation that overflowed or
+    // divided by zero would reach the caller as an ordinary-looking missing
+    // field inside an otherwise confident result, with nothing marking it
+    // as the overflow it actually was. The replacer swaps them for a
+    // visible, self-explaining string instead of losing them to null.
+    const replacer = (_key, value) => (
+      typeof value === 'number' && !Number.isFinite(value) ? String(value) : value
+    );
+    return { content: [{ type: 'text', text: JSON.stringify(output, replacer, 2) }], isError };
   } catch (err) {
     // A circular reference or a BigInt, say. The call site already catches
     // this, but toolResult should be safe on its own regardless of where

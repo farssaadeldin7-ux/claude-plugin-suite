@@ -122,6 +122,23 @@ try {
   }
   ok('an argument property named "constructor" does not resolve an inherited schema member');
 
+  // ---- Infinity and NaN in a result are visible, never silently null ------
+  // Regression test (#04): JSON has no representation for either, so
+  // JSON.stringify quietly turns both into null — a computation that
+  // overflowed or divided by zero reached the caller as an ordinary-
+  // looking missing field inside an otherwise confident result, with
+  // nothing marking it as the overflow it actually was.
+  {
+    const { child, call } = startClient();
+    const res = await call('tools/call', { name: 'overflows', arguments: {} });
+    const out = JSON.parse(res.result.content[0].text);
+    assert.equal(out.overflowed, 'Infinity');
+    assert.equal(out.undefined_ratio, 'NaN');
+    assert.equal(out.fine, 42, 'an ordinary finite number must not be touched');
+    child.kill();
+  }
+  ok('Infinity and NaN in a tool result are preserved visibly, not silently turned into null');
+
   // ---- a handler that forgets to return is a visible error, not silence ----
   // Regression test (#26): JSON.stringify(undefined) is itself undefined,
   // so text: undefined vanished from the outgoing JSON entirely — the

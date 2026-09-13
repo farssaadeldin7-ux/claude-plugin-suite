@@ -29,6 +29,12 @@ server.tool('bounded_number', {
   handler: async ({ n }) => ({ n }),
 });
 
+server.tool('overflows', {
+  description: 'A handler whose result carries Infinity and NaN — simulates a runaway computation.',
+  inputSchema: { type: 'object', properties: {} },
+  handler: async () => ({ overflowed: 1e308 * 10, undefined_ratio: 0 / 0, fine: 42 }),
+});
+
 server.tool('forgets_to_return', {
   description: 'A handler that never returns anything — simulates a bug.',
   inputSchema: { type: 'object', properties: {} },
