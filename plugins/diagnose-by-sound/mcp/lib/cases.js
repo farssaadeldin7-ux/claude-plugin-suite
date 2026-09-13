@@ -1,7 +1,5 @@
-import fs from 'node:fs';
-import os from 'node:os';
-import path from 'node:path';
 import crypto from 'node:crypto';
+import { createJsonArrayStore } from '../local-store.js';
 
 /**
  * Local case history. Stored on the technician's own machine, not on the
@@ -9,50 +7,27 @@ import crypto from 'node:crypto';
  * this suite should be collecting centrally.
  */
 
-function storePath() {
-  const base = process.env.XDG_CONFIG_HOME
-    || (process.platform === 'win32'
-      ? process.env.APPDATA || path.join(os.homedir(), 'AppData', 'Roaming')
-      : path.join(os.homedir(), '.config'));
-  return path.join(base, 'plugin-suite', 'diagnose-by-sound-cases.json');
-}
-
-function readAll() {
-  try {
-    const parsed = JSON.parse(fs.readFileSync(storePath(), 'utf8'));
-    return Array.isArray(parsed.cases) ? parsed.cases : [];
-  } catch {
-    return [];
-  }
-}
-
-function writeAll(cases) {
-  const file = storePath();
-  fs.mkdirSync(path.dirname(file), { recursive: true, mode: 0o700 });
-  // Write-then-rename so a crash mid-write can never truncate the shop's
-  // case history: the old file stays intact until the new one is complete.
-  const tmp = `${file}.tmp`;
-  fs.writeFileSync(tmp, JSON.stringify({ version: 1, cases }, null, 2), { mode: 0o600 });
-  fs.renameSync(tmp, file);
-}
+const store = createJsonArrayStore('diagnose-by-sound-cases.json', 'cases');
+const readAll = store.readAll;
+const storePath = () => store.file;
 
 export function saveCase({ vehicle, observation, ranked, chosen, outcome, notes }) {
-  const cases = readAll();
-  const record = {
-    id: `case_${crypto.randomBytes(6).toString('hex')}`,
-    created_at: new Date().toISOString(),
-    vehicle: vehicle ?? null,
-    observation: observation ?? null,
-    candidates: (ranked ?? []).slice(0, 5).map((c) => ({
-      id: c.id, label: c.label, confidence: c.confidence, severity: c.severity,
-    })),
-    chosen: chosen ?? null,
-    outcome: outcome ?? null,
-    notes: notes ?? null,
-  };
-  cases.unshift(record);
-  writeAll(cases.slice(0, 2000));
-  return record;
+  return store.update((cases) => {
+    const record = {
+      id: `case_${crypto.randomBytes(6).toString('hex')}`,
+      created_at: new Date().toISOString(),
+      vehicle: vehicle ?? null,
+      observation: observation ?? null,
+      candidates: (ranked ?? []).slice(0, 5).map((c) => ({
+        id: c.id, label: c.label, confidence: c.confidence, severity: c.severity,
+      })),
+      chosen: chosen ?? null,
+      outcome: outcome ?? null,
+      notes: notes ?? null,
+    };
+    cases.unshift(record);
+    return { items: cases.slice(0, 2000), result: record };
+  });
 }
 
 export function listCases({ limit = 20, query = null } = {}) {
@@ -71,12 +46,12 @@ export function getCase(id) {
 }
 
 export function updateCase(id, patch) {
-  const cases = readAll();
-  const index = cases.findIndex((c) => c.id === id);
-  if (index === -1) return null;
-  cases[index] = { ...cases[index], ...patch, updated_at: new Date().toISOString() };
-  writeAll(cases);
-  return cases[index];
+  return store.update((cases) => {
+    const index = cases.findIndex((c) => c.id === id);
+    if (index === -1) return { items: cases, result: null };
+    cases[index] = { ...cases[index], ...patch, updated_at: new Date().toISOString() };
+    return { items: cases, result: cases[index] };
+  });
 }
 
 /**

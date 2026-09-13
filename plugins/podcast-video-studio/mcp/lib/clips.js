@@ -1,7 +1,5 @@
-import fs from 'node:fs';
-import os from 'node:os';
-import path from 'node:path';
 import crypto from 'node:crypto';
+import { createJsonArrayStore } from '../local-store.js';
 
 /**
  * The local clip log behind the footage pass: every threshold-clearing clip
@@ -13,31 +11,9 @@ import crypto from 'node:crypto';
 
 const FOOTAGE_RESULTS = ['passed', 'failed'];
 
-function storePath() {
-  const base = process.env.XDG_CONFIG_HOME
-    || (process.platform === 'win32'
-      ? process.env.APPDATA || path.join(os.homedir(), 'AppData', 'Roaming')
-      : path.join(os.homedir(), '.config'));
-  return path.join(base, 'plugin-suite', 'podcast-video-studio-clips.json');
-}
-
-function readAll() {
-  try {
-    const parsed = JSON.parse(fs.readFileSync(storePath(), 'utf8'));
-    return Array.isArray(parsed.clips) ? parsed.clips : [];
-  } catch {
-    return [];
-  }
-}
-
-function writeAll(clips) {
-  const file = storePath();
-  fs.mkdirSync(path.dirname(file), { recursive: true, mode: 0o700 });
-  // Write-then-rename so a crash mid-write can never truncate the log.
-  const tmp = `${file}.tmp`;
-  fs.writeFileSync(tmp, JSON.stringify({ version: 1, clips }, null, 2), { mode: 0o600 });
-  fs.renameSync(tmp, file);
-}
+const store = createJsonArrayStore('podcast-video-studio-clips.json', 'clips');
+const readAll = store.readAll;
+const storePath = () => store.file;
 
 export function footageResultIsValid(result) {
   return FOOTAGE_RESULTS.includes(result);
@@ -47,40 +23,40 @@ export function logClip({
   episode, in_point, out_point, duration_seconds, scores, total,
   destinations, cold_open, archetypes, flagged_claims, notes,
 }) {
-  const clips = readAll();
-  const record = {
-    id: `clip_${crypto.randomBytes(6).toString('hex')}`,
-    created_at: new Date().toISOString(),
-    episode: episode ?? null,
-    in_point: in_point ?? null,
-    out_point: out_point ?? null,
-    duration_seconds: duration_seconds ?? null,
-    scores: scores ?? null,
-    total: total ?? null,
-    destinations: destinations ?? null,
-    cold_open: cold_open ?? null,
-    archetypes: archetypes ?? null,
-    flagged_claims: flagged_claims ?? null,
-    notes: notes ?? null,
-    footage_pass: null,
-  };
-  clips.unshift(record);
-  writeAll(clips.slice(0, 2000));
-  return record;
+  return store.update((clips) => {
+    const record = {
+      id: `clip_${crypto.randomBytes(6).toString('hex')}`,
+      created_at: new Date().toISOString(),
+      episode: episode ?? null,
+      in_point: in_point ?? null,
+      out_point: out_point ?? null,
+      duration_seconds: duration_seconds ?? null,
+      scores: scores ?? null,
+      total: total ?? null,
+      destinations: destinations ?? null,
+      cold_open: cold_open ?? null,
+      archetypes: archetypes ?? null,
+      flagged_claims: flagged_claims ?? null,
+      notes: notes ?? null,
+      footage_pass: null,
+    };
+    clips.unshift(record);
+    return { items: clips.slice(0, 2000), result: record };
+  });
 }
 
 export function recordFootagePass(id, { result, reason }) {
-  const clips = readAll();
-  const index = clips.findIndex((c) => c.id === id);
-  if (index === -1) return null;
-  clips[index] = {
-    ...clips[index],
-    footage_pass: result,
-    ...(reason ? { footage_pass_reason: reason } : {}),
-    resolved_at: new Date().toISOString(),
-  };
-  writeAll(clips);
-  return clips[index];
+  return store.update((clips) => {
+    const index = clips.findIndex((c) => c.id === id);
+    if (index === -1) return { items: clips, result: null };
+    clips[index] = {
+      ...clips[index],
+      footage_pass: result,
+      ...(reason ? { footage_pass_reason: reason } : {}),
+      resolved_at: new Date().toISOString(),
+    };
+    return { items: clips, result: clips[index] };
+  });
 }
 
 /**

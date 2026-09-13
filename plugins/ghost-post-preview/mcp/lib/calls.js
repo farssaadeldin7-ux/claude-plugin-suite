@@ -1,7 +1,5 @@
-import fs from 'node:fs';
-import os from 'node:os';
-import path from 'node:path';
 import crypto from 'node:crypto';
+import { createJsonArrayStore } from '../local-store.js';
 
 /**
  * The prediction log behind "close the loop": every band call is recorded so
@@ -11,66 +9,44 @@ import crypto from 'node:crypto';
 
 const BANDS = ['well_below', 'below', 'at', 'above', 'well_above'];
 
-function storePath() {
-  const base = process.env.XDG_CONFIG_HOME
-    || (process.platform === 'win32'
-      ? process.env.APPDATA || path.join(os.homedir(), 'AppData', 'Roaming')
-      : path.join(os.homedir(), '.config'));
-  return path.join(base, 'plugin-suite', 'ghost-post-preview-calls.json');
-}
-
-function readAll() {
-  try {
-    const parsed = JSON.parse(fs.readFileSync(storePath(), 'utf8'));
-    return Array.isArray(parsed.calls) ? parsed.calls : [];
-  } catch {
-    return [];
-  }
-}
-
-function writeAll(calls) {
-  const file = storePath();
-  fs.mkdirSync(path.dirname(file), { recursive: true, mode: 0o700 });
-  // Write-then-rename so a crash mid-write can never truncate the log.
-  const tmp = `${file}.tmp`;
-  fs.writeFileSync(tmp, JSON.stringify({ version: 1, calls }, null, 2), { mode: 0o600 });
-  fs.renameSync(tmp, file);
-}
+const store = createJsonArrayStore('ghost-post-preview-calls.json', 'calls');
+const readAll = store.readAll;
+const storePath = () => store.file;
 
 export function bandIsValid(band) {
   return BANDS.includes(band);
 }
 
 export function logCall({ platform, verdict, band, confidence, hook_summary, notes }) {
-  const calls = readAll();
-  const record = {
-    id: `call_${crypto.randomBytes(6).toString('hex')}`,
-    created_at: new Date().toISOString(),
-    platform: platform ?? null,
-    verdict: verdict ?? null,
-    band: band ?? null,
-    confidence: confidence ?? null,
-    hook_summary: hook_summary ?? null,
-    notes: notes ?? null,
-    actual_band: null,
-  };
-  calls.unshift(record);
-  writeAll(calls.slice(0, 2000));
-  return record;
+  return store.update((calls) => {
+    const record = {
+      id: `call_${crypto.randomBytes(6).toString('hex')}`,
+      created_at: new Date().toISOString(),
+      platform: platform ?? null,
+      verdict: verdict ?? null,
+      band: band ?? null,
+      confidence: confidence ?? null,
+      hook_summary: hook_summary ?? null,
+      notes: notes ?? null,
+      actual_band: null,
+    };
+    calls.unshift(record);
+    return { items: calls.slice(0, 2000), result: record };
+  });
 }
 
 export function recordResult(id, { actual_band, notes }) {
-  const calls = readAll();
-  const index = calls.findIndex((c) => c.id === id);
-  if (index === -1) return null;
-  calls[index] = {
-    ...calls[index],
-    actual_band,
-    ...(notes ? { result_notes: notes } : {}),
-    resolved_at: new Date().toISOString(),
-  };
-  writeAll(calls);
-  return calls[index];
+  return store.update((calls) => {
+    const index = calls.findIndex((c) => c.id === id);
+    if (index === -1) return { items: calls, result: null };
+    calls[index] = {
+      ...calls[index],
+      actual_band,
+      ...(notes ? { result_notes: notes } : {}),
+      resolved_at: new Date().toISOString(),
+    };
+    return { items: calls, result: calls[index] };
+  });
 }
 
 /**

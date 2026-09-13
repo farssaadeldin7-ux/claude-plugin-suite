@@ -1,7 +1,5 @@
-import fs from 'node:fs';
-import os from 'node:os';
-import path from 'node:path';
 import crypto from 'node:crypto';
+import { createJsonArrayStore } from '../local-store.js';
 
 /**
  * The regression-run history: every scored run is recorded so the next one
@@ -10,51 +8,29 @@ import crypto from 'node:crypto';
  * previous value is not a trend. Stored on the user's machine only.
  */
 
-function storePath() {
-  const base = process.env.XDG_CONFIG_HOME
-    || (process.platform === 'win32'
-      ? process.env.APPDATA || path.join(os.homedir(), 'AppData', 'Roaming')
-      : path.join(os.homedir(), '.config'));
-  return path.join(base, 'plugin-suite', 'customer-sales-support-runs.json');
-}
-
-function readAll() {
-  try {
-    const parsed = JSON.parse(fs.readFileSync(storePath(), 'utf8'));
-    return Array.isArray(parsed.runs) ? parsed.runs : [];
-  } catch {
-    return [];
-  }
-}
-
-function writeAll(runs) {
-  const file = storePath();
-  fs.mkdirSync(path.dirname(file), { recursive: true, mode: 0o700 });
-  // Write-then-rename so a crash mid-write can never truncate the history.
-  const tmp = `${file}.tmp`;
-  fs.writeFileSync(tmp, JSON.stringify({ version: 1, runs }, null, 2), { mode: 0o600 });
-  fs.renameSync(tmp, file);
-}
+const store = createJsonArrayStore('customer-sales-support-runs.json', 'runs');
+const readAll = store.readAll;
+const storePath = () => store.file;
 
 export function logRun({ label, change_note, cases, counts, metrics }) {
-  const runs = readAll();
-  const record = {
-    id: `run_${crypto.randomBytes(6).toString('hex')}`,
-    created_at: new Date().toISOString(),
-    label: label ?? null,
-    change_note: change_note ?? null,
-    cases,
-    counts,
-    metrics: {
-      containment_percent: metrics.containment_percent,
-      accuracy_on_contained_percent: metrics.accuracy_on_contained_percent,
-      false_containment_percent: metrics.false_containment_percent,
-      over_escalation_percent: metrics.over_escalation_percent,
-    },
-  };
-  runs.unshift(record);
-  writeAll(runs.slice(0, 500));
-  return record;
+  return store.update((runs) => {
+    const record = {
+      id: `run_${crypto.randomBytes(6).toString('hex')}`,
+      created_at: new Date().toISOString(),
+      label: label ?? null,
+      change_note: change_note ?? null,
+      cases,
+      counts,
+      metrics: {
+        containment_percent: metrics.containment_percent,
+        accuracy_on_contained_percent: metrics.accuracy_on_contained_percent,
+        false_containment_percent: metrics.false_containment_percent,
+        over_escalation_percent: metrics.over_escalation_percent,
+      },
+    };
+    runs.unshift(record);
+    return { items: runs.slice(0, 500), result: record };
+  });
 }
 
 const delta = (current, previous) =>

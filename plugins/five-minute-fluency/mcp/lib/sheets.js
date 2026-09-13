@@ -1,7 +1,5 @@
-import fs from 'node:fs';
-import os from 'node:os';
-import path from 'node:path';
 import crypto from 'node:crypto';
+import { createJsonArrayStore } from '../local-store.js';
 
 /**
  * The local sheet log behind the success check: every sheet ends with a
@@ -10,66 +8,44 @@ import crypto from 'node:crypto';
  * machine only — nothing here is sent anywhere.
  */
 
-function storePath() {
-  const base = process.env.XDG_CONFIG_HOME
-    || (process.platform === 'win32'
-      ? process.env.APPDATA || path.join(os.homedir(), 'AppData', 'Roaming')
-      : path.join(os.homedir(), '.config'));
-  return path.join(base, 'plugin-suite', 'five-minute-fluency-sheets.json');
-}
-
-function readAll() {
-  try {
-    const parsed = JSON.parse(fs.readFileSync(storePath(), 'utf8'));
-    return Array.isArray(parsed.sheets) ? parsed.sheets : [];
-  } catch {
-    return [];
-  }
-}
-
-function writeAll(sheets) {
-  const file = storePath();
-  fs.mkdirSync(path.dirname(file), { recursive: true, mode: 0o700 });
-  // Write-then-rename so a crash mid-write can never truncate the log.
-  const tmp = `${file}.tmp`;
-  fs.writeFileSync(tmp, JSON.stringify({ version: 1, sheets }, null, 2), { mode: 0o600 });
-  fs.renameSync(tmp, file);
-}
+const store = createJsonArrayStore('five-minute-fluency-sheets.json', 'sheets');
+const readAll = store.readAll;
+const storePath = () => store.file;
 
 export function logSheet({ game, genre, diagnosis, changes, stop_doing, success_check, next_session, notes }) {
-  const sheets = readAll();
-  const record = {
-    id: `sheet_${crypto.randomBytes(6).toString('hex')}`,
-    created_at: new Date().toISOString(),
-    game: game ?? null,
-    genre: genre ?? null,
-    diagnosis: diagnosis ?? null,
-    changes: Array.isArray(changes) ? changes : [],
-    stop_doing: stop_doing ?? null,
-    success_check: success_check ?? null,
-    next_session: next_session ?? null,
-    notes: notes ?? null,
-    passed: null,
-    reported_count: null,
-  };
-  sheets.unshift(record);
-  writeAll(sheets.slice(0, 2000));
-  return record;
+  return store.update((sheets) => {
+    const record = {
+      id: `sheet_${crypto.randomBytes(6).toString('hex')}`,
+      created_at: new Date().toISOString(),
+      game: game ?? null,
+      genre: genre ?? null,
+      diagnosis: diagnosis ?? null,
+      changes: Array.isArray(changes) ? changes : [],
+      stop_doing: stop_doing ?? null,
+      success_check: success_check ?? null,
+      next_session: next_session ?? null,
+      notes: notes ?? null,
+      passed: null,
+      reported_count: null,
+    };
+    sheets.unshift(record);
+    return { items: sheets.slice(0, 2000), result: record };
+  });
 }
 
 export function recordSession(id, { passed, reported_count, notes }) {
-  const sheets = readAll();
-  const index = sheets.findIndex((s) => s.id === id);
-  if (index === -1) return null;
-  sheets[index] = {
-    ...sheets[index],
-    passed,
-    reported_count: reported_count ?? null,
-    ...(notes ? { session_notes: notes } : {}),
-    resolved_at: new Date().toISOString(),
-  };
-  writeAll(sheets);
-  return sheets[index];
+  return store.update((sheets) => {
+    const index = sheets.findIndex((s) => s.id === id);
+    if (index === -1) return { items: sheets, result: null };
+    sheets[index] = {
+      ...sheets[index],
+      passed,
+      reported_count: reported_count ?? null,
+      ...(notes ? { session_notes: notes } : {}),
+      resolved_at: new Date().toISOString(),
+    };
+    return { items: sheets, result: sheets[index] };
+  });
 }
 
 /**

@@ -1,9 +1,7 @@
-import fs from 'node:fs';
-import os from 'node:os';
-import path from 'node:path';
 import crypto from 'node:crypto';
 import { ToolError } from '../mcp-lite.js';
 import { TRIGGER_CATEGORIES } from './escalation.js';
+import { createJsonArrayStore } from '../local-store.js';
 
 /**
  * The supervisor-summary template and the local session audit log — the two
@@ -60,31 +58,9 @@ export const SUMMARY_TEMPLATE = {
   ],
 };
 
-function storePath() {
-  const base = process.env.XDG_CONFIG_HOME
-    || (process.platform === 'win32'
-      ? process.env.APPDATA || path.join(os.homedir(), 'AppData', 'Roaming')
-      : path.join(os.homedir(), '.config'));
-  return path.join(base, 'plugin-suite', 'mental-health-chatbot-audit.json');
-}
-
-function readAll() {
-  try {
-    const parsed = JSON.parse(fs.readFileSync(storePath(), 'utf8'));
-    return Array.isArray(parsed.sessions) ? parsed.sessions : [];
-  } catch {
-    return [];
-  }
-}
-
-function writeAll(sessions) {
-  const file = storePath();
-  fs.mkdirSync(path.dirname(file), { recursive: true, mode: 0o700 });
-  // Write-then-rename so a crash mid-write can never truncate the log.
-  const tmp = `${file}.tmp`;
-  fs.writeFileSync(tmp, JSON.stringify({ version: 1, sessions }, null, 2), { mode: 0o600 });
-  fs.renameSync(tmp, file);
-}
+const store = createJsonArrayStore('mental-health-chatbot-audit.json', 'sessions');
+const readAll = store.readAll;
+const storePath = () => store.file;
 
 function isoDayOf(value, field) {
   if (value === undefined) return new Date().toISOString().slice(0, 10);
@@ -126,21 +102,22 @@ export function recordSession({
     throw new ToolError('invalid_request', 'An escalated session must record handover_packet_delivered — the human does not restart from zero, and the log shows whether that held.');
   }
 
-  const sessions = readAll();
-  const record = {
-    id: `case_${crypto.randomBytes(6).toString('hex')}`,
-    created_at: new Date().toISOString(),
-    session_date: isoDayOf(session_date, 'session_date'),
-    config_version: config_version.trim(),
-    messages: messageCount,
-    trigger_category: category,
-    escalated: didEscalate,
-    handover_packet_delivered: didEscalate ? handover_packet_delivered === true : null,
-    resources_shown: Number(resources_shown) >= 0 ? Number(resources_shown) : 0,
-    ended,
-  };
-  sessions.unshift(record);
-  writeAll(sessions.slice(0, 10000));
+  const record = store.update((sessions) => {
+    const record = {
+      id: `case_${crypto.randomBytes(6).toString('hex')}`,
+      created_at: new Date().toISOString(),
+      session_date: isoDayOf(session_date, 'session_date'),
+      config_version: config_version.trim(),
+      messages: messageCount,
+      trigger_category: category,
+      escalated: didEscalate,
+      handover_packet_delivered: didEscalate ? handover_packet_delivered === true : null,
+      resources_shown: Number(resources_shown) >= 0 ? Number(resources_shown) : 0,
+      ended,
+    };
+    sessions.unshift(record);
+    return { items: sessions.slice(0, 10000), result: record };
+  });
 
   const missed = category !== null && !didEscalate;
   return {
