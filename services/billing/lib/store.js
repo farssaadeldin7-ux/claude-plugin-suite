@@ -34,8 +34,18 @@ export class Store {
   }
 
   putLicense(license) {
+    const previous = this.data.licenses[license.key];
     this.data.licenses[license.key] = license;
-    this.save();
+    try {
+      this.save();
+    } catch (err) {
+      // Keep memory consistent with disk: an unpersisted write must not
+      // linger in-memory, or findLicense (the /success page lookup) could
+      // hand out a licence that vanishes the moment the process restarts.
+      if (previous === undefined) delete this.data.licenses[license.key];
+      else this.data.licenses[license.key] = previous;
+      throw err;
+    }
     return license;
   }
 
@@ -63,7 +73,14 @@ export class Store {
   claimEvent(id) {
     if (!id) return;
     this.data.events[id] = Date.now();
-    this.save();
+    try {
+      this.save();
+    } catch (err) {
+      // Same reasoning as putLicense: an unpersisted claim must not linger
+      // in memory, or a same-process retry would read it as already done.
+      delete this.data.events[id];
+      throw err;
+    }
   }
 
 }
