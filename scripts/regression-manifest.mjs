@@ -22,6 +22,12 @@
 export const REGRESSIONS = [
   // ---- shared runtime (packages/suite-runtime/mcp-lite.js) -----------------
   {
+    id: '81',
+    summary: 'no schema in the suite declared a maximum, so every numeric argument was unbounded and an absurd value was answered instead of refused',
+    testFiles: ['test/tool-behaviour.test.mjs'],
+    pattern: /ceiling exists at all/,
+  },
+  {
     id: '64',
     summary: 'inputSchema published in tools/list was never enforced',
     testFiles: ['packages/suite-runtime/test/mcp-lite.test.mjs'],

@@ -263,6 +263,15 @@ export class ToolError extends Error {
 // general-purpose validator — enough that a schema published in tools/list
 // is actually enforced, not just documentation the server itself ignores.
 
+// The ceiling applied to a number argument whose schema declares no maximum
+// of its own. No schema in this suite ever declared one, so every numeric
+// argument was unbounded and an absurd value (say, 1e308) was a perfectly
+// valid finite input — accepted and handed to the handler instead of
+// refused. 1e12 is far above any real argument in this suite (people, days,
+// billions of parameters) and refusing at the edge beats answering with
+// whatever an unbounded computation happens to produce.
+const DEFAULT_MAXIMUM = 1e12;
+
 function jsonTypeOf(value) {
   if (value === null) return 'null';
   if (Array.isArray(value)) return 'array';
@@ -297,7 +306,13 @@ function validateNode(schema, value, path, errors) {
 
   if (typeof value === 'number') {
     if (typeof schema.minimum === 'number' && value < schema.minimum) errors.push(`${path}: below minimum ${schema.minimum}`);
-    if (typeof schema.maximum === 'number' && value > schema.maximum) errors.push(`${path}: above maximum ${schema.maximum}`);
+    const maximum = typeof schema.maximum === 'number' ? schema.maximum : DEFAULT_MAXIMUM;
+    if (value > maximum) {
+      errors.push(typeof schema.maximum === 'number'
+        ? `${path}: above maximum ${schema.maximum}`
+        : `${path}: above ${DEFAULT_MAXIMUM}, the default ceiling for a number argument with no declared maximum`);
+    }
+    if (!Number.isFinite(value)) errors.push(`${path}: must be a finite number`);
   }
 
   if (Array.isArray(schema.enum) && !schema.enum.includes(value)) {
