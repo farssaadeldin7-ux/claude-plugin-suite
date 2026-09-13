@@ -85,6 +85,10 @@ try {
     const badPattern = errorOf(await call('tools/call', { name: 'echo', arguments: { text: 'ABC' } }));
     assert.match(badPattern.message, /does not match pattern/);
 
+    const invalidPattern = errorOf(await call('tools/call', { name: 'broken_pattern', arguments: { text: 'ok' } }));
+    assert.equal(invalidPattern.error, 'invalid_arguments');
+    assert.match(invalidPattern.message, /invalid pattern \(\[\//);
+
     const tooLong = errorOf(await call('tools/call', { name: 'echo', arguments: { text: 'waytoolongforthis' } }));
     assert.match(tooLong.message, /longer than maxLength/);
 
@@ -106,7 +110,7 @@ try {
 
     child.kill();
   }
-  ok('inputSchema type, pattern, minLength/maxLength, and minimum/maximum are all enforced before a handler runs');
+  ok('inputSchema type, pattern, minLength/maxLength, and minimum/maximum are all enforced before a handler runs, including invalid regex schemas');
 
   // ---- a schema-shaped attribute name never resolves an inherited member ---
   // Regression test-adjacent: a property literally named "constructor" in

@@ -34,6 +34,7 @@ jobs:
           node plugins/five-minute-fluency/mcp/test/yield.test.mjs
           node plugins/ghost-post-preview/mcp/test/fold.test.mjs
           node test/plugin-table-lookups.test.mjs
+          node test/tool-properties.test.mjs
           node test/build.test.mjs
       - name: Check regression-test coverage of tracked defect fixes
         run: |

@@ -91,6 +91,78 @@ try {
   }
   ok('a stale lock (older than staleMs) is taken over rather than blocking forever');
 
+  // ---- writes are fsynced before rename, and the rename is durably flushed -
+  {
+    const store = createJsonArrayStore('durable-write-test.json', 'items');
+    const events = [];
+    const openPaths = new Map();
+    const original = {
+      openSync: fs.openSync,
+      fsyncSync: fs.fsyncSync,
+      renameSync: fs.renameSync,
+      closeSync: fs.closeSync,
+    };
+    try {
+      fs.openSync = (target, flags, mode) => {
+        try {
+          const fd = original.openSync(target, flags, mode);
+          openPaths.set(fd, target);
+          events.push(['open', target, flags]);
+          return fd;
+        } catch (err) {
+          events.push(['open_failed', target, err.code]);
+          throw err;
+        }
+      };
+      fs.fsyncSync = (fd) => {
+        events.push(['fsync', openPaths.get(fd)]);
+        return original.fsyncSync(fd);
+      };
+      fs.renameSync = (from, to) => {
+        events.push(['rename', from, to]);
+        return original.renameSync(from, to);
+      };
+      fs.closeSync = (fd) => {
+        events.push(['close', openPaths.get(fd)]);
+        openPaths.delete(fd);
+        return original.closeSync(fd);
+      };
+
+      const result = store.update((items) => {
+        items.push({ ok: true });
+        return { items, result: 'done' };
+      });
+      assert.equal(result, 'done');
+    } finally {
+      fs.openSync = original.openSync;
+      fs.fsyncSync = original.fsyncSync;
+      fs.renameSync = original.renameSync;
+      fs.closeSync = original.closeSync;
+    }
+
+    const tmpPath = `${store.file}.tmp`;
+    const renameIndex = events.findIndex(([kind]) => kind === 'rename');
+    const tmpFsyncIndex = events.findIndex(([kind, target]) => kind === 'fsync' && target === tmpPath);
+    const dirFsyncIndex = events.findIndex(([kind, target]) => kind === 'fsync' && target === path.dirname(store.file));
+    const dirOpenFailed = events.some(([kind, target]) => kind === 'open_failed' && target === path.dirname(store.file));
+    assert.ok(tmpFsyncIndex !== -1, 'the temporary file must be fsynced before it is renamed into place');
+    assert.ok(renameIndex !== -1, 'the temporary file must be atomically renamed into place');
+    assert.ok(tmpFsyncIndex < renameIndex, 'the temporary file must be fsynced before rename');
+    if (dirOpenFailed) {
+      assert.equal(
+        dirFsyncIndex,
+        -1,
+        'directory fsync should be skipped only when the platform refuses opening the directory'
+      );
+    } else {
+      assert.ok(dirFsyncIndex !== -1, 'the containing directory must be fsynced after the rename when the platform supports it');
+      assert.ok(renameIndex < dirFsyncIndex, 'the containing directory must be fsynced after rename');
+    }
+    assert.deepEqual(store.readAll(), [{ ok: true }]);
+    assert.equal(fs.existsSync(tmpPath), false, 'no temporary file should be left behind after a successful replace');
+  }
+  ok('writes fsync the temp file before rename and fsync the containing directory afterwards');
+
   // ---- a lock genuinely held by a live process times out with an error ----
   {
     const store = createJsonArrayStore('held-lock-test.json', 'items', { timeoutMs: 150, retryDelayMs: 10 });
