@@ -136,6 +136,32 @@ try {
   }
   ok('the config directory is chmod 0700 even when it already existed with looser permissions');
 
+  // ---- writes are durable: fsync on both the data file and its rename -----
+  // Regression test: writeRaw() only ever wrote-then-renamed with no fsync
+  // at all. The lock this module adds only orders two writers against each
+  // other — it says nothing about a write actually reaching disk, so a
+  // power cut right after a successful update() could still leave the
+  // store pointing at a stale or missing file. Spied rather than actually
+  // pulling the plug: fsyncSync must be called once for the data file and
+  // (off Windows) once for the directory it was renamed into.
+  {
+    const store = createJsonArrayStore('fsync-test.json', 'items');
+    const originalFsync = fs.fsyncSync;
+    let fsyncCalls = 0;
+    fs.fsyncSync = (...args) => { fsyncCalls++; return originalFsync.apply(fs, args); };
+    try {
+      store.update((items) => {
+        items.push({ id: 1 });
+        return { items, result: null };
+      });
+    } finally {
+      fs.fsyncSync = originalFsync;
+    }
+    const expected = process.platform === 'win32' ? 1 : 2;
+    assert.equal(fsyncCalls, expected, 'both the data file and (off Windows) its directory must be fsynced on every write');
+  }
+  ok('update() fsyncs the write and the rename so a crash right after cannot lose it');
+
   console.log(`\n${passed} local-store checks passed`);
 } catch (err) {
   console.error('\nFAILED:', err.message);
