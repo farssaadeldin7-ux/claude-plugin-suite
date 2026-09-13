@@ -108,6 +108,11 @@ export class LicenseClient {
   #writeConfig(patch) {
     const dir = path.dirname(this.configPath);
     fs.mkdirSync(dir, { recursive: true, mode: 0o700 });
+    // mkdirSync's mode is only honoured for a directory it actually creates —
+    // if it already existed, recursive:true silently succeeds without
+    // touching its mode, and the licence config could sit in a
+    // world-readable folder indefinitely. chmod unconditionally.
+    fs.chmodSync(dir, 0o700);
     const merged = { ...this.#readConfig(), ...patch };
     // Write-then-rename so a crash mid-write can never truncate the stored
     // licence: the old file stays intact until the new one is complete.

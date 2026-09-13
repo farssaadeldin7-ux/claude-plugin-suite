@@ -103,6 +103,39 @@ try {
   }
   ok('a lock genuinely held by another live process times out rather than corrupting the store');
 
+  // ---- a corrupted file is a loud failure, never a silent empty history ---
+  // Regression test: readRaw() caught every read error the same way,
+  // including a truncated or corrupted JSON file — treating that as "start
+  // empty" meant the very next update() overwrote the real (if damaged)
+  // history with nothing at all, destroying it for good.
+  {
+    const store = createJsonArrayStore('corrupt-test.json', 'items');
+    fs.mkdirSync(path.dirname(store.file), { recursive: true });
+    fs.writeFileSync(store.file, '{"version":1,"items":[{"a":1},{"a":2}TRUNCATED');
+    assert.throws(() => store.readAll(), /is not valid JSON/);
+    // And critically: the original file must still be there, untouched.
+    assert.match(fs.readFileSync(store.file, 'utf8'), /TRUNCATED/);
+  }
+  ok('a corrupted store file throws loudly on read instead of being silently treated as empty');
+
+  // ---- the config directory is tightened even if it already existed ------
+  // Regression test (#68): mkdirSync's `mode` option is only honoured for a
+  // directory it actually creates — recursive:true on an already-existing
+  // directory silently succeeds without touching its permissions, so a
+  // private history could sit in a world-readable folder indefinitely.
+  {
+    const store = createJsonArrayStore('mode-test.json', 'items');
+    // The directory may already exist (other tests in this file share the
+    // same config home) — mkdirSync's mode is a no-op on an existing
+    // directory, exactly the bug under test, so force it loose with chmod.
+    fs.mkdirSync(path.dirname(store.file), { recursive: true });
+    fs.chmodSync(path.dirname(store.file), 0o755);
+    assert.equal(fs.statSync(path.dirname(store.file)).mode & 0o777, 0o755, 'test setup: directory must start loose');
+    store.update((items) => ({ items, result: null }));
+    assert.equal(fs.statSync(path.dirname(store.file)).mode & 0o777, 0o700, 'the config directory must be tightened even though it already existed');
+  }
+  ok('the config directory is chmod 0700 even when it already existed with looser permissions');
+
   console.log(`\n${passed} local-store checks passed`);
 } catch (err) {
   console.error('\nFAILED:', err.message);
