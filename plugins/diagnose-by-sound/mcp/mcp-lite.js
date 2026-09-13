@@ -290,8 +290,16 @@ function validateNode(schema, value, path, errors) {
     if (typeof schema.maxLength === 'number' && value.length > schema.maxLength) {
       errors.push(`${path}: longer than maxLength ${schema.maxLength}`);
     }
-    if (typeof schema.pattern === 'string' && !new RegExp(schema.pattern).test(value)) {
-      errors.push(`${path}: does not match pattern ${schema.pattern}`);
+    if (typeof schema.pattern === 'string') {
+      let pattern;
+      try {
+        pattern = new RegExp(schema.pattern);
+      } catch {
+        errors.push(`${path}: invalid pattern ${schema.pattern}`);
+      }
+      if (pattern && !pattern.test(value)) {
+        errors.push(`${path}: does not match pattern ${schema.pattern}`);
+      }
     }
   }
 

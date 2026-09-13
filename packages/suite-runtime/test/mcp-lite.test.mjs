@@ -82,8 +82,16 @@ try {
     assert.equal(missing.error, 'invalid_arguments');
     assert.match(missing.message, /missing required property "text"/);
 
+    const valid = await call('tools/call', { name: 'echo', arguments: { text: 'ok' } });
+    assert.equal(valid.result.isError, false);
+    assert.deepEqual(JSON.parse(valid.result.content[0].text), { text: 'ok' });
+
     const badPattern = errorOf(await call('tools/call', { name: 'echo', arguments: { text: 'ABC' } }));
-    assert.match(badPattern.message, /does not match pattern/);
+    assert.match(badPattern.message, /does not match pattern \^\[a-z\]\+\$/);
+
+    const invalidPattern = errorOf(await call('tools/call', { name: 'broken_pattern', arguments: { text: 'ok' } }));
+    assert.equal(invalidPattern.error, 'invalid_arguments');
+    assert.match(invalidPattern.message, /invalid pattern \(\[\//);
 
     const tooLong = errorOf(await call('tools/call', { name: 'echo', arguments: { text: 'waytoolongforthis' } }));
     assert.match(tooLong.message, /longer than maxLength/);
@@ -97,16 +105,12 @@ try {
     const aboveMax = errorOf(await call('tools/call', { name: 'bounded_number', arguments: { n: 11 } }));
     assert.match(aboveMax.message, /above maximum/);
 
-    const valid = await call('tools/call', { name: 'echo', arguments: { text: 'ok' } });
-    assert.equal(valid.result.isError, false);
-    assert.deepEqual(JSON.parse(valid.result.content[0].text), { text: 'ok' });
-
     const validNumber = await call('tools/call', { name: 'bounded_number', arguments: { n: 5 } });
     assert.equal(validNumber.result.isError, false);
 
     child.kill();
   }
-  ok('inputSchema type, pattern, minLength/maxLength, and minimum/maximum are all enforced before a handler runs');
+  ok('inputSchema type, valid-pattern match/mismatch, invalid-pattern safety, minLength/maxLength, and minimum/maximum are all enforced before a handler runs');
 
   // ---- a schema-shaped attribute name never resolves an inherited member ---
   // Regression test-adjacent: a property literally named "constructor" in
