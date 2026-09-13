@@ -91,52 +91,64 @@ docker build -t plugin-suite-billing services/billing
 docker run -p 8787:8787 --env-file services/billing/.env -v billing-data:/data plugin-suite-billing
 ```
 
-### Deploying to Cloud Run
+### Deploying to Fly.io
 
-Cloud Run works too, but only if it is deliberately configured to behave like a single
-long-lived host rather than its default stateless, autoscaled shape — the store is one
-local JSON file with no database behind it yet, so more than one live instance means two
-processes independently believing they hold the source of truth. Pin the instance count
-and mount a real volume; do not deploy this service to Cloud Run with its defaults.
+Fly's volumes are attached to one specific machine rather than shared across a fleet,
+which matches this service's own assumption directly: the store is one local JSON file
+with no database behind it yet, so it needs exactly one process holding it, on a real
+block device (not a network filesystem), same as a VPS.
 
 ```bash
-PROJECT=your-gcp-project
-REGION=us-central1
-BUCKET=${PROJECT}-billing-store   # holds store.json; survives redeploys and restarts
+cd services/billing
+fly launch --no-deploy --name plugin-suite-billing --region iad --dockerfile Dockerfile
+# answers "no" to Postgres/Redis prompts — this service needs neither
 
-gcloud services enable run.googleapis.com secretmanager.googleapis.com \
-  storage.googleapis.com --project "$PROJECT"
-
-gcloud storage buckets create "gs://$BUCKET" --project "$PROJECT" --location "$REGION"
-
-# Credentials go into Secret Manager, never into a --set-env-vars flag or this repo.
-# Run these yourself and paste the real values at the prompt:
-printf '%s' "$STRIPE_SECRET_KEY"    | gcloud secrets create STRIPE_SECRET_KEY    --data-file=- --project "$PROJECT"
-printf '%s' "$STRIPE_WEBHOOK_SECRET" | gcloud secrets create STRIPE_WEBHOOK_SECRET --data-file=- --project "$PROJECT"
-
-gcloud run deploy plugin-suite-billing \
-  --project "$PROJECT" --region "$REGION" \
-  --source services/billing \
-  --execution-environment gen2 \
-  --min-instances 1 --max-instances 1 \
-  --concurrency 80 \
-  --port 8787 \
-  --add-volume name=store-vol,type=cloud-storage,bucket=$BUCKET,readonly=false \
-  --add-volume-mount volume=store-vol,mount-path=/data \
-  --set-secrets STRIPE_SECRET_KEY=STRIPE_SECRET_KEY:latest,STRIPE_WEBHOOK_SECRET=STRIPE_WEBHOOK_SECRET:latest \
-  --set-env-vars "$(grep -v -E '^(STRIPE_SECRET_KEY|STRIPE_WEBHOOK_SECRET)=' services/billing/.env | tr '\n' ',' | sed 's/,$//')"
-
-gcloud run domain-mappings create --service plugin-suite-billing \
-  --domain billing.codestudioplugin.com --region "$REGION" --project "$PROJECT"
-# then add the DNS records it prints at your domain registrar
+fly volumes create billing_data --region iad --size 1 --app plugin-suite-billing
 ```
 
-`--min-instances 1 --max-instances 1` is what makes this safe: exactly one process ever
-holds `/data/store.json`, so its atomic-rename writes behave the same as on a VPS.
-`gcloud` flag names for volume mounts have changed across releases — check
-`gcloud run deploy --help` in your installed version before running this, and re-run
+Add the volume mount to the generated `fly.toml` (the app already sets
+`BILLING_STORE_FILE=/data/store.json` and declares `/data` in the `Dockerfile`):
+
+```toml
+[mounts]
+  source      = "billing_data"
+  destination = "/data"
+
+[[services]]
+  internal_port = 8787
+```
+
+Credentials go into Fly secrets, never into `fly.toml` or this repo — run this yourself
+and paste the real values at the prompt (or pipe from your own secrets manager):
+
+```bash
+fly secrets set --app plugin-suite-billing \
+  STRIPE_SECRET_KEY="$STRIPE_SECRET_KEY" \
+  STRIPE_WEBHOOK_SECRET="$STRIPE_WEBHOOK_SECRET"
+
+# The rest (BILLING_PUBLIC_URL and the 28 STRIPE_PRICE_* ids) aren't secret,
+# so they can ride along as regular env vars from the generated .env:
+fly secrets set --app plugin-suite-billing \
+  $(grep -v -E '^(STRIPE_SECRET_KEY|STRIPE_WEBHOOK_SECRET)=' .env | tr '\n' ' ')
+
+fly deploy --app plugin-suite-billing
+fly scale count 1 --app plugin-suite-billing   # explicit: never more than one machine
+
+fly certs create billing.codestudioplugin.com --app plugin-suite-billing
+# then add the DNS records `fly certs show` prints at your domain registrar
+```
+
+`fly scale count 1` is the load-bearing line: a volume follows its machine, so scaling
+out would either fail to attach a second one or (worse) hand a second instance an empty
+disk while the first still holds the real data. Re-run
 `node services/billing/scripts/setup-stripe.mjs` (see above) any time `catalog.js`
-prices change, since Cloud Run does not pick up a new `.env` on its own.
+prices change, then `fly secrets set` the updated `STRIPE_PRICE_*` values and redeploy —
+Fly does not read a new `.env` on its own.
+
+(Cloud Run can also work here, but only pinned to a single instance with a Cloud Storage
+FUSE volume mount — a real fit, since GCS FUSE is a network filesystem standing in for a
+local disk, and its consistency model matters far less once only one process ever writes
+to it. Fly's own volumes need none of that: they're a real block device from the start.)
 
 Finally point the plugins at the deployment — baked into the archives in one command:
 
