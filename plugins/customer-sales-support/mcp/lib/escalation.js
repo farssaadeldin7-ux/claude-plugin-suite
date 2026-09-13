@@ -89,7 +89,7 @@ export const TRIGGERS = [
       /legal action/i,
       /\bregulator\b/i,
       /\bombudsman\b/i,
-      /\bADR\b/,
+      /\bADR\b/i,
       /trading standards/i,
       /small claims/i,
       /\bsu(?:e|ing) you\b/i,

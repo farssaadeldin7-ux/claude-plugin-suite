@@ -166,5 +166,8 @@ export const USAGE_RULES = [
 ];
 
 export function symptomFor(id) {
-  return SYMPTOMS[String(id ?? '').trim().toLowerCase()] ?? null;
+  // hasOwn, not `?? null`: an inherited name like "constructor" returns
+  // Object.prototype.constructor — truthy, so `?? null` would not catch it.
+  const key = String(id ?? '').trim().toLowerCase();
+  return Object.hasOwn(SYMPTOMS, key) ? SYMPTOMS[key] : null;
 }

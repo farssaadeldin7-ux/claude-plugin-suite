@@ -39,7 +39,13 @@ export const NEVER_RULE =
 export const BURN_DOWN_NOTE =
   'Consumables burn down at roughly 1–1.5 kg/person/day, so a load that is over on day one may be inside the band by day two. Check the second morning before redesigning the plan.';
 
-const HEADROOM_PERCENT = 90;
+// The headroom warning's own message tells the carrier not to start above
+// "about 90-95%" of their band — so the warning must fire once they are
+// past that whole band, not at its very first percentage point.
+const HEADROOM_PERCENT = 95;
+
+const MIN_PLAUSIBLE_BODY_WEIGHT_KG = 20;
+const MAX_PLAUSIBLE_BODY_WEIGHT_KG = 300;
 
 const round1 = (x) => Math.round(x * 10) / 10;
 
@@ -62,6 +68,12 @@ export function weightLedger(roster) {
     throw new ToolError('invalid_roster', 'roster must be a non-empty array of people.');
   }
 
+  // Kept alongside the display-rounded `people` records so the aggregate
+  // fit check below can compare true totals — summing already-rounded
+  // per-person figures first can hide or invent an overage the raw numbers
+  // don't have, once enough sub-100g roundings land the same way.
+  const rawTotals = [];
+
   const people = roster.map((person) => {
     const name = String(person.name ?? '').trim();
     if (!name) throw new ToolError('unnamed_carrier', 'Every roster entry needs a name — a kilogram assigned to nobody is a kilogram someone is quietly carrying.');
@@ -73,7 +85,16 @@ export function weightLedger(roster) {
 
     let basis, limit, bandLabel, percentUsed;
     if (Number.isFinite(person.body_weight_kg) && person.body_weight_kg > 0) {
-      const band = CARRY_BANDS[person.band];
+      if (person.body_weight_kg < MIN_PLAUSIBLE_BODY_WEIGHT_KG || person.body_weight_kg > MAX_PLAUSIBLE_BODY_WEIGHT_KG) {
+        throw new ToolError('implausible_body_weight',
+          `"${name}"'s body_weight_kg (${person.body_weight_kg}) is outside a plausible human range ` +
+          `(${MIN_PLAUSIBLE_BODY_WEIGHT_KG}-${MAX_PLAUSIBLE_BODY_WEIGHT_KG} kg) — check for a units or decimal-point typo.`);
+      }
+      // hasOwn: person.band is caller-supplied, and a plain object indexed by
+      // an inherited name like "constructor" returns a truthy value that
+      // would otherwise slip past this guard and crash deeper in on the
+      // missing .percent field instead of reporting an unknown band.
+      const band = Object.hasOwn(CARRY_BANDS, person.band) ? CARRY_BANDS[person.band] : undefined;
       if (!band) {
         throw new ToolError('unknown_band', `"${name}" needs a conditioning band.`, { available: Object.keys(CARRY_BANDS) });
       }
@@ -109,6 +130,7 @@ export function weightLedger(roster) {
     const total = nonGroup + group;
     const percentOfLimit = Math.round((total / limit) * 100);
     const overBy = total - limit;
+    rawTotals.push({ limit, total });
 
     return {
       name,
@@ -143,8 +165,14 @@ export function weightLedger(roster) {
     throw new ToolError('duplicate_names', `Roster names must be unique: ${[...new Set(duplicates)].join(', ')}.`);
   }
 
-  const totalAllowance = round1(people.reduce((sum, p) => sum + p.limit_kg, 0));
-  const totalLoad = round1(people.reduce((sum, p) => sum + p.total_kg, 0));
+  // Fit is decided on the raw, unrounded totals — only the displayed figures
+  // are rounded — so a real overage can't be rounded away, and a real fit
+  // can't have one invented, by summing per-person numbers already rounded
+  // to the nearest 100 g.
+  const totalAllowanceRaw = rawTotals.reduce((sum, r) => sum + r.limit, 0);
+  const totalLoadRaw = rawTotals.reduce((sum, r) => sum + r.total, 0);
+  const totalAllowance = round1(totalAllowanceRaw);
+  const totalLoad = round1(totalLoadRaw);
   const overloaded = people.filter((p) => p.over_by_kg != null);
   const anyConsumables = people.some((p) => p.consumables_kg > 0);
   const anySelfDeclared = people.some((p) => p.basis === 'self_declared');
@@ -154,12 +182,12 @@ export function weightLedger(roster) {
     summary: {
       total_allowance_kg: totalAllowance,
       total_load_kg: totalLoad,
-      fits_in_aggregate: totalLoad <= totalAllowance,
+      fits_in_aggregate: totalLoadRaw <= totalAllowanceRaw,
       fits_as_split: overloaded.length === 0,
-      ...(overloaded.length && totalLoad <= totalAllowance
+      ...(overloaded.length && totalLoadRaw <= totalAllowanceRaw
         ? { finding: 'The load fits in aggregate and does not fit as split. That is the normal result, and the reason the ledger exists — rebalance before cutting scope.' }
         : {}),
-      ...(totalLoad > totalAllowance
+      ...(totalLoadRaw > totalAllowanceRaw
         ? { finding: `Total load ${totalLoad} kg exceeds the sum of the bands (${totalAllowance} kg). ${NEVER_RULE}` }
         : {}),
       over_band: overloaded.map((p) => p.name),

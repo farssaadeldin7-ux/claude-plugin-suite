@@ -258,5 +258,9 @@ export const CHOOSING = [
 
 export function catalogueFor(name) {
   const key = String(name ?? '').trim().toLowerCase().replace(/[\s-]+/g, '_');
-  return MECHANISMS[key] ?? null;
+  // hasOwn, not `?? null`: an inherited name like "constructor" returns
+  // Object.prototype.constructor — truthy, so `?? null` would not catch it
+  // and an unknown application would spread into a near-empty result instead
+  // of being rejected.
+  return Object.hasOwn(MECHANISMS, key) ? MECHANISMS[key] : null;
 }

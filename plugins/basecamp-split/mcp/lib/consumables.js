@@ -141,17 +141,21 @@ export function sizeConsumables({
   if (!Number.isFinite(days) || days < 1) {
     throw new ToolError('invalid_duration', 'days must be a number of at least 1.');
   }
-  const band = ENERGY_BANDS[exertion];
+  // hasOwn, not a bare lookup: exertion/water_conditions/fuel_conditions are
+  // caller-supplied strings, and a plain object indexed by an inherited name
+  // like "constructor" returns Object.prototype.constructor — truthy, so it
+  // would slip past a `!band` guard instead of being rejected.
+  const band = Object.hasOwn(ENERGY_BANDS, exertion) ? ENERGY_BANDS[exertion] : undefined;
   if (!band) {
     throw new ToolError('unknown_exertion', `No exertion band "${exertion}".`, { available: Object.keys(ENERGY_BANDS) });
   }
   if (!Number.isFinite(ration_density_kcal_per_g) || ration_density_kcal_per_g <= 0) {
     throw new ToolError('invalid_density', 'ration_density_kcal_per_g must be a positive number.');
   }
-  if (water_conditions && !WATER[water_conditions]) {
+  if (water_conditions && !Object.hasOwn(WATER, water_conditions)) {
     throw new ToolError('unknown_conditions', `No water conditions "${water_conditions}".`, { available: Object.keys(WATER) });
   }
-  if (fuel_conditions && !FUEL[fuel_conditions]) {
+  if (fuel_conditions && !Object.hasOwn(FUEL, fuel_conditions)) {
     throw new ToolError('unknown_conditions', `No fuel conditions "${fuel_conditions}".`, { available: Object.keys(FUEL) });
   }
 

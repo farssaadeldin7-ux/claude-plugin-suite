@@ -51,7 +51,13 @@ export function dispatchPlan({ frame_time_seconds, overhead_seconds, work_type =
       ? { dispatch: 'per_frame', detail: `Frame time (${round1(minutes)} min) exceeds 10x your measured overhead (${round1(threshold / 60)} min), so per-frame dispatch keeps overhead under 10% of the total.` }
       : { dispatch: 'batch', frames_per_task: '2–5', detail: `Frame time (${round1(minutes)} min) is under 10x your measured overhead (${round1(threshold / 60)} min): batch 2–5 frames per task so the overhead is paid once.` };
   } else {
-    verdict = { dispatch: 'per_frame', detail: 'Over 30 minutes per frame: dispatch per frame, and consider splitting by tile or sample seed.' };
+    // The same 10x-overhead rule applies here too: a long frame behind a
+    // proportionally long overhead can still fail it, and dispatching per
+    // frame anyway would spend more than the promised 10% of the run on
+    // setup instead of computation.
+    verdict = frame_time_seconds >= threshold
+      ? { dispatch: 'per_frame', detail: `Over 30 minutes per frame, and frame time (${round1(minutes)} min) exceeds 10x your measured overhead (${round1(threshold / 60)} min): dispatch per frame, and consider splitting by tile or sample seed.` }
+      : { dispatch: 'batch', frames_per_task: '2–5', detail: `Over 30 minutes per frame, but frame time (${round1(minutes)} min) is under 10x your measured overhead (${round1(threshold / 60)} min): batch 2–5 frames per task so the overhead is paid once.` };
   }
 
   return {

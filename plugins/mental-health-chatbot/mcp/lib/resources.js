@@ -38,16 +38,32 @@ const DATE_SHAPE = /^\d{4}-\d{2}-\d{2}$/;
 
 function parseDate(value) {
   if (typeof value !== 'string' || !DATE_SHAPE.test(value)) return null;
-  const date = new Date(`${value}T00:00:00Z`);
-  return Number.isNaN(date.getTime()) ? null : date;
+  const [y, m, d] = value.split('-').map(Number);
+  const date = new Date(Date.UTC(y, m - 1, d));
+  // Date silently rolls an out-of-range day into the following month (Feb 30
+  // becomes March 1 or 2) instead of rejecting it — round-tripping the parts
+  // back out is the only way to tell a real calendar date from one that
+  // quietly overflowed, which would otherwise let a block claim verification
+  // on a date that never happened.
+  if (date.getUTCFullYear() !== y || date.getUTCMonth() !== m - 1 || date.getUTCDate() !== d) {
+    return null;
+  }
+  return date;
 }
 
 /** Quarterly means three calendar months; the reference's own example block
  *  runs 2026-08-01 to 2026-11-01. */
 function addThreeMonths(date) {
-  const next = new Date(date.getTime());
-  next.setUTCMonth(next.getUTCMonth() + 3);
-  return next;
+  const day = date.getUTCDate();
+  const targetMonthIndex = date.getUTCMonth() + 3;
+  const year = date.getUTCFullYear();
+  // The day of month may not exist in the target month (30 November has no
+  // "30 February"), in which case naively setting the month rolls forward
+  // into the month after instead — clamp to the target month's actual last
+  // day so the quarterly window can never silently stretch past three
+  // calendar months.
+  const lastDayOfTargetMonth = new Date(Date.UTC(year, targetMonthIndex + 1, 0)).getUTCDate();
+  return new Date(Date.UTC(year, targetMonthIndex, Math.min(day, lastDayOfTargetMonth)));
 }
 
 /**

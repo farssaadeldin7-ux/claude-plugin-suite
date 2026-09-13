@@ -236,7 +236,10 @@ export function costBudget({ elements, animated = false, technology = null }) {
   }
 
   if (technology) {
-    const tech = TECHNOLOGY_CEILINGS[technology];
+    // hasOwn: technology is caller-supplied, and a plain object indexed by an
+    // inherited name like "constructor" returns a truthy value that would
+    // otherwise slip past this guard and end up quoted back as legitimate data.
+    const tech = Object.hasOwn(TECHNOLOGY_CEILINGS, technology) ? TECHNOLOGY_CEILINGS[technology] : undefined;
     if (!tech) {
       throw new ToolError('unknown_technology', `No technology "${technology}".`, { available: TECHNOLOGIES });
     }
@@ -264,7 +267,12 @@ export function svgExportBudget({ points, precision = '3', use_case = null, elem
   if (!Number.isFinite(points) || points <= 0) {
     throw new ToolError('invalid_points', 'points must be a positive number — the total path points across the export.');
   }
-  const key = PRECISION_ALIASES[String(precision).toLowerCase()];
+  // hasOwn: precision is caller-supplied, and a plain object indexed by an
+  // inherited name like "constructor" returns a truthy non-string value that
+  // would otherwise slip past this guard and crash deeper in when no
+  // SVG_PRECISION row matches it.
+  const normalisedPrecision = String(precision).toLowerCase();
+  const key = Object.hasOwn(PRECISION_ALIASES, normalisedPrecision) ? PRECISION_ALIASES[normalisedPrecision] : undefined;
   if (!key) {
     throw new ToolError('unknown_precision', `No precision "${precision}".`, {
       available: ['full', '6', '3', 'integer'],

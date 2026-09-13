@@ -33,7 +33,16 @@ function flatStretches(scenes, valueOf, { shift, windowSeconds }) {
     while (range(left, right) >= shift) left++;
     if (spanDuration(scenes, left, right) >= windowSeconds) {
       const last = found[found.length - 1];
-      if (last && left <= last.toIndex + 1) {
+      // Index-adjacency alone is not enough to merge: the current window
+      // [left, right] being flat says nothing about whether the *previous*
+      // stretch's own start is still within `shift` of these later values —
+      // two scenes can sit right next to each other in the scene list while
+      // their valence jumps by far more than `shift`. Re-checking the range
+      // across the whole proposed merged span is what tells a genuine
+      // continuation of the same flat stretch apart from two separate flat
+      // stretches that merely happen to be adjacent, on either side of a
+      // real jump the merge would otherwise erase.
+      if (last && left <= last.toIndex + 1 && range(last.fromIndex, right) < shift) {
         last.toIndex = right;
       } else {
         found.push({ fromIndex: left, toIndex: right });

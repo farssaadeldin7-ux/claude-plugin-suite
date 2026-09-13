@@ -22,6 +22,18 @@ jobs:
           node packages/suite-runtime/test/mcp-lite.test.mjs
           node packages/suite-runtime/test/license-client.test.mjs
           node packages/suite-runtime/test/local-store.test.mjs
+      - name: Plugin domain-logic tests
+        run: |
+          node plugins/mental-health-chatbot/mcp/test/resources.test.mjs
+          node plugins/predictive-resource-allocation/mcp/test/domain.test.mjs
+          node plugins/basecamp-split/mcp/test/weight.test.mjs
+          node plugins/customer-sales-support/mcp/test/escalation.test.mjs
+          node plugins/neural-link-intention-layer/mcp/test/score.test.mjs
+          node plugins/emotional-resonance-analyzer/mcp/test/arc.test.mjs
+          node plugins/diagnose-by-sound/mcp/test/acoustics.test.mjs
+          node plugins/five-minute-fluency/mcp/test/yield.test.mjs
+          node plugins/ghost-post-preview/mcp/test/fold.test.mjs
+          node test/plugin-table-lookups.test.mjs
       - name: Check vendored runtime is in sync
         run: |
           node scripts/vendor-runtime.mjs

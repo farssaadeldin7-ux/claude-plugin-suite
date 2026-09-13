@@ -55,11 +55,17 @@ export function reviewEstimates({ limit = 20 } = {}) {
   const estimates = readAll();
   const resolved = estimates.filter((e) => e.predicted_value > 0 && e.actual_value > 0);
 
+  // within_25_percent is a stricter subset check, reported alongside — not
+  // instead of — the factor-of-two count: chaining them as else-if branches
+  // would make within_factor_two mean "within a factor of two but *not*
+  // within 25%", so a perfectly calibrated log (every ratio landing inside
+  // the tighter 25% band) would report zero within a factor of two, despite
+  // every single one of them qualifying.
   let within25 = 0, withinBand = 0, outsideBand = 0;
   for (const e of resolved) {
     const ratio = e.actual_value / e.predicted_value;
     if (ratio >= 0.8 && ratio <= 1.25) within25++;
-    else if (ratio >= 0.5 && ratio <= 2) withinBand++;
+    if (ratio >= 0.5 && ratio <= 2) withinBand++;
     else outsideBand++;
   }
 
