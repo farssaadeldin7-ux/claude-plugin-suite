@@ -360,11 +360,22 @@ export const CATALOG = {
 };
 
 export function plugin(pluginId) {
-  return CATALOG[pluginId] ?? null;
+  return Object.hasOwn(CATALOG, pluginId) ? CATALOG[pluginId] : null;
 }
 
 export function plan(pluginId, planId) {
-  return CATALOG[pluginId]?.plans[planId] ?? null;
+  const entry = plugin(pluginId);
+  if (!entry || !Object.hasOwn(entry.plans, planId)) return null;
+  return entry.plans[planId];
+}
+
+/**
+ * -1 is how a plan declares "no ceiling" internally; every outward-facing
+ * response says so as `null` instead; `-1 per month` on a public pricing
+ * page is a rendering bug waiting to happen, not a number worth exposing.
+ */
+export function outwardLimits(limits) {
+  return Object.fromEntries(Object.entries(limits).map(([meter, limit]) => [meter, limit === -1 ? null : limit]));
 }
 
 /** The shape GET /v1/catalog/:pluginId returns, matching the client's list_plans. */
@@ -378,7 +389,7 @@ export function publicCatalog(pluginId) {
       price: p.price,
       interval: p.interval,
       features: p.features,
-      limits: p.limits,
+      limits: outwardLimits(p.limits),
       seats: p.seats,
       available: p.available,
     })),

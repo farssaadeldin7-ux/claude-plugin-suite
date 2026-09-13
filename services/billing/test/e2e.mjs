@@ -176,6 +176,41 @@ try {
   assert.equal((await api('GET', '/v1/catalog/nonsense')).status, 404);
   ok('unknown plugin catalog is a 404');
 
+  // ---- a catalog lookup never resolves an inherited member -----------------
+  // Regression test: CATALOG[pluginId] on a plain object resolves inherited
+  // Object.prototype members too, so /v1/catalog/constructor found the
+  // Object constructor function instead of nothing, and calling .plans on
+  // it threw — a 500, not the clean 404 an unknown plugin id gets.
+  for (const trap of ['constructor', 'prototype', '__proto__', 'hasOwnProperty', 'toString']) {
+    const res = await api('GET', `/v1/catalog/${trap}`);
+    assert.equal(res.status, 404, `/v1/catalog/${trap} must be a 404, not resolve an inherited member`);
+  }
+  ok('a catalog lookup ignores inherited Object.prototype members');
+
+  // ---- a malformed body is a clean 400, not an uncaught 500 ----------------
+  // Regression test: four routes (usage, activate, checkout, portal) parsed
+  // JSON.parse(raw) with no guard, so a body that failed to parse threw
+  // inside the handler and surfaced as a generic internal_error.
+  for (const route of ['/v1/usage', '/v1/license/activate', '/v1/checkout', '/v1/portal']) {
+    const res = await api('POST', route, { raw: '{not json', headers: { 'content-type': 'application/json' } });
+    assert.equal(res.status, 400, `${route} with malformed JSON must be a 400`);
+    assert.equal(res.data.error, 'invalid_json');
+  }
+  ok('malformed JSON is a clean 400 on every route that parses a body');
+
+  // ---- an oversized body gets a real 413, not a reset connection ----------
+  // Regression test: the body-size guard called req.destroy() the moment it
+  // tripped. req and res share one socket, so destroying req made writing
+  // any response — including the 413 this was supposed to produce —
+  // impossible; the caller saw a broken connection instead of a clean error.
+  const oversized = await fetch(`${BASE}/v1/usage`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: 'x'.repeat(70 * 1024),
+  });
+  assert.equal(oversized.status, 413);
+  ok('an oversized request body gets a real 413 response, not a dropped connection');
+
   assert.equal((await api('POST', '/v1/trial', { body: { plugin_id: 'diagnose-by-sound', email: 'shop@example.com' } })).status, 404);
   ok('there is no trial endpoint');
 
@@ -257,10 +292,74 @@ try {
     }
   }
 
+  // ---- a resend must not mint a second licence for one payment ------------
+  // Regression test: event-id idempotency only catches Stripe redelivering
+  // the identical event. A dashboard "resend" (or this event being
+  // reprocessed after a crash between handling and claiming) arrives as a
+  // genuinely different event id for the same checkout session, and used to
+  // sail straight through to a second issueLicense call.
+  {
+    const resendSession = {
+      id: 'cs_resend_1', customer: 'cus_resend_1', subscription: 'sub_resend_1',
+      customer_details: { email: 'resend@example.com' },
+      metadata: { plugin_id: 'diagnose-by-sound', plan: 'pro' },
+    };
+    const first = completeCheckout('evt_resend_a', resendSession);
+    const resend = completeCheckout('evt_resend_b', resendSession);
+    assert.equal((await api('POST', '/v1/stripe/webhook', { raw: first.payload, headers: first.headers })).status, 200);
+    assert.equal((await api('POST', '/v1/stripe/webhook', { raw: resend.payload, headers: resend.headers })).status, 200);
+    const stored = JSON.parse(fs.readFileSync(path.join(tmpDir, 'store.json'), 'utf8'));
+    const matches = Object.values(stored.licenses).filter((l) => l.checkout_session_id === 'cs_resend_1');
+    assert.equal(matches.length, 1, 'a resend of the same session must not create a second licence');
+    ok('two different event ids for the same checkout session issue exactly one licence');
+  }
+
+  // ---- a session without payment must not become a licence -----------------
+  // Regression test: checkout.session.completed can fire before payment has
+  // actually landed (delayed-notification payment methods); issuing here
+  // handed out a licence for money that was never received.
+  {
+    const unpaid = completeCheckout('evt_unpaid_1', {
+      id: 'cs_unpaid_1', customer: 'cus_unpaid_1', subscription: 'sub_unpaid_1',
+      customer_details: { email: 'unpaid@example.com' },
+      metadata: { plugin_id: 'diagnose-by-sound', plan: 'pro' },
+      payment_status: 'unpaid',
+    });
+    assert.equal((await api('POST', '/v1/stripe/webhook', { raw: unpaid.payload, headers: unpaid.headers })).status, 200);
+    const stored = JSON.parse(fs.readFileSync(path.join(tmpDir, 'store.json'), 'utf8'));
+    assert.equal(Object.values(stored.licenses).some((l) => l.checkout_session_id === 'cs_unpaid_1'), false);
+    ok('a checkout session whose payment has not arrived does not issue a licence');
+  }
+
+  // ---- an event matching nothing sellable is logged, not swallowed --------
+  // Regression test: an unsellable plan in the metadata and a subscription
+  // event matching no licence both returned with zero visibility — a real
+  // anomaly would leave no trace to investigate.
+  {
+    const bogus = completeCheckout('evt_bogus_plan', {
+      id: 'cs_bogus_1', customer: 'cus_bogus_1',
+      metadata: { plugin_id: 'diagnose-by-sound', plan: 'nonexistent' },
+    });
+    await api('POST', '/v1/stripe/webhook', { raw: bogus.payload, headers: bogus.headers });
+    await until(async () => assert.match(serverLog, /named no sellable plan/));
+    ok('a checkout naming an unsellable plan is logged, not silently ignored');
+  }
+
   const success = await api('GET', '/success?session_id=cs_dbs_1');
   const key = /PS-DBS(?:-[A-Z2-9]+){4}/.exec(success.data)?.[0];
   assert.ok(key, 'success page shows the issued key');
   ok('the success page shows the new pro licence key');
+
+  // ---- a status check must never itself spend a seat ----------------------
+  // Regression test: GET /v1/entitlement registered the calling device on
+  // any check, so license_status — which promises to only report — silently
+  // burned a seat the first time anyone called it on a new device.
+  const peeked = (await api('GET', '/v1/entitlement?plugin_id=diagnose-by-sound&device_id=device-a&peek=true', { key })).data;
+  assert.equal(peeked.active, true);
+  assert.equal(peeked.seats.used, 0, 'peeking an unregistered device must not register it');
+  const peekedAgain = (await api('GET', '/v1/entitlement?plugin_id=diagnose-by-sound&device_id=device-a&peek=true', { key })).data;
+  assert.equal(peekedAgain.seats.used, 0, 'repeated peeks stay side-effect-free');
+  ok('peek=true checks status without registering the device against a seat');
 
   // ---- entitlement + seats ------------------------------------------------
   const ent = (await api('GET', '/v1/entitlement?plugin_id=diagnose-by-sound&device_id=device-a', { key })).data;
@@ -268,7 +367,7 @@ try {
   assert.equal(ent.status, 'active');
   assert.equal(ent.plan, 'pro');
   assert.deepEqual(ent.features, ['diagnose', 'repair_plan', 'history']);
-  assert.equal(ent.limits.diagnoses_per_month, -1);
+  assert.equal(ent.limits.diagnoses_per_month, null, 'no ceiling is null outward, never the internal -1 sentinel');
   assert.equal(ent.seats.limit, 2);
   assert.equal(ent.seats.used, 1);
   ok('the pro entitlement is active and registers the first device');
@@ -297,6 +396,34 @@ try {
   assert.equal(after.usage.diagnoses_per_month, 2);
   ok('usage is metered, idempotent on replay, and visible in the entitlement');
 
+  // ---- usage is scoped to the plugin the key was sold for ------------------
+  // Regression test: /v1/usage read plugin_id off the body and never checked
+  // it against the licence, so a key for one plugin could meter another's
+  // work under its own name.
+  const wrongPluginUsage = await api('POST', '/v1/usage', {
+    key, body: { plugin_id: 'ghost-post-preview', meter: 'diagnoses_per_month', quantity: 1, idempotency_key: 'u-wrong-plugin' },
+  });
+  assert.equal(wrongPluginUsage.status, 403);
+  assert.equal(wrongPluginUsage.data.error, 'wrong_plugin');
+  ok('/v1/usage refuses a plugin_id that does not match the licence');
+
+  // ---- a meter name is never trusted as a raw object key --------------------
+  // Regression test: recordUsage wrote `license.usage[meter][period] = ...`
+  // with no validation, so {"meter":"__proto__"} reached into and wrote onto
+  // Object.prototype itself — visible from every other object in the process.
+  // "constructor" is the case a naive "letters only" pattern still lets
+  // through: it matches such a pattern but reaches the shared Object
+  // constructor function just as directly.
+  for (const dangerousMeter of ['__proto__', 'constructor', 'prototype']) {
+    const before = Object.prototype.polluted;
+    const attempt = await api('POST', '/v1/usage', {
+      key, body: { plugin_id: 'diagnose-by-sound', meter: dangerousMeter, quantity: 1, idempotency_key: `u-${dangerousMeter}` },
+    });
+    assert.equal(attempt.status, 400, `"${dangerousMeter}" as a meter name must be refused`);
+    assert.equal(Object.prototype.polluted, before, 'Object.prototype must come out exactly as it went in');
+  }
+  ok('dangerous meter names are refused before any of them reaches an object key');
+
   // ---- activation ---------------------------------------------------------
   const activate = (await api('POST', '/v1/license/activate', { body: {
     license_key: key.toLowerCase(), plugin_id: 'diagnose-by-sound', device_id: 'device-a', device_label: 'shop pc',
@@ -304,6 +431,17 @@ try {
   assert.equal(activate.activated, true);
   assert.equal(activate.plan, 'pro');
   ok('activate accepts the key case-insensitively and reports the plan');
+
+  // ---- a failed activation never reveals which keys exist ------------------
+  // Regression test: activation echoed entitlement.reason as the error code,
+  // which told a guesser "unknown_license" from "wrong_plugin" from
+  // "seat_limit_reached" — an oracle for which key strings actually exist.
+  const badActivate = await api('POST', '/v1/license/activate', { body: {
+    license_key: 'PS-DBS-AAAAA-BBBBB-CCCCC-DDDD', plugin_id: 'diagnose-by-sound', device_id: 'device-z',
+  } });
+  assert.equal(badActivate.status, 403);
+  assert.equal(badActivate.data.error, 'activation_failed');
+  ok('a failed activation always answers with the same generic error code');
 
   // ---- checkout -----------------------------------------------------------
   const checkout = (await api('POST', '/v1/checkout', { body: { plugin_id: 'diagnose-by-sound', plan: 'pro', email: 'owner@example.com' } })).data;
@@ -315,6 +453,51 @@ try {
 
   assert.equal((await api('POST', '/v1/checkout', { body: { plugin_id: 'diagnose-by-sound', plan: 'enterprise' } })).status, 404);
   ok('unknown plan is refused');
+
+  // ---- a network failure reaching Stripe never reaches the public caller --
+  // Regression test: stripeRequest() only distinguished a Stripe API error
+  // (safe to relay — Stripe writes those to be shown to a user) from
+  // everything else by whether fetch() itself threw. A DNS failure, a
+  // refused connection, or a proxy in between all threw plain fetch/Node
+  // errors, and those were relayed verbatim to an unauthenticated browser
+  // endpoint — exactly where an internal hostname must never surface.
+  {
+    const deadPort = 8; // universally closed (the old TCP "chargen" port); connection refused, no DNS lookup needed
+    const unreachablePort = 20787 + Math.floor(Math.random() * 1000);
+    const unreachableChild = spawn(process.execPath, [serverPath], {
+      env: {
+        ...process.env,
+        PORT: String(unreachablePort),
+        BILLING_PUBLIC_URL: `http://127.0.0.1:${unreachablePort}`,
+        BILLING_STORE_FILE: path.join(tmpDir, 'unreachable-store.json'),
+        STRIPE_API_BASE: `http://127.0.0.1:${deadPort}`,
+        STRIPE_SECRET_KEY: 'sk_test_mock',
+        STRIPE_WEBHOOK_SECRET: WEBHOOK_SECRET,
+        STRIPE_PRICE_DBS_PRO: 'price_pro_mock',
+        STRIPE_PRICE_DBS_TEAM: 'price_team_mock',
+      },
+      stdio: ['ignore', 'ignore', 'ignore'],
+    });
+    try {
+      await until(async () => {
+        const r = await fetch(`http://127.0.0.1:${unreachablePort}/health`);
+        assert.equal(r.status, 200);
+      });
+      const res = await fetch(`http://127.0.0.1:${unreachablePort}/v1/checkout`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ plugin_id: 'diagnose-by-sound', plan: 'pro' }),
+      });
+      const data = await res.json();
+      assert.equal(res.status, 502);
+      assert.equal(data.error, 'stripe_unreachable');
+      assert.equal(data.message, 'Could not reach Stripe.');
+      assert.doesNotMatch(data.message, /ECONNREFUSED|127\.0\.0\.1|fetch failed/, 'the raw network error must never reach the caller');
+    } finally {
+      unreachableChild.kill();
+    }
+  }
+  ok('a network failure reaching Stripe answers with a generic message, not the raw error');
 
   // ---- second plugin: ghost-post-preview ---------------------------------
   const gppCatalog = (await api('GET', '/v1/catalog/ghost-post-preview')).data;
@@ -336,6 +519,20 @@ try {
   const crossPlugin = (await api('GET', '/v1/entitlement?plugin_id=diagnose-by-sound&device_id=device-a', { key: gppKey })).data;
   assert.deepEqual(crossPlugin, { active: false, reason: 'wrong_plugin' });
   ok('ghost-post-preview has its own catalog, webhook-issued keys, and plugin-scoped licences');
+
+  // ---- a subscription that has stopped paying must lose entitlement -------
+  // Regression test: the status check was a deny-list of exactly three
+  // strings ('canceled', 'inactive', 'past_due'), so 'unpaid' — what a
+  // subscription becomes after every dunning retry has failed — was fully
+  // entitled by default, same as 'incomplete', 'incomplete_expired' and
+  // 'paused'.
+  const unpaidSub = JSON.stringify({
+    id: 'evt_gpp_unpaid', type: 'customer.subscription.updated', data: { object: { id: 'sub_gpp_1', status: 'unpaid' } },
+  });
+  await api('POST', '/v1/stripe/webhook', { raw: unpaidSub, headers: { 'stripe-signature': signWebhookPayload(unpaidSub, WEBHOOK_SECRET) } });
+  const unpaidEnt = (await api('GET', '/v1/entitlement?plugin_id=ghost-post-preview&device_id=device-a', { key: gppKey })).data;
+  assert.deepEqual(unpaidEnt, { active: false, reason: 'inactive' });
+  ok('a status other than active is denied by default, not allowed by default');
 
   // ---- portal -------------------------------------------------------------
   const portal = (await api('POST', '/v1/portal', { body: { license_key: key } })).data;
