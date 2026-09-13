@@ -44,13 +44,26 @@ export class Store {
   }
 
   // ---- webhook / usage idempotency --------------------------------------
+  //
+  // Callers must check isEventClaimed() before doing the work, then call
+  // claimEvent() only once that work has actually succeeded. Claiming
+  // before the work runs — and standing by that claim even when the work
+  // throws — means a handler failure permanently burns the id: the retry
+  // that would otherwise fix things instead reads as an already-handled
+  // duplicate and is dropped. For a Stripe webhook that turns into a paid
+  // licence, that failure mode is silent and unrecoverable, so it matters
+  // that claim-then-work is never used here.
 
-  /** Returns true the first time an id is seen, false on replays. */
+  /** True if this id has already been successfully processed. */
+  isEventClaimed(id) {
+    return Boolean(id && this.data.events[id]);
+  }
+
+  /** Record that an id's work has succeeded. Call only after that work returns without throwing. */
   claimEvent(id) {
-    if (!id || this.data.events[id]) return false;
+    if (!id) return;
     this.data.events[id] = Date.now();
     this.save();
-    return true;
   }
 
 }
