@@ -12,11 +12,28 @@ export class Store {
   constructor(file) {
     this.file = file;
     this.data = { version: 1, licenses: {}, events: {} };
+    let raw;
     try {
-      const parsed = JSON.parse(fs.readFileSync(this.file, 'utf8'));
-      this.data = { ...this.data, ...parsed };
+      raw = fs.readFileSync(file, 'utf8');
     } catch {
-      // First run — start empty.
+      // No file we can even open yet — a first run, a not-yet-mounted
+      // volume, a parent directory save() hasn't created. None of that is
+      // corruption; it's "nothing to load", same as the previous behaviour.
+      return;
+    }
+    try {
+      this.data = { ...this.data, ...JSON.parse(raw) };
+    } catch (err) {
+      // The file exists and was readable, but isn't valid JSON — most likely
+      // truncated or corrupted. Treating that as "empty, start fresh" (the
+      // previous behaviour) would let the very next save() overwrite real
+      // customer data with nothing. Fail loudly instead: refusing to start
+      // gives an operator the chance to restore from backup before anything
+      // gets silently destroyed.
+      throw new Error(
+        `Billing store at ${file} exists but is not valid JSON (${err.message}). ` +
+        'Refusing to start and risk overwriting it — restore from backup or repair the file by hand.'
+      );
     }
   }
 

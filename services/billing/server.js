@@ -41,9 +41,14 @@ const json = (res, status, body) => {
   res.end(text);
 };
 
+/** A page carrying a licence key gets the headers that page deserves. */
 const html = (res, status, body) => {
-  res.writeHead(status, { 'content-type': 'text/html; charset=utf-8' });
-  res.end(body);
+  res.writeHead(status, {
+    'content-type': 'text/html; charset=utf-8',
+    'x-content-type-options': 'nosniff',
+    'content-security-policy': "default-src 'none'; style-src 'unsafe-inline'",
+  });
+  res.end(`<!doctype html>\n${body}`);
 };
 
 const fail = (res, status, error, message) => json(res, status, { error, message });
@@ -53,14 +58,14 @@ const bearerKey = (req) => {
   return match ? match[1].trim().toUpperCase() : null;
 };
 
-const readBody = (req) => new Promise((resolve, reject) => {
+const readBody = (req, maxBytes = 64 * 1024) => new Promise((resolve, reject) => {
   const chunks = [];
   let size = 0;
   let tooLarge = false;
   req.on('data', (chunk) => {
     if (tooLarge) return;
     size += chunk.length;
-    if (size > 64 * 1024) {
+    if (size > maxBytes) {
       // Stop buffering, but never destroy the socket here: req and res share
       // one connection, and a destroyed req can't carry a 413 back on res.
       tooLarge = true;
@@ -74,6 +79,10 @@ const readBody = (req) => new Promise((resolve, reject) => {
   req.on('end', () => { if (!tooLarge) resolve(Buffer.concat(chunks).toString('utf8')); });
   req.on('error', reject);
 });
+
+// A real Stripe invoice-heavy event can run well past a small control-plane
+// request; the webhook route gets its own, larger budget (see its handler).
+const WEBHOOK_BODY_LIMIT = 1024 * 1024;
 
 /** JSON.parse that fails as a clean 400 instead of an uncaught 500. */
 const readJsonBody = async (req) => {
@@ -95,6 +104,14 @@ const readJsonBody = async (req) => {
 const SAFE_METER_PATTERN = /^[a-z][a-z0-9_]*$/;
 const UNSAFE_METER_NAMES = new Set(['constructor', 'prototype', '__proto__']);
 const isSafeMeter = (meter) => typeof meter === 'string' && SAFE_METER_PATTERN.test(meter) && !UNSAFE_METER_NAMES.has(meter);
+
+// Loose on purpose (an exact RFC 5322 check rejects real addresses); this is
+// only to stop garbage and oversized values from reaching Stripe unchecked.
+const looksLikeEmail = (email) => typeof email === 'string' && email.length <= 254 && /^\S+@\S+\.\S+$/.test(email);
+// The client derives this as a 32-char hex hash; a bound, safe-charset check
+// stops a caller from storing arbitrary blobs against a licence's seat list.
+const isSafeDeviceId = (id) => typeof id === 'string' && id.length > 0 && id.length <= 128 && /^[A-Za-z0-9_-]+$/.test(id);
+const MAX_USAGE_QUANTITY = 100_000;
 
 const escapeHtml = (s) => String(s).replace(/[&<>"']/g, (c) => (
   { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
@@ -138,10 +155,14 @@ async function handle(req, res) {
   }
 
   if (route === 'GET /v1/entitlement') {
+    const deviceId = url.searchParams.get('device_id');
+    if (deviceId !== null && !isSafeDeviceId(deviceId)) {
+      return fail(res, 400, 'invalid_request', 'device_id is malformed.');
+    }
     const entitlement = entitlementFor(store, {
       key: bearerKey(req),
       pluginId: url.searchParams.get('plugin_id'),
-      deviceId: url.searchParams.get('device_id'),
+      deviceId,
       // license_status calls this with peek=true: a status check must never
       // itself be the thing that spends a seat on an unregistered device.
       register: url.searchParams.get('peek') !== 'true',
@@ -160,13 +181,22 @@ async function handle(req, res) {
     if (body.plugin_id && body.plugin_id !== license.plugin_id) {
       return fail(res, 403, 'wrong_plugin', 'This licence is not for the plugin named in the request.');
     }
-    const usageEventId = `usage:${body.idempotency_key}`;
+    if (typeof body.idempotency_key !== 'string' || !body.idempotency_key) {
+      return fail(res, 400, 'invalid_request', 'An idempotency_key is required.');
+    }
+    const quantity = body.quantity ?? 1;
+    if (!Number.isInteger(quantity) || quantity < 1 || quantity > MAX_USAGE_QUANTITY) {
+      return fail(res, 400, 'invalid_request', `quantity must be an integer between 1 and ${MAX_USAGE_QUANTITY}.`);
+    }
+    // Scoped by licence key: two different customers omitting or colliding
+    // on the same idempotency_key must never dedupe against each other.
+    const usageEventId = `usage:${license.key}:${body.idempotency_key}`;
     if (store.isEventClaimed(usageEventId)) {
       return json(res, 200, {
         recorded: true, deduplicated: true, meter: body.meter, period: currentPeriod(), used: usageFor(license)[body.meter] ?? 0,
       });
     }
-    const used = recordUsage(store, license, body.meter, Number(body.quantity) || 1);
+    const used = recordUsage(store, license, body.meter, quantity);
     store.claimEvent(usageEventId);
     return json(res, 200, { recorded: true, meter: body.meter, period: currentPeriod(), used });
   }
@@ -174,6 +204,9 @@ async function handle(req, res) {
   if (route === 'POST /v1/license/activate') {
     const body = await readJsonBody(req);
     const key = String(body.license_key ?? '').trim().toUpperCase();
+    if (body.device_id !== undefined && !isSafeDeviceId(body.device_id)) {
+      return fail(res, 400, 'invalid_request', 'device_id is malformed.');
+    }
     const entitlement = entitlementFor(store, {
       key,
       pluginId: body.plugin_id,
@@ -204,6 +237,9 @@ async function handle(req, res) {
     const planDef = planFor(pluginId, planId);
     if (!planDef) return fail(res, 404, 'unknown_plan', `No plan "${planId}" for "${pluginId}".`);
     if (!planDef.price) return fail(res, 400, 'invalid_request', 'This plan is not purchasable.');
+    if (email !== undefined && !looksLikeEmail(email)) {
+      return fail(res, 400, 'invalid_request', 'email is not a valid email address.');
+    }
     const priceId = process.env[planDef.stripe_price_env];
     if (!priceId) return fail(res, 503, 'plan_not_configured', `The Stripe price for "${planId}" is not configured yet.`);
     try {
@@ -231,7 +267,7 @@ async function handle(req, res) {
   }
 
   if (route === 'POST /v1/stripe/webhook') {
-    const raw = await readBody(req);
+    const raw = await readBody(req, WEBHOOK_BODY_LIMIT);
     const secret = process.env.STRIPE_WEBHOOK_SECRET;
     if (!verifyWebhookSignature(raw, req.headers['stripe-signature'], secret)) {
       return fail(res, 400, 'bad_signature', 'Webhook signature verification failed.');
@@ -253,6 +289,10 @@ async function handle(req, res) {
   }
 
   if (route === 'GET /success') {
+    // Never cached: this page holds a live licence key, and a proxy or
+    // browser cache holding onto it would keep re-serving that key to
+    // whoever's device asks next, long after this checkout is history.
+    res.setHeader('cache-control', 'no-store');
     const sessionId = url.searchParams.get('session_id');
     const license = sessionId && store.findLicense((l) => l.checkout_session_id === sessionId);
     if (!license) {
@@ -351,4 +391,16 @@ server.listen(PORT, () => {
     console.error(`[billing] ${missing.length} plan(s) not purchasable — missing env: ${missing.join(', ')}`);
     console.error('[billing] run scripts/setup-stripe.mjs to provision them (see .env.example).');
   }
+});
+
+// Without this, a redeploy's SIGTERM cuts every in-flight request off mid-
+// response — including a webhook whose handler had already run and was
+// about to claim its event, which would otherwise look identical to the
+// handler-failure case this service goes out of its way to protect against
+// elsewhere. server.close() stops accepting new connections and lets
+// in-flight ones finish naturally; the host's own kill timeout is the
+// backstop if one never does.
+process.on('SIGTERM', () => {
+  console.error('[billing] SIGTERM received, finishing in-flight requests');
+  server.close(() => process.exit(0));
 });

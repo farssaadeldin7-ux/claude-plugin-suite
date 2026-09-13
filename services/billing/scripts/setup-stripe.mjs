@@ -40,17 +40,38 @@ function exit(message) {
   process.exit(1);
 }
 
-async function stripe(method, endpoint, params = null) {
-  const response = await fetch(`${API_BASE}${endpoint}`, {
-    method,
-    headers: {
-      authorization: `Bearer ${SECRET_KEY}`,
-      'content-type': 'application/x-www-form-urlencoded',
-    },
-    body: params ? formEncode(params) : undefined,
-  });
+const REQUEST_TIMEOUT_MS = 15000;
+
+/**
+ * allow404 exists for the three existence-check GETs below (does this
+ * product/price/webhook already exist?), where a 404 is the expected shape
+ * of "not yet". It must never apply to a write: a POST/DELETE hitting a
+ * broken or deprecated endpoint would otherwise fall through silently, and
+ * a caller reading `created.data.id` off an empty error body would write
+ * the literal string "undefined" into the generated .env as a Stripe price
+ * id.
+ */
+async function stripe(method, endpoint, params = null, { allow404 = false } = {}) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+  let response;
+  try {
+    response = await fetch(`${API_BASE}${endpoint}`, {
+      method,
+      headers: {
+        authorization: `Bearer ${SECRET_KEY}`,
+        'content-type': 'application/x-www-form-urlencoded',
+      },
+      body: params ? formEncode(params) : undefined,
+      signal: controller.signal,
+    });
+  } catch (err) {
+    exit(`Stripe ${method} ${endpoint} did not respond: ${err.message}`);
+  } finally {
+    clearTimeout(timer);
+  }
   const data = await response.json().catch(() => ({}));
-  if (!response.ok && response.status !== 404) {
+  if (!response.ok && !(allow404 && response.status === 404)) {
     exit(`Stripe ${method} ${endpoint} failed: ${data.error?.message ?? `HTTP ${response.status}`}`);
   }
   return { status: response.status, data };
@@ -73,6 +94,11 @@ function writeEnvFile(vars) {
   const lines = Object.entries(vars).map(([k, v]) => `${k}=${v}`);
   fs.mkdirSync(path.dirname(ENV_FILE), { recursive: true });
   fs.writeFileSync(ENV_FILE, `${lines.join('\n')}\n`, { mode: 0o600 });
+  // { mode } on writeFileSync only applies when the file is newly created —
+  // on a re-run against an existing .env (this script is meant to be
+  // re-run), the file keeps whatever permissions it already had. chmod
+  // unconditionally so a live secret key never ends up at the umask default.
+  fs.chmodSync(ENV_FILE, 0o600);
 }
 
 // ---- provisioning ----------------------------------------------------------
@@ -89,7 +115,7 @@ for (const [pluginId, entry] of Object.entries(CATALOG)) {
     const lookupKey = `${entry.code.toLowerCase()}_${planId}`;
 
     // Product first: deterministic id makes re-runs find it.
-    const existingProduct = await stripe('GET', `/v1/products/${productId}`);
+    const existingProduct = await stripe('GET', `/v1/products/${productId}`, null, { allow404: true });
     if (existingProduct.status === 404) {
       await stripe('POST', '/v1/products', {
         id: productId,
