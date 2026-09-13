@@ -14,33 +14,144 @@ const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 let passed = 0;
 const ok = (name) => { passed++; console.log(`  ok  ${name}`); };
 
-function collectToolBlocks(relPath) {
-  const lines = fs.readFileSync(path.join(root, relPath), 'utf8').split(/\r?\n/);
-  const blocks = [];
-  let current = null;
+function lineOf(source, index) {
+  return source.slice(0, index).split(/\r?\n/).length;
+}
 
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i];
-    const start = line.match(/^(\s*)server\.tool\(\s*'([^']+)'/);
-    if (start) {
-      assert.equal(current, null, `${relPath}:${i + 1} starts a new tool block before the previous one ended`);
-      current = {
-        indent: start[1],
-        name: start[2],
-        line: i + 1,
-        lines: [line],
-      };
+function matchBrace(source, openIndex) {
+  let depth = 0;
+  let quote = null;
+  let lineComment = false;
+  let blockComment = false;
+
+  for (let i = openIndex; i < source.length; i++) {
+    const ch = source[i];
+    const next = source[i + 1];
+
+    if (lineComment) {
+      if (ch === '\n') lineComment = false;
       continue;
     }
-    if (!current) continue;
-    current.lines.push(line);
-    if (line === `${current.indent}});`) {
-      blocks.push(current);
-      current = null;
+    if (blockComment) {
+      if (ch === '*' && next === '/') {
+        blockComment = false;
+        i++;
+      }
+      continue;
+    }
+    if (quote) {
+      if (ch === '\\') {
+        i++;
+        continue;
+      }
+      if (ch === quote) quote = null;
+      continue;
+    }
+    if (ch === '/' && next === '/') {
+      lineComment = true;
+      i++;
+      continue;
+    }
+    if (ch === '/' && next === '*') {
+      blockComment = true;
+      i++;
+      continue;
+    }
+    if (ch === '\'' || ch === '"' || ch === '`') {
+      quote = ch;
+      continue;
+    }
+    if (ch === '{') depth++;
+    if (ch === '}') {
+      depth--;
+      if (depth === 0) return i;
     }
   }
 
-  assert.equal(current, null, `${relPath}:${current?.line} has an unterminated tool block`);
+  throw new Error(`Unterminated tool spec object starting at line ${lineOf(source, openIndex)}`);
+}
+
+function topLevelKeys(objectSource) {
+  const keys = new Set();
+  let depth = 0;
+  let quote = null;
+  let lineComment = false;
+  let blockComment = false;
+
+  for (let i = 0; i < objectSource.length; i++) {
+    const ch = objectSource[i];
+    const next = objectSource[i + 1];
+
+    if (lineComment) {
+      if (ch === '\n') lineComment = false;
+      continue;
+    }
+    if (blockComment) {
+      if (ch === '*' && next === '/') {
+        blockComment = false;
+        i++;
+      }
+      continue;
+    }
+    if (quote) {
+      if (ch === '\\') {
+        i++;
+        continue;
+      }
+      if (ch === quote) quote = null;
+      continue;
+    }
+    if (ch === '/' && next === '/') {
+      lineComment = true;
+      i++;
+      continue;
+    }
+    if (ch === '/' && next === '*') {
+      blockComment = true;
+      i++;
+      continue;
+    }
+    if (ch === '\'' || ch === '"' || ch === '`') {
+      quote = ch;
+      continue;
+    }
+
+    if (ch === '{') {
+      depth++;
+      continue;
+    }
+    if (ch === '}') {
+      depth--;
+      continue;
+    }
+
+    if (depth !== 1 || !/[A-Za-z_$]/.test(ch)) continue;
+    const rest = objectSource.slice(i);
+    const match = rest.match(/^([A-Za-z_$][\w$]*)\s*:/);
+    if (!match) continue;
+    keys.add(match[1]);
+    i += match[0].length - 1;
+  }
+
+  return keys;
+}
+
+function collectToolBlocks(relPath) {
+  const source = fs.readFileSync(path.join(root, relPath), 'utf8');
+  const blocks = [];
+  const toolStart = /server\.tool\(\s*(["'`])((?:\\.|(?!\1)[^\\])*)\1\s*,/g;
+
+  for (const match of source.matchAll(toolStart)) {
+    const objectStart = source.indexOf('{', match.index + match[0].length);
+    assert.notEqual(objectStart, -1, `${relPath}:${lineOf(source, match.index)} has no tool spec object`);
+    const objectEnd = matchBrace(source, objectStart);
+    blocks.push({
+      line: lineOf(source, match.index),
+      name: match[2],
+      keys: topLevelKeys(source.slice(objectStart, objectEnd + 1)),
+    });
+  }
+
   return blocks;
 }
 
@@ -56,9 +167,8 @@ try {
     assert.ok(blocks.length > 0, `${relPath} should register at least one tool`);
     total += blocks.length;
     for (const block of blocks) {
-      const prefix = `${block.indent}  `;
       const missing = ['description', 'inputSchema', 'handler']
-        .filter((property) => !block.lines.some((line) => line.startsWith(`${prefix}${property}:`)));
+        .filter((property) => !block.keys.has(property));
       assert.deepEqual(
         missing,
         [],
