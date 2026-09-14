@@ -121,7 +121,7 @@ export function saveProfile(input, changeNote) {
       created_at: existing?.created_at ?? now,
       updated_at: now,
       name: input.name ?? existing?.name ?? null,
-      version: input.version,
+      version: input.version ?? existing?.version,
       scope: input.scope ?? existing?.scope ?? null,
       never_list: input.never_list ?? existing?.never_list ?? [],
       dimensions: input.dimensions ?? existing?.dimensions ?? [],

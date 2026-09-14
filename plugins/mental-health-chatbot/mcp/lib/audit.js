@@ -64,10 +64,22 @@ const storePath = () => store.file;
 
 function isoDayOf(value, field) {
   if (value === undefined) return new Date().toISOString().slice(0, 10);
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(String(value)) || Number.isNaN(Date.parse(value))) {
+  const str = String(value);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(str)) {
     throw new ToolError('invalid_date', `"${value}" is not a date — pass ${field} as YYYY-MM-DD.`);
   }
-  return String(value);
+  // Date.parse (and `new Date(...)`) silently rolls an out-of-range day into
+  // the following month — "2024-02-30" parses fine as 1 March 2024 — instead
+  // of rejecting it, which would let a session, or a since/until filter,
+  // claim a calendar date that never happened. Round-tripping the parsed
+  // parts back out (same technique as lib/resources.js's parseDate) is the
+  // only way to tell a real calendar date from one that quietly overflowed.
+  const [y, m, d] = str.split('-').map(Number);
+  const date = new Date(Date.UTC(y, m - 1, d));
+  if (date.getUTCFullYear() !== y || date.getUTCMonth() !== m - 1 || date.getUTCDate() !== d) {
+    throw new ToolError('invalid_date', `"${value}" is not a date — pass ${field} as YYYY-MM-DD.`);
+  }
+  return str;
 }
 
 const CATEGORY_NUMBERS = TRIGGER_CATEGORIES.map((c) => c.category);
