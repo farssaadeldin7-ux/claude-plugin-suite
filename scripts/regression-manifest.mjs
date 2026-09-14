@@ -20,6 +20,20 @@
  * assertion can actually speak to.
  */
 export const REGRESSIONS = [
+  // ---- go-live hardening (services/billing, release artifacts) -------------
+  {
+    id: 'env',
+    summary: 'the service would start with a test Stripe key in production, issuing real licences against payments that never happened',
+    testFiles: ['services/billing/test/env.test.mjs'],
+    pattern: /test key/,
+  },
+  {
+    id: 'baked-url',
+    summary: 'an archive built without bake-billing-url.mjs points every licence check at the placeholder host',
+    testFiles: ['test/shipped-artifacts.test.mjs'],
+    pattern: /placeholder/,
+  },
+
   // ---- shared runtime (packages/suite-runtime/mcp-lite.js) -----------------
   {
     id: '64',
