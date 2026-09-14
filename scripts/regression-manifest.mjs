@@ -212,6 +212,18 @@ export const REGRESSIONS = [
     pattern: /does not exist on the calendar/,
   },
   {
+    id: 'audit-isodate-rollover',
+    summary: "audit.js's isoDayOf had the same date-rollover bug already fixed in resources.js's parseDate: Date.parse('2024-02-30') silently rolls forward to March 1st instead of throwing, so a session (or a since/until filter) could claim a calendar date that never happened",
+    testFiles: ['plugins/mental-health-chatbot/mcp/test/audit.test.mjs'],
+    pattern: /Feb 29 in a non-leap year/,
+  },
+  {
+    id: 'profile-version-fallback',
+    summary: 'saveProfile carried every field forward with an existing-value fallback except version, which was set to input.version with no fallback — an update call that omitted version silently nulled it out',
+    testFiles: ['plugins/generative-digital-twin/mcp/test/domain.test.mjs'],
+    pattern: /preserve the existing version, not drop it to undefined/,
+  },
+  {
     id: '02',
     summary: 'the quarterly re-verification window stretched on month-end dates',
     testFiles: ['plugins/mental-health-chatbot/mcp/test/resources.test.mjs'],
