@@ -163,6 +163,29 @@ try {
   assert.doesNotThrow(() => new Store(missingStorePath));
   ok('a store file that exists but fails to parse refuses to start; one that never existed starts empty');
 
+  // ---- writes are durable: fsync on both the data file and its rename -----
+  // Regression test: save() only ever wrote-then-renamed with no fsync at
+  // all — a write can return before the bytes are actually on disk, and a
+  // rename can return before the directory entry it updated is durable
+  // either. A power cut right after a successful save() could still leave
+  // the store pointing at a stale or missing file. Spied rather than
+  // actually pulling the plug: fsyncSync must be called once for the data
+  // file and (off Windows) once for the directory it was renamed into.
+  {
+    const store = new Store(path.join(tmpDir, 'fsync-store.json'));
+    const originalFsync = fs.fsyncSync;
+    let fsyncCalls = 0;
+    fs.fsyncSync = (...args) => { fsyncCalls++; return originalFsync.apply(fs, args); };
+    try {
+      store.putLicense({ key: 'PS-TST-AAAAA-BBBBB-CCCCC-DDDD' });
+    } finally {
+      fs.fsyncSync = originalFsync;
+    }
+    const expected = process.platform === 'win32' ? 1 : 2;
+    assert.equal(fsyncCalls, expected, 'both the data file and (off Windows) its directory must be fsynced on every save');
+  }
+  ok('save() fsyncs the write and the rename so a crash right after cannot lose it');
+
   await until(async () => {
     const { data } = await api('GET', '/health');
     assert.equal(data.ok, true);

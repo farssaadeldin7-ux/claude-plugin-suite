@@ -20,6 +20,20 @@
  * assertion can actually speak to.
  */
 export const REGRESSIONS = [
+  // ---- go-live hardening (services/billing, release artifacts) -------------
+  {
+    id: 'env',
+    summary: 'the service would start with a test Stripe key in production, issuing real licences against payments that never happened',
+    testFiles: ['services/billing/test/env.test.mjs'],
+    pattern: /test key/,
+  },
+  {
+    id: 'baked-url',
+    summary: 'an archive built without bake-billing-url.mjs points every licence check at the placeholder host',
+    testFiles: ['test/shipped-artifacts.test.mjs'],
+    pattern: /placeholder/,
+  },
+
   // ---- shared runtime (packages/suite-runtime/mcp-lite.js) -----------------
   {
     id: '81',
@@ -38,6 +52,12 @@ export const REGRESSIONS = [
     summary: 'Infinity/NaN in a tool result silently became null',
     testFiles: ['packages/suite-runtime/test/mcp-lite.test.mjs'],
     pattern: /overflowed.*['"]Infinity['"]/,
+  },
+  {
+    id: '80',
+    summary: 'an invalid tool schema pattern threw a SyntaxError instead of producing a validation error',
+    testFiles: ['packages/suite-runtime/test/mcp-lite.test.mjs'],
+    pattern: /invalid pattern/,
   },
   {
     id: '26',
@@ -111,6 +131,15 @@ export const REGRESSIONS = [
     summary: 'every plugin store lost records to concurrent writes',
     testFiles: ['packages/suite-runtime/test/local-store.test.mjs'],
     pattern: /lose no records/,
+  },
+  {
+    id: '79',
+    summary: 'writes were never fsynced, so a power cut right after a successful write or rename could still lose it',
+    testFiles: [
+      'packages/suite-runtime/test/local-store.test.mjs',
+      'services/billing/test/e2e.mjs',
+    ],
+    pattern: /fsyncs the write and the rename/,
   },
 
   // ---- billing service (services/billing) ----------------------------------

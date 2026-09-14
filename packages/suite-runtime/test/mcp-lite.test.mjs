@@ -12,6 +12,7 @@ import assert from 'node:assert/strict';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawn } from 'node:child_process';
+import { validateAgainstSchema } from '../mcp-lite.js';
 
 const fixturePath = path.join(path.dirname(fileURLToPath(import.meta.url)), 'fixture-server.mjs');
 
@@ -121,6 +122,23 @@ try {
     child.kill();
   }
   ok('an argument property named "constructor" does not resolve an inherited schema member');
+
+  // ---- an invalid schema pattern degrades to a validation error, not a crash --
+  // Regression test: new RegExp(schema.pattern) threw a SyntaxError for a
+  // tool schema whose own pattern isn't valid regex syntax — a schema
+  // author's typo turning into an uncaught exception inside validation
+  // itself (tools/call has no try/catch around this step), rather than the
+  // same {error, message} shape this function reports for every other kind
+  // of invalid input.
+  {
+    const errors = validateAgainstSchema(
+      { type: 'object', properties: { s: { type: 'string', pattern: '(' } }, required: ['s'] },
+      { s: 'x' }
+    );
+    assert.equal(errors.length, 1);
+    assert.match(errors[0], /invalid pattern/);
+  }
+  ok('a tool schema with an invalid regex pattern produces a validation error instead of throwing');
 
   // ---- Infinity and NaN in a result are visible, never silently null ------
   // Regression test (#04): JSON has no representation for either, so

@@ -299,8 +299,20 @@ function validateNode(schema, value, path, errors) {
     if (typeof schema.maxLength === 'number' && value.length > schema.maxLength) {
       errors.push(`${path}: longer than maxLength ${schema.maxLength}`);
     }
-    if (typeof schema.pattern === 'string' && !new RegExp(schema.pattern).test(value)) {
-      errors.push(`${path}: does not match pattern ${schema.pattern}`);
+    if (typeof schema.pattern === 'string') {
+      // A malformed pattern is a schema-authoring mistake, not a caller
+      // mistake — new RegExp() throws SyntaxError on an invalid pattern, and
+      // an uncaught throw here would abort the whole tools/call handling
+      // instead of reporting a normal, actionable validation error.
+      let re;
+      try {
+        re = new RegExp(schema.pattern);
+      } catch (err) {
+        errors.push(`${path}: tool schema has an invalid pattern ${JSON.stringify(schema.pattern)} (${err.message})`);
+      }
+      if (re && !re.test(value)) {
+        errors.push(`${path}: does not match pattern ${schema.pattern}`);
+      }
     }
   }
 

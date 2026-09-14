@@ -71,6 +71,37 @@ function releaseLock(lockPath) {
   try { fs.rmSync(lockPath, { force: true }); } catch { /* already gone */ }
 }
 
+// A plain writeFileSync() can return before the bytes are actually on disk —
+// the OS is free to hold them in its page cache. fsync-ing the descriptor
+// before it's closed forces that flush, so a power cut right after this
+// function returns can no longer leave the .tmp file truncated or missing.
+function writeFileDurable(file, data, mode) {
+  const fd = fs.openSync(file, 'w', mode);
+  try {
+    fs.writeSync(fd, data);
+    fs.fsyncSync(fd);
+  } finally {
+    fs.closeSync(fd);
+  }
+}
+
+// Even with the .tmp file itself synced, renameSync() only updates the
+// directory entry in the page cache unless the directory's own descriptor is
+// fsynced too — otherwise a crash right after a successful rename can still
+// lose the rename on reboot, leaving the old file (or nothing) in its place.
+// Directories can't be opened for fsync on Windows; skip there rather than
+// fail a write over a guarantee that platform doesn't offer anyway.
+function fsyncDirSync(dir) {
+  if (process.platform === 'win32') return;
+  let fd;
+  try {
+    fd = fs.openSync(dir, 'r');
+    fs.fsyncSync(fd);
+  } finally {
+    if (fd !== undefined) fs.closeSync(fd);
+  }
+}
+
 /**
  * @param {string} fileName e.g. "diagnose-by-sound-cases.json"
  * @param {string} key the array's key inside the JSON file, e.g. "cases"
@@ -122,8 +153,14 @@ export function createJsonArrayStore(fileName, key, lockOptions = {}) {
     ensureDir();
     // Write-then-rename so a crash mid-write can never truncate the file.
     const tmp = `${file}.tmp`;
-    fs.writeFileSync(tmp, JSON.stringify({ version: 1, [key]: items }, null, 2), { mode: 0o600 });
+    writeFileDurable(tmp, JSON.stringify({ version: 1, [key]: items }, null, 2), 0o600);
     fs.renameSync(tmp, file);
+    // The rename above is only durable once the directory entry it updated
+    // is itself synced — without this, a power cut right after a successful
+    // rename can still leave the old (or no) file behind despite the
+    // renameSync call having returned. The lock only orders two writers
+    // against each other; it says nothing about the write reaching disk.
+    fsyncDirSync(path.dirname(file));
   }
 
   return {
