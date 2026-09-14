@@ -222,4 +222,6 @@ try {
 } catch (err) {
   console.error('\nFAILED:', err.message);
   process.exitCode = 1;
+} finally {
+  fs.rmSync(tmpConfigHome, { recursive: true, force: true });
 }
