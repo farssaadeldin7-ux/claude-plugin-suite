@@ -37,6 +37,7 @@ jobs:
           node plugins/diagnose-by-sound/mcp/test/acoustics.test.mjs
           node plugins/five-minute-fluency/mcp/test/yield.test.mjs
           node plugins/ghost-post-preview/mcp/test/fold.test.mjs
+          node plugins/professor-mind-reader/mcp/test/domain.test.mjs
           node test/plugin-table-lookups.test.mjs
           node test/build.test.mjs
       - name: Tool behaviour probe (every server, every numeric argument)
