@@ -19,6 +19,7 @@
 
 import http from 'node:http';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { Store } from './lib/store.js';
 import { CATALOG, plan as planFor, publicCatalog } from './catalog.js';
 import {
@@ -30,7 +31,7 @@ import { enforceEnvironment } from './lib/env.js';
 const PORT = Number(process.env.PORT || 8787);
 const PUBLIC_URL = (process.env.BILLING_PUBLIC_URL || `http://localhost:${PORT}`).replace(/\/$/, '');
 const STORE_FILE = process.env.BILLING_STORE_FILE
-  || path.join(import.meta.dirname, 'data', 'store.json');
+  || path.join(path.dirname(fileURLToPath(import.meta.url)), 'data', 'store.json');
 
 const store = new Store(STORE_FILE);
 

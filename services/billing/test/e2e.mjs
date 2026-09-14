@@ -186,6 +186,52 @@ try {
   }
   ok('save() fsyncs the write and the rename so a crash right after cannot lose it');
 
+  // ---- getLicense/findLicense hand out a copy, never the live object ------
+  // Regression test: every real caller (recordUsage, device registration,
+  // both subscription webhook handlers) does getLicense()/findLicense() ->
+  // mutate the result in place -> putLicense(that same object). If the read
+  // handed out the live object sitting in the store, that in-place mutation
+  // already lands in the store's own state before putLicense is ever
+  // called — which means putLicense's own "previous" snapshot, taken at the
+  // top of the call from the store's current state, is already the mutated
+  // value. Rolling back to "previous" on a failed save then restores the
+  // object to itself: a no-op. The unpersisted mutation stays in memory for
+  // an unrelated later save to resurrect, even though this call reported
+  // failure to its caller.
+  {
+    const store = new Store(path.join(tmpDir, 'alias-store.json'));
+    store.putLicense({ key: 'PS-TST-AAAAA-BBBBB-CCCCC-DDDD', usage: { calls: { '2026-01': 1 } } });
+
+    const fetched = store.getLicense('PS-TST-AAAAA-BBBBB-CCCCC-DDDD');
+    fetched.usage.calls['2026-01'] = 999999; // exactly what recordUsage does: mutate the object it got back
+
+    // Before putLicense is ever called again, the store's own state must be
+    // untouched — the mutation above must have landed on a detached copy.
+    const stillOriginal = store.getLicense('PS-TST-AAAAA-BBBBB-CCCCC-DDDD');
+    assert.equal(stillOriginal.usage.calls['2026-01'], 1,
+      'mutating the object getLicense() returned changed the store before putLicense was ever called');
+
+    // And the rollback this enables actually works: a failed save must
+    // leave the store's in-memory state exactly as it was before the call.
+    const originalWriteSync = fs.writeSync;
+    fs.writeSync = () => { throw new Error('simulated disk failure'); };
+    try {
+      assert.throws(() => store.putLicense(fetched), /simulated disk failure/);
+    } finally {
+      fs.writeSync = originalWriteSync;
+    }
+    const afterFailedWrite = store.getLicense('PS-TST-AAAAA-BBBBB-CCCCC-DDDD');
+    assert.equal(afterFailedWrite.usage.calls['2026-01'], 1,
+      'a failed save left the caller\'s in-place mutation resident in the store anyway');
+
+    // findLicense must be equally defensive.
+    const found = store.findLicense((l) => l.key === 'PS-TST-AAAAA-BBBBB-CCCCC-DDDD');
+    found.usage.calls['2026-01'] = 777777;
+    assert.equal(store.getLicense('PS-TST-AAAAA-BBBBB-CCCCC-DDDD').usage.calls['2026-01'], 1,
+      'mutating the object findLicense() returned changed the store directly');
+  }
+  ok('getLicense/findLicense return a detached copy, so putLicense\'s rollback on a failed save actually rolls back');
+
   await until(async () => {
     const { data } = await api('GET', '/health');
     assert.equal(data.ok, true);

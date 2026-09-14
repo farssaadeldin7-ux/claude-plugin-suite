@@ -22,6 +22,7 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { CATALOG } from '../catalog.js';
 import { formEncode } from '../lib/stripe.js';
 
@@ -29,7 +30,7 @@ const SECRET_KEY = process.env.STRIPE_SECRET_KEY;
 const PUBLIC_URL = (process.env.BILLING_PUBLIC_URL || '').replace(/\/$/, '');
 const API_BASE = (process.env.STRIPE_API_BASE || 'https://api.stripe.com').replace(/\/$/, '');
 const ENV_FILE = process.env.BILLING_ENV_FILE
-  || path.join(import.meta.dirname, '..', '.env');
+  || path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '.env');
 const RECREATE_WEBHOOK = process.argv.includes('--recreate-webhook');
 
 if (!SECRET_KEY) exit('STRIPE_SECRET_KEY is required (sk_test_... to provision test mode, sk_live_... for live).');

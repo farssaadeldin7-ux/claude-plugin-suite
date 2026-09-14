@@ -291,4 +291,42 @@ export const REGRESSIONS = [
     testFiles: ['test/build.test.mjs'],
     pattern: /contains the repository LICENSE/,
   },
+
+  // ---- ESM module-type, licence-store aliasing, release tooling ------------
+  {
+    id: 'esm-module-type',
+    summary: 'no package.json anywhere in the repo declared "type": "module", so every shipped .js file failed to load on real Node (20.x/22.0-22.6) with SyntaxError, masked only by this sandbox\'s newer unflagged syntax-detection',
+    testFiles: ['test/esm-compat.test.mjs'],
+    pattern: /declaring "type": "module"/,
+  },
+  {
+    id: 'license-aliasing',
+    summary: 'getLicense/findLicense handed out the live in-memory object, so a caller mutating its result corrupted the store before putLicense was ever called, making rollback-on-failed-save a no-op',
+    testFiles: ['services/billing/test/e2e.mjs'],
+    pattern: /detached copy/,
+  },
+  {
+    id: 'bake-url-substitution',
+    summary: "bake-billing-url.mjs used String.replace()'s string form, so a URL containing $& corrupted the rewritten plugin server file instead of being written literally",
+    testFiles: ['test/bake-billing-url.test.mjs'],
+    pattern: /written literally/,
+  },
+  {
+    id: 'bake-url-injection',
+    summary: 'bake-billing-url.mjs interpolated the URL into a single-quoted JS string literal unescaped, so a quote in the URL broke out of the literal and injected code that would run the next time the plugin server started',
+    testFiles: ['test/bake-billing-url.test.mjs'],
+    pattern: /single quote was accepted/,
+  },
+  {
+    id: 'sbom-manifest-false-positive',
+    summary: 'sbom.mjs treated any tracked package.json as evidence of a dependency, so the package.json files added purely to declare "type": "module" would have failed --check with no real dependency present',
+    testFiles: ['test/sbom.test.mjs'],
+    pattern: /dependency-free package\.json failed the check/,
+  },
+  {
+    id: 'mcp-json-missing',
+    summary: 'validate.mjs silently skipped its entire .mcp.json check when the file was absent instead of erroring, so a plugin shipping with zero registered MCP tools passed validation',
+    testFiles: ['test/validate-mcp-json.test.mjs'],
+    pattern: /no \.mcp\.json passed validation/,
+  },
 ];

@@ -8,3 +8,6 @@ dist/
 !.env.example
 *.log
 .cache/
+# The local dev default for BILLING_STORE_FILE — holds live licence keys.
+services/billing/data/
+store.json

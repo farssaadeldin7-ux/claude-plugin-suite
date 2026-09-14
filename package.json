@@ -1,0 +1,9 @@
+{
+  "name": "claude-plugin-suite",
+  "private": true,
+  "type": "module",
+  "description": "Fourteen domain-expert Claude Code plugins and the licensing service they share. No dependencies; every shipped .js file is ESM.",
+  "engines": {
+    "node": ">=20.6"
+  }
+}
