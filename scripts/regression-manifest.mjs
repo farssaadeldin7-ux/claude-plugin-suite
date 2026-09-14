@@ -48,6 +48,12 @@ export const REGRESSIONS = [
     pattern: /overflowed.*['"]Infinity['"]/,
   },
   {
+    id: '80',
+    summary: 'an invalid tool schema pattern threw a SyntaxError instead of producing a validation error',
+    testFiles: ['packages/suite-runtime/test/mcp-lite.test.mjs'],
+    pattern: /invalid pattern/,
+  },
+  {
     id: '26',
     summary: 'a handler returning nothing produced a missing text field, not a visible error',
     testFiles: ['packages/suite-runtime/test/mcp-lite.test.mjs'],
@@ -119,6 +125,15 @@ export const REGRESSIONS = [
     summary: 'every plugin store lost records to concurrent writes',
     testFiles: ['packages/suite-runtime/test/local-store.test.mjs'],
     pattern: /lose no records/,
+  },
+  {
+    id: '79',
+    summary: 'writes were never fsynced, so a power cut right after a successful write or rename could still lose it',
+    testFiles: [
+      'packages/suite-runtime/test/local-store.test.mjs',
+      'services/billing/test/e2e.mjs',
+    ],
+    pattern: /fsyncs the write and the rename/,
   },
 
   // ---- billing service (services/billing) ----------------------------------
