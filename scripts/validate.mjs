@@ -8,8 +8,9 @@
  */
 import fs from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const root = path.resolve(import.meta.dirname, '..');
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const errors = [];
 const warnings = [];
 const err = (m) => errors.push(m);
@@ -90,7 +91,12 @@ for (const id of onDisk) {
   }
 
   const mcpPath = path.join(dir, '.mcp.json');
-  if (fs.existsSync(mcpPath)) {
+  if (!fs.existsSync(mcpPath)) {
+    // Not optional: this is what actually registers the plugin's MCP
+    // server. A plugin missing it installs with zero tools, and silently —
+    // nothing else here would ever notice.
+    err(`plugins/${id}: .mcp.json is missing`);
+  } else {
     const mcp = readJson(mcpPath);
     const licenseKeyVar = `${id.toUpperCase().replace(/-/g, '_')}_LICENSE_KEY`;
     for (const [name, cfg] of Object.entries(mcp?.mcpServers || {})) {

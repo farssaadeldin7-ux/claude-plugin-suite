@@ -51,7 +51,22 @@ for (const rel of code) {
   }
 }
 
-const manifests = tracked.filter((f) => /(^|\/)package(-lock)?\.json$/.test(f));
+// A package.json's mere existence isn't evidence of a dependency — every
+// plugin and the billing service now carry one purely to declare
+// "type": "module" (Node treats a bare .js file as CommonJS without one,
+// or without the syntax-detection heuristic that's unflagged only from
+// Node 22.7). Only one that actually lists something under dependencies,
+// devDependencies, peerDependencies or optionalDependencies counts. A
+// package-lock.json is a different matter: nothing produces one without
+// an install that put something in it, so its presence alone still counts.
+const DEP_FIELDS = ['dependencies', 'devDependencies', 'peerDependencies', 'optionalDependencies'];
+const manifests = tracked
+  .filter((f) => /(^|\/)package(-lock)?\.json$/.test(f))
+  .filter((f) => {
+    if (/package-lock\.json$/.test(f)) return true;
+    const pkg = JSON.parse(fs.readFileSync(path.join(root, f), 'utf8'));
+    return DEP_FIELDS.some((key) => pkg[key] && Object.keys(pkg[key]).length > 0);
+  });
 
 if (external.size > 0 || manifests.length > 0) {
   console.error('sbom: the suite is no longer dependency-free.');

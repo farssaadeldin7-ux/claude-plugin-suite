@@ -15,6 +15,10 @@ jobs:
           node-version: '20'
       - name: Validate marketplace and plugins
         run: node scripts/validate.mjs
+      - name: Regression check — validate.mjs catches a plugin missing .mcp.json
+        run: node test/validate-mcp-json.test.mjs
+      - name: ESM module-type compatibility (real Node 20.x, not this runner's)
+        run: node test/esm-compat.test.mjs
       - name: Billing service end-to-end tests
         run: node services/billing/test/e2e.mjs
       - name: Shared runtime tests
@@ -42,7 +46,11 @@ jobs:
       - name: Secret hygiene
         run: node test/secrets.test.mjs
       - name: Dependency and licence audit
-        run: node scripts/sbom.mjs --check
+        run: |
+          node test/sbom.test.mjs
+          node scripts/sbom.mjs --check
+      - name: Release tooling tests
+        run: node test/bake-billing-url.test.mjs
       - name: Check regression-test coverage of tracked defect fixes
         run: |
           node test/check-regressions.test.mjs

@@ -12,7 +12,7 @@
 FROM node:20-alpine
 
 WORKDIR /srv/billing
-COPY server.js catalog.js ./
+COPY package.json server.js catalog.js ./
 COPY lib ./lib
 
 RUN mkdir /data && chown node:node /data

@@ -80,29 +80,46 @@ export class Store {
   }
 
   // ---- licenses ----------------------------------------------------------
+  //
+  // Every read below returns a detached copy, never the object living in
+  // this.data. Callers commonly do getLicense() -> mutate the result in
+  // place -> putLicense(that same object) (recordUsage, device
+  // registration, both webhook subscription handlers all follow this
+  // shape). If getLicense handed out the live object, that in-place
+  // mutation would already be sitting in this.data.licenses before
+  // putLicense ever ran — so putLicense's own "previous" snapshot, taken
+  // from this.data at the top of the call, would already equal the
+  // mutated value, and rolling back on a failed save would restore the
+  // object to itself: a no-op. A failed write would then leave the
+  // unpersisted change in memory anyway, for the next unrelated save to
+  // resurrect. Returning a copy on read means a caller's mutation never
+  // reaches this.data until putLicense is actually called.
 
   getLicense(key) {
-    return this.data.licenses[key] ?? null;
+    const license = this.data.licenses[key];
+    return license ? structuredClone(license) : null;
   }
 
   putLicense(license) {
-    const previous = this.data.licenses[license.key];
-    this.data.licenses[license.key] = license;
+    const stored = structuredClone(license);
+    const previous = this.data.licenses[stored.key];
+    this.data.licenses[stored.key] = stored;
     try {
       this.save();
     } catch (err) {
       // Keep memory consistent with disk: an unpersisted write must not
       // linger in-memory, or findLicense (the /success page lookup) could
       // hand out a licence that vanishes the moment the process restarts.
-      if (previous === undefined) delete this.data.licenses[license.key];
-      else this.data.licenses[license.key] = previous;
+      if (previous === undefined) delete this.data.licenses[stored.key];
+      else this.data.licenses[stored.key] = previous;
       throw err;
     }
-    return license;
+    return structuredClone(stored);
   }
 
   findLicense(predicate) {
-    return Object.values(this.data.licenses).find(predicate) ?? null;
+    const license = Object.values(this.data.licenses).find(predicate);
+    return license ? structuredClone(license) : null;
   }
 
   // ---- webhook / usage idempotency --------------------------------------

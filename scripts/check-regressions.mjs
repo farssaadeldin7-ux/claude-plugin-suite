@@ -26,6 +26,7 @@
  */
 import fs from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { execFileSync } from 'node:child_process';
 
 export function isTestFile(relPath) {
@@ -112,7 +113,7 @@ export function evaluateEntry(entry, root, runCache = new Map()) {
 
 async function main() {
   const { REGRESSIONS } = await import('./regression-manifest.mjs');
-  const root = path.resolve(import.meta.dirname, '..');
+  const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
   const runCache = new Map();
   const gaps = [];
   const covered = [];

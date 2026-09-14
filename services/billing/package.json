@@ -1,0 +1,10 @@
+{
+  "name": "plugin-suite-billing",
+  "private": true,
+  "type": "module",
+  "description": "Billing service for the plugin suite. Dependency-free Node; every source file is ESM.",
+  "engines": {
+    "node": ">=20.6"
+  },
+  "main": "server.js"
+}
