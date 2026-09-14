@@ -25,6 +25,7 @@ import {
   issueLicense, entitlementFor, recordUsage, usageFor, looksLikeKey, currentPeriod,
 } from './lib/licenses.js';
 import { createCheckoutSession, createPortalSession, verifyWebhookSignature } from './lib/stripe.js';
+import { enforceEnvironment } from './lib/env.js';
 
 const PORT = Number(process.env.PORT || 8787);
 const PUBLIC_URL = (process.env.BILLING_PUBLIC_URL || `http://localhost:${PORT}`).replace(/\/$/, '');
@@ -380,8 +381,13 @@ const server = http.createServer((req, res) => {
   });
 });
 
+// Fail here rather than on the first customer's checkout: a missing key, a
+// malformed one, or a test key in production are all cheap to catch at boot
+// and expensive to catch in a payment flow.
+const { environment } = enforceEnvironment();
+
 server.listen(PORT, () => {
-  console.error(`[billing] listening on ${PORT}, store at ${STORE_FILE}`);
+  console.error(`[billing] listening on ${PORT} in ${environment}, store at ${STORE_FILE}`);
   // Every plan whose STRIPE_PRICE_* env var is unset returns 503
   // plan_not_configured at checkout — say so at boot instead of at the sale.
   const missing = Object.values(CATALOG)
