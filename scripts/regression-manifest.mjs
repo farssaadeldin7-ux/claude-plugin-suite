@@ -283,6 +283,18 @@ export const REGRESSIONS = [
     testFiles: ['test/plugin-table-lookups.test.mjs'],
     pattern: /Object\.prototype/,
   },
+  {
+    id: 'effort-map-worked-example',
+    summary: "professor-mind-reader's effortMap is checked against the exact worked numbers printed in references/rubric-decomposition.md, catching drift between the reference doc's own arithmetic and the code",
+    testFiles: ['plugins/professor-mind-reader/mcp/test/domain.test.mjs'],
+    pattern: /on_budget\/thin boundary/,
+  },
+  {
+    id: 'ratio-verdict-boundary',
+    summary: 'an investment-ratio threshold using >= instead of the documented > would misclassify a value sitting exactly on a boundary (e.g. 1.5) into the wrong bucket',
+    testFiles: ['plugins/professor-mind-reader/mcp/test/domain.test.mjs'],
+    pattern: /1\.5-to-1\.2 bucket/,
+  },
 
   // ---- packaging & build ----------------------------------------------------
   {
