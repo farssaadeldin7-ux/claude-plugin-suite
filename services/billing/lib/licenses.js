@@ -27,8 +27,12 @@ export function currentPeriod(now = Date.now()) {
 /**
  * Issue a licence for a plan. `stripe` carries customer/subscription ids for
  * paid plans, which carry the subscription's customer and id.
+ *
+ * `eventId`, when given, is claimed in the same write as the licence (see
+ * Store.putLicenseAndClaim) so the issuance and the claim can never come
+ * apart on a failed save.
  */
-export function issueLicense(store, { pluginId, planId, email, stripe = null, checkoutSessionId = null, now = Date.now() }) {
+export function issueLicense(store, { pluginId, planId, email, stripe = null, checkoutSessionId = null, eventId = null, now = Date.now() }) {
   const entry = pluginFor(pluginId);
   const planDef = planFor(pluginId, planId);
   if (!entry || !planDef) return null;
@@ -49,7 +53,7 @@ export function issueLicense(store, { pluginId, planId, email, stripe = null, ch
     checkout_session_id: checkoutSessionId,
     created_at: new Date(now).toISOString(),
   };
-  return store.putLicense(license);
+  return eventId ? store.putLicenseAndClaim(license, eventId) : store.putLicense(license);
 }
 
 /** Usage for the current period only, flattened to {meter: used}. */
@@ -62,11 +66,19 @@ export function usageFor(license, now = Date.now()) {
   return out;
 }
 
-export function recordUsage(store, license, meter, quantity, now = Date.now()) {
+/**
+ * `eventId`, when given, is claimed in the same write as the usage
+ * increment (see Store.putLicenseAndClaim). Unlike issueLicense, this
+ * function has no secondary guard against reapplying the same increment —
+ * a caller-supplied idempotency key is the only thing that can ever
+ * dedupe a retry, so its claim must never be separated from this write.
+ */
+export function recordUsage(store, license, meter, quantity, eventId = null, now = Date.now()) {
   const period = currentPeriod(now);
   license.usage[meter] ??= {};
   license.usage[meter][period] = (license.usage[meter][period] ?? 0) + quantity;
-  store.putLicense(license);
+  if (eventId) store.putLicenseAndClaim(license, eventId);
+  else store.putLicense(license);
   return license.usage[meter][period];
 }
 
