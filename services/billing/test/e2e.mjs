@@ -20,6 +20,7 @@ import { fileURLToPath } from 'node:url';
 import { spawn } from 'node:child_process';
 import { signWebhookPayload } from '../lib/stripe.js';
 import { Store } from '../lib/store.js';
+import { recordUsage } from '../lib/licenses.js';
 
 const serverPath = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'server.js');
 const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'billing-test-'));
@@ -231,6 +232,46 @@ try {
       'mutating the object findLicense() returned changed the store directly');
   }
   ok('getLicense/findLicense return a detached copy, so putLicense\'s rollback on a failed save actually rolls back');
+
+  // ---- a usage write and its claim can never come apart -------------------
+  // Regression test: recordUsage() used to call store.putLicense(license)
+  // (its own save()) and the caller separately called store.claimEvent(id)
+  // (a second save()) right after. That left a window where the usage
+  // increment persisted but the claim's write failed — unlike
+  // checkout.session.completed, recordUsage has no secondary guard keyed on
+  // anything but the event id, so a same-idempotency-key retry after that
+  // failure re-ran the increment and double-counted usage. Confirmed
+  // empirically against the pre-fix code: 5 units recorded, a simulated
+  // write failure on the claim, a retry with the same idempotency key, and
+  // the store ended up with 10. putLicenseAndClaim makes both a single
+  // write, so either both land or neither does.
+  {
+    const store = new Store(path.join(tmpDir, 'atomic-usage-store.json'));
+    const license = store.putLicense({
+      key: 'PS-TST-EEEEE-FFFFF-GGGGG-HHHH', plugin_id: 'diagnose-by-sound', usage: {},
+    });
+
+    const originalWriteSync = fs.writeSync;
+    fs.writeSync = () => { throw new Error('simulated disk failure'); };
+    try {
+      assert.throws(() => recordUsage(store, license, 'analyses', 5, 'evt_usage_atomic_1'), /simulated disk failure/);
+    } finally {
+      fs.writeSync = originalWriteSync;
+    }
+
+    const afterFailedWrite = store.getLicense('PS-TST-EEEEE-FFFFF-GGGGG-HHHH');
+    assert.equal(afterFailedWrite.usage.analyses, undefined,
+      'a failed combined write left the usage increment resident in the store anyway');
+    assert.equal(store.isEventClaimed('evt_usage_atomic_1'), false,
+      'a failed combined write left the event claimed anyway');
+
+    // The disk "recovers"; a retry with the SAME idempotency-derived event
+    // id must record the usage exactly once, not stack on top of nothing.
+    const used = recordUsage(store, store.getLicense('PS-TST-EEEEE-FFFFF-GGGGG-HHHH'), 'analyses', 5, 'evt_usage_atomic_1');
+    assert.equal(used, 5, 'a retry after a failed combined write must record the usage exactly once');
+    assert.equal(store.isEventClaimed('evt_usage_atomic_1'), true);
+  }
+  ok('recordUsage claims its event in the same write, so a failed write never double-counts usage on retry');
 
   await until(async () => {
     const { data } = await api('GET', '/health');

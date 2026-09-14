@@ -168,6 +168,12 @@ export const REGRESSIONS = [
     pattern: /never read as deduplicated/,
   },
   {
+    id: 'usage-claim-atomicity',
+    summary: 'recordUsage persisted its increment and claimed its event as two separate writes; a failure on the second, after the first succeeded, double-counted usage on the caller\'s retry',
+    testFiles: ['services/billing/test/e2e.mjs'],
+    pattern: /record the usage exactly once/,
+  },
+  {
     id: '20',
     summary: 'the success page promised a key was shown "only here, once" after a 15-minute window existed',
     testFiles: ['services/billing/test/e2e.mjs'],

@@ -198,8 +198,9 @@ async function handle(req, res) {
         recorded: true, deduplicated: true, meter: body.meter, period: currentPeriod(), used: usageFor(license)[body.meter] ?? 0,
       });
     }
-    const used = recordUsage(store, license, body.meter, quantity);
-    store.claimEvent(usageEventId);
+    // recordUsage claims usageEventId itself, in the same write as the
+    // increment — see Store.putLicenseAndClaim.
+    const used = recordUsage(store, license, body.meter, quantity, usageEventId);
     return json(res, 200, { recorded: true, meter: body.meter, period: currentPeriod(), used });
   }
 
@@ -278,15 +279,21 @@ async function handle(req, res) {
     if (store.isEventClaimed(event.id)) {
       return json(res, 200, { received: true, deduplicated: true });
     }
+    let alreadyClaimed;
     try {
-      handleStripeEvent(event);
+      alreadyClaimed = handleStripeEvent(event);
     } catch (err) {
       // Do NOT claim the event: it must look unhandled so Stripe's retry
       // gets a real second attempt instead of being deduplicated away.
       console.error('[billing] webhook handler failed, Stripe will retry', event.id, event.type, err);
       return fail(res, 500, 'webhook_handler_error', 'The webhook handler failed; Stripe will retry this event.');
     }
-    store.claimEvent(event.id);
+    // checkout.session.completed claims the event itself, atomically with
+    // issuing the licence (see Store.putLicenseAndClaim) — claiming it
+    // again here would be a second, redundant write, and if that one
+    // failed its own rollback would incorrectly un-claim an event whose
+    // licence write had already durably succeeded.
+    if (!alreadyClaimed) store.claimEvent(event.id);
     return json(res, 200, { received: true });
   }
 
@@ -313,6 +320,7 @@ async function handle(req, res) {
   return fail(res, 404, 'not_found', `No route for ${route}.`);
 }
 
+/** Returns true if this call already claimed event.id itself (atomically with its write); the caller must not claim it again. */
 function handleStripeEvent(event) {
   const object = event.data?.object ?? {};
   switch (event.type) {
@@ -341,8 +349,11 @@ function handleStripeEvent(event) {
         email: object.customer_details?.email ?? object.customer_email ?? null,
         stripe: { customer_id: object.customer, subscription_id: object.subscription },
         checkoutSessionId: object.id,
+        eventId: event.id,
       });
-      return;
+      // issueLicense claimed event.id itself, atomically with the licence
+      // write — tell the caller so it doesn't claim it again separately.
+      return true;
     }
     case 'customer.subscription.updated': {
       const license = store.findLicense((l) => l.stripe?.subscription_id === object.id);

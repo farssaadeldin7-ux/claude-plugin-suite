@@ -122,6 +122,39 @@ export class Store {
     return license ? structuredClone(license) : null;
   }
 
+  /**
+   * Persist `license` and claim `id` as a single write. putLicense() and
+   * claimEvent() used to be called back to back for exactly this shape
+   * (issue/update a licence, then claim the event that caused it) — two
+   * separate save() calls, which left a window where the first succeeded
+   * and the second failed: the licence write was already durable, but the
+   * event was never claimed, so a retry with the same id ran the work a
+   * second time. checkout.session.completed happens to be protected from
+   * that by its own checkout_session_id guard; recordUsage() has no
+   * equivalent guard and double-counts on exactly this failure (confirmed
+   * empirically: putLicense's write succeeding while claimEvent's
+   * immediately-following write fails, then a same-id retry, recorded
+   * usage twice). One write closes both the same way, and every future
+   * caller of this shape for free.
+   */
+  putLicenseAndClaim(license, id) {
+    const stored = structuredClone(license);
+    const previousLicense = this.data.licenses[stored.key];
+    const previousClaimedAt = this.data.events[id];
+    this.data.licenses[stored.key] = stored;
+    if (id) this.data.events[id] = Date.now();
+    try {
+      this.save();
+    } catch (err) {
+      if (previousLicense === undefined) delete this.data.licenses[stored.key];
+      else this.data.licenses[stored.key] = previousLicense;
+      if (previousClaimedAt === undefined) delete this.data.events[id];
+      else this.data.events[id] = previousClaimedAt;
+      throw err;
+    }
+    return structuredClone(stored);
+  }
+
   // ---- webhook / usage idempotency --------------------------------------
   //
   // Callers must check isEventClaimed() before doing the work, then call
