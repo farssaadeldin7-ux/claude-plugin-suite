@@ -91,7 +91,7 @@ docker build -t plugin-suite-billing services/billing
 docker run -p 8787:8787 --env-file services/billing/.env -v billing-data:/data plugin-suite-billing
 ```
 
-### Deploying to Fly.io
+### Deploying to fly
 
 Fly's volumes are attached to one specific machine rather than shared across a fleet,
 which matches this service's own assumption directly: the store is one local JSON file
