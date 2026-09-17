@@ -160,6 +160,52 @@ export const GROUP_DETAIL = {
   },
 };
 
+/**
+ * Caption mechanics per destination: which text field carries the caption,
+ * its hard character limit, where the feed truncates it, and the hashtag
+ * rule. Same caveat as the rest of the specs — current-generation defaults,
+ * not guarantees.
+ */
+export const CAPTION_RULES = {
+  youtube_shorts: {
+    field: 'title',
+    field_note: 'A Short is captioned by its title; the description is secondary in the Shorts feed.',
+    max_chars: 100,
+    truncation_chars: 100,
+    hashtags: { max: 3, placement: 'title or description', note: 'Three at most. #shorts is optional on current uploads; extra tags dilute rather than add.' },
+  },
+  instagram_reels: {
+    field: 'caption',
+    max_chars: 2200,
+    truncation_chars: 125,
+    hashtags: { max: 5, placement: 'end of caption', note: 'Three to five topical tags. Broad tags like #viral do nothing on Reels.' },
+  },
+  tiktok: {
+    field: 'caption',
+    max_chars: 2200,
+    truncation_chars: 100,
+    hashtags: { max: 5, placement: 'end of caption', note: 'Three to five topical tags. #fyp is folklore, not mechanism.' },
+  },
+  linkedin: {
+    field: 'post text',
+    max_chars: 3000,
+    truncation_chars: 140,
+    hashtags: { max: 3, placement: 'end of post', note: 'Three or fewer — hashtag-stuffed posts read as spam in this feed.' },
+  },
+  x: {
+    field: 'post text',
+    max_chars: 280,
+    truncation_chars: 280,
+    hashtags: { max: 2, placement: 'inline or end', note: 'Two at most; every hashtag spends characters the post cannot spare.' },
+  },
+  youtube_chapter: {
+    field: 'description',
+    max_chars: 5000,
+    truncation_chars: 125,
+    hashtags: { max: 3, placement: 'end of description', note: 'Three at most; the first three appear above the title.' },
+  },
+};
+
 export const CROSS_POSTING =
   'Re-export per destination. Do not upload one 9:16 file everywhere. Platform-native re-encoding ' +
   'punishes watermarked and letterboxed uploads, and a TikTok watermark on a Reel is visible to both ' +

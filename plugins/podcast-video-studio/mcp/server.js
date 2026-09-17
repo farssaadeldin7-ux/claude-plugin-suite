@@ -13,6 +13,7 @@
  * No npm dependencies — plugins are installed without an npm install step.
  */
 
+import fs from 'node:fs';
 import { McpServer, ToolError } from './mcp-lite.js';
 import { LicenseClient, registerLicenseTools } from './license-client.js';
 import { ARCHETYPES, COMBINATIONS_NOTE, archetypeFor, scanCandidates } from './lib/archetypes.js';
@@ -21,10 +22,12 @@ import {
   disqualifierFor, scoreIsValid, scoreClip,
 } from './lib/rubric.js';
 import {
-  DESTINATIONS, GROUP_DETAIL, CROSS_POSTING, SPEC_CAVEAT, FLOOR_NOTE,
+  DESTINATIONS, GROUP_DETAIL, CROSS_POSTING, SPEC_CAVEAT, FLOOR_NOTE, CAPTION_RULES,
   destinationFor, destinationFit,
 } from './lib/destinations.js';
 import { logClip, recordFootagePass, reviewClips, footageResultIsValid, FOOTAGE_RESULTS, CLIPS_FILE } from './lib/clips.js';
+import { planCuts, probeFfmpeg, runFfmpeg, shellCommand, KEYFRAME_NOTE } from './lib/cutting.js';
+import { captionPack } from './lib/captions.js';
 
 const PLUGIN_ID = 'podcast-video-studio';
 const PLUGIN_NAME = 'Podcast & Video Studio';
@@ -41,7 +44,9 @@ const server = new McpServer({
   instructions:
     'Deterministic mechanics for cutting clips from a long recording. Call scan_candidates to find ' +
     'archetype tells in a timecoded transcript with the evidence quoted, then assign the four axis ' +
-    'scores yourself and call score_clip for the threshold arithmetic. moment_archetypes, ' +
+    'scores yourself and call score_clip for the threshold arithmetic. cut_clips cuts the actual ' +
+    'media file with ffmpeg (or returns the exact commands when ffmpeg is absent), and caption_pack ' +
+    'applies the destination caption spec to a clip\'s own words. moment_archetypes, ' +
     'scoring_rubric and destination_specs serve the reference tables. None of these judge a moment ' +
     'or watch footage — that is the skill\'s and the editor\'s job — and nothing here predicts views.',
 });
@@ -118,12 +123,16 @@ server.tool('destination_specs', {
         });
       }
       const { group, ...spec } = found;
-      return { caveat: SPEC_CAVEAT, ...spec, detail: GROUP_DETAIL[group], cross_posting: CROSS_POSTING };
+      const key = String(destination).trim().toLowerCase();
+      return {
+        caveat: SPEC_CAVEAT, ...spec, caption: CAPTION_RULES[key],
+        detail: GROUP_DETAIL[group], cross_posting: CROSS_POSTING,
+      };
     }
     return {
       caveat: SPEC_CAVEAT,
       destinations: Object.fromEntries(
-        Object.entries(DESTINATIONS).map(([id, { group, ...spec }]) => [id, spec])
+        Object.entries(DESTINATIONS).map(([id, { group, ...spec }]) => [id, { ...spec, caption: CAPTION_RULES[id] }])
       ),
       short_form_floor: FLOOR_NOTE,
       cross_posting: CROSS_POSTING,
@@ -281,6 +290,131 @@ server.tool('review_clips', {
   handler: async ({ limit }) => {
     await client.requireFeature('tools');
     return reviewClips({ limit: limit ?? 20 });
+  },
+});
+
+// ------------------------------------------------------------ cut the media
+
+server.tool('cut_clips', {
+  description:
+    'Cut clips out of a local media file with ffmpeg. Each clip gets a lossless stream-copy cut ' +
+    '(no re-encode), and, where a destination is named, also a destination-formatted variant — ' +
+    'scaled and centre-cropped to the frame in destination_specs (9:16 1080×1920 for TikTok, Reels ' +
+    'and Shorts). A clip longer than its destination\'s length band is refused, citing the spec. ' +
+    'If ffmpeg is not installed, nothing is cut and the exact per-clip commands are returned ready ' +
+    'to run. Reports per clip what ran, what file it produced, and any failure with ffmpeg\'s own ' +
+    'stderr. Requires a paid plan; nothing but the licence check leaves the machine.',
+  inputSchema: {
+    type: 'object',
+    properties: {
+      source: { type: 'string', description: 'Path to the local media file (the episode video or audio).' },
+      clips: {
+        type: 'array',
+        description: 'The clips to cut, from the cut list.',
+        items: {
+          type: 'object',
+          properties: {
+            start: { description: 'In-point: "hh:mm:ss", "mm:ss" or seconds.' },
+            end: { description: 'Out-point, same forms. Must be after start.' },
+            label: { type: 'string', description: 'Optional label, used in the output filename.' },
+            destination: {
+              type: 'string',
+              description: 'Optional destination id (youtube_shorts, instagram_reels, tiktok, linkedin, x, youtube_chapter) — also produces that destination\'s formatted variant.',
+            },
+          },
+          required: ['start', 'end'],
+        },
+      },
+      out_dir: { type: 'string', description: 'Where the files go. Default: a "clips" directory next to the source.' },
+    },
+    required: ['source', 'clips'],
+  },
+  handler: async ({ source, clips, out_dir }) => {
+    await client.requireFeature('tools');
+    const plan = planCuts({ source, clips, out_dir });
+    const ffmpeg = probeFfmpeg();
+
+    if (!ffmpeg.found) {
+      return {
+        ffmpeg_found: false,
+        cut: false,
+        note:
+          'ffmpeg was not found on this machine, so nothing was cut. The commands below are exact ' +
+          'and ready to paste once ffmpeg is installed (ffmpeg.org, or the OS package manager). ' +
+          'Create the output directory first: mkdir -p ' + plan.out_dir,
+        source: plan.source,
+        out_dir: plan.out_dir,
+        keyframe_note: KEYFRAME_NOTE,
+        clips: plan.clips.map(({ outputs, ...clip }) => ({
+          ...clip,
+          commands: outputs.map(({ kind, destination, file, args }) => ({
+            kind, ...(destination ? { destination } : {}), file, command: shellCommand(args),
+          })),
+        })),
+      };
+    }
+
+    fs.mkdirSync(plan.out_dir, { recursive: true });
+    let cutCount = 0;
+    let failCount = 0;
+    const results = plan.clips.map(({ outputs, ...clip }) => ({
+      ...clip,
+      outputs: outputs.map(({ kind, destination, frame, file, args }) => {
+        const run = runFfmpeg(args, file);
+        if (run.ok) cutCount++; else failCount++;
+        return {
+          kind,
+          ...(destination ? { destination, frame } : {}),
+          command: shellCommand(args),
+          file,
+          cut: run.ok,
+          ...(run.ok ? {} : { stderr_tail: run.stderr_tail, ...(run.note ? { note: run.note } : {}) }),
+        };
+      }),
+    }));
+
+    return {
+      ffmpeg_found: true,
+      ffmpeg: ffmpeg.version,
+      source: plan.source,
+      out_dir: plan.out_dir,
+      summary: {
+        files_cut: cutCount,
+        failed: failCount,
+        ...(failCount ? { note: 'Failed outputs were not produced — the per-clip stderr says why. Do not treat them as cut.' } : {}),
+      },
+      keyframe_note: KEYFRAME_NOTE,
+      clips: results,
+    };
+  },
+});
+
+server.tool('caption_pack', {
+  description:
+    'Apply a destination\'s caption spec to a clip\'s own transcript: the hook line (the clip\'s ' +
+    'first sentence, verbatim), actual character counts against the field\'s hard limit and feed ' +
+    'truncation point, and the destination\'s hashtag rule — with any supplied hashtags checked ' +
+    'against it. Formatting only: it structures what it is given and never invents copy; the ' +
+    'context-or-position line and the tags come back as named slots to fill. Requires a paid plan.',
+  inputSchema: {
+    type: 'object',
+    properties: {
+      transcript: { type: 'string', description: 'The clip\'s transcript text — just the clip, not the episode.' },
+      destination: {
+        type: 'string',
+        description: 'youtube_shorts, instagram_reels, tiktok, linkedin, x or youtube_chapter.',
+      },
+      hashtags: {
+        type: 'array',
+        items: { type: 'string' },
+        description: 'Optional hashtags you intend to use, checked against the destination\'s rule.',
+      },
+    },
+    required: ['transcript', 'destination'],
+  },
+  handler: async ({ transcript, destination, hashtags }) => {
+    await client.requireFeature('tools');
+    return captionPack({ transcript, destination, hashtags });
   },
 });
 

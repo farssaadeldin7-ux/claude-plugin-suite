@@ -38,8 +38,9 @@ export function usableBudget(vramGb) {
 
 /** Fit verdict against the usable budget, honouring the ±20% coarseness:
  *  over the high end of the budget is a plain no; within 20% of the line is
- *  reported as thin rather than pretended safe. */
-function fitVerdict(totalGb, budget) {
+ *  reported as thin rather than pretended safe. Exported so headroom.js can
+ *  apply the identical rule to a measured budget — the maths lives once. */
+export function fitVerdict(totalGb, budget) {
   if (totalGb > budget.usable_high_gb) {
     return {
       verdict: 'does_not_fit',

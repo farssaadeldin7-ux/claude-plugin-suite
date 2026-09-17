@@ -8,7 +8,9 @@ description: >
   screen", "build the deep-work ROI case", "which events deserve a buzz". Also use it for
   deciding which events earn a haptic at all, designing distinguishable patterns, measuring
   cognitive load before and after, and writing the "Deep-Work Protection" pitch in billable
-  hours.
+  hours. Also for exporting the designed mapping as a machine-readable haptic profile and
+  wiring software events — a build failure, a render finishing, a file-sync completing —
+  into the local event log a haptic driver consumes.
 metadata:
   version: "0.1.0"
 ---
@@ -100,7 +102,34 @@ collisions, pairs that differ only in intensity, and a failure pattern confusabl
 success. What it cannot check is how the patterns feel on the actual hardware; only the
 blind test decides that.
 
-### 5. Verify the load actually dropped
+### 5. Export the profile and wire the bridge
+
+Design and audit are worth nothing sitting in a conversation: the mapping has to reach the
+software that can actually vibrate something. Be plain about the split first — an MCP
+server cannot drive haptic hardware, and this one does not pretend to. The delivery chain
+is: design → audit → export → emit → **the user's haptic driver consumes the log and does
+the vibrating**.
+
+With a paid plan, `export_profile` compiles the audited mapping and vocabulary into
+artefacts written to a directory the user names:
+
+- the canonical JSON profile — event ids, classes, priorities, cooldowns, and each pattern
+  as an amplitude/duration/repeat tuple derived from the vocabulary's
+  count/intensity/rhythm axes;
+- a POSIX-sh `notify` hook — `notify <event_id>` appends one timestamped NDJSON line to
+  `${XDG_CONFIG_HOME:-$HOME/.config}/plugin-suite/haptic-feedback-mapper-events.log`, so a
+  build script, render queue or sync tool can emit without the server.
+
+The export re-runs the `mapping_audit` and `vocabulary_check` rules and **refuses to
+export a mapping that fails its own audit**, naming the failures — fix them, do not route
+around them. `emit_event` is the live half of the bridge: it appends one mapped event to
+the same log, atomically, validated against the exported profile, with structured errors
+for unmapped events and for events the profile maps to silence. Any haptic driver, watch
+companion, Stream Deck plugin or automation tool that can tail a file turns those lines
+into the buzz; without such a consumer on the machine, say plainly that the export is a
+specification, not a vibration.
+
+### 6. Verify the load actually dropped
 
 Re-measure after adoption, same method as the baseline: checks per session, and the share
 of haptics the user acted on (the trust metric — it should stay high; a falling action
@@ -113,7 +142,7 @@ order: Ambient events got haptics, Noise wasn't actually silenced, or the artist
 yet trust silence to mean "nothing needs you" — which is fixed by reliability, not by
 more feedback.
 
-### 6. Sell it as Deep-Work Protection
+### 7. Sell it as Deep-Work Protection
 
 The pitch is not "vibration alerts" — every phone has those. The pitch is the recovered
 hours, priced at the buyer's own rate:
@@ -134,15 +163,16 @@ your marketing.
 ## Presentation
 
 Deliverables, not descriptions: the check inventory table, the event-class mapping, the
-haptic vocabulary spec (pattern, meaning, intensity, context), the baseline and after
-measurements with the formula and assumptions visible, and the ROI one-pager in the
-buyer's rate. Whenever a number appears, its assumption appears next to it — the credibility
+haptic vocabulary spec (pattern, meaning, intensity, context), the exported profile and
+`notify` hook with the event-log contract stated, the baseline and after measurements with
+the formula and assumptions visible, and the ROI one-pager in the buyer's rate. Whenever a number appears, its assumption appears next to it — the credibility
 of the whole pitch rests on the conservative math being checkable.
 
 ## Licensing
 
 `event_classes`, `vocabulary_rules` and `refocus_figures` are open. `load_math`,
-`mapping_audit`, `vocabulary_check` and the session log require a paid licence, and return
+`mapping_audit`, `vocabulary_check`, `export_profile`, `emit_event` and the session log
+require a paid licence, and return
 `license_required` or `upgrade_required` when the plan does not cover them. Handle it
 plainly: say what is missing, call `list_plans`, and offer `start_checkout`. Never work
 around a gate by inventing what the paid tool would have said — and never let a licensing
@@ -151,6 +181,11 @@ and rules on this page.
 
 ## Limits of the method
 
+- **No hardware is driven directly.** An MCP text server cannot vibrate anything, and no
+  tool here pretends to. The plugin designs, audits and exports the mapping and emits
+  events to the local log; the vibration happens only when a haptic-capable consumer on
+  the user's machine watches that log. If no such consumer exists, say so — the export is
+  then a specification for one, not a working buzz.
 - **Refocus-cost figures are borrowed, not measured here.** The upper figure comes from
   Mark, Gudith & Klocke (CHI 2008), which studied office task-switching, not studio work;
   that is why the method computes with a conservative floor and labels every assumption.

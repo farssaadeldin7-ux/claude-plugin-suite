@@ -1,8 +1,10 @@
 # Mental-Health Chatbot
 
-Structured non-clinical check-ins with escalation always on. Routes to real resources,
-never diagnoses, never handles crisis, and produces supervisor summaries and an audit log.
-Support, not crisis intervention — that boundary is enforced in the skill.
+Supportive conversation with CBT-style structured-reflection prompts, non-clinical
+throughout and with escalation always on — every prompt sits behind the escalation screen,
+never in front of it. Routes to real resources, never diagnoses, never handles crisis, and
+produces supervisor summaries and an audit log. Support, not crisis intervention — that
+boundary is enforced in the skill.
 
 Part of a 14-plugin suite sharing one licensing service.
 
@@ -13,6 +15,11 @@ HR wellness programme:
 
 - **A fixed check-in structure** — open, reflect, one signpost, close — that never scores
   symptoms, never administers instruments, never names a diagnosis
+- **Supportive conversation with CBT-style structured-reflection prompts** —
+  thought-noticing, evidence for and against, reframing, behavioural activation — offered
+  as non-clinical structured questions only after the escalation screen passes, capped at
+  two per check-in, dropped the moment they are declined, and never a response to a
+  tripped trigger
 - **Escalation always on**: every message screened against a mechanical trigger list
   covering the indirect phrasings that make up most real disclosures; a trigger routes to
   a human with a warm handover and a verified regional resource, and then the bot stops
@@ -70,7 +77,7 @@ does not disclose.
 
 | Component | Purpose |
 | --- | --- |
-| Skill `mental-health-chatbot` | The check-in structure, the escalation boundary, summaries, the audit log, the change gate |
+| Skill `mental-health-chatbot` | The check-in structure, the structured-reflection prompt bank, the escalation boundary, summaries, the audit log, the change gate |
 | MCP server | Escalation lookups, resource-block validation, scope wording, evaluation gate, run record, summary template, session audit log, licensing |
 
 ### Tools

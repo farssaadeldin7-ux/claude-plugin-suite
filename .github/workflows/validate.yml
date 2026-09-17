@@ -28,59 +28,13 @@ jobs:
           node packages/suite-runtime/test/local-store.test.mjs
       - name: Plugin domain-logic tests
         run: |
-          node plugins/basecamp-split/mcp/test/consumables.test.mjs
-          node plugins/basecamp-split/mcp/test/costs.test.mjs
-          node plugins/basecamp-split/mcp/test/reconcile.test.mjs
-          node plugins/basecamp-split/mcp/test/weight.test.mjs
-          node plugins/code-to-visual-interpreter/mcp/test/budgets.test.mjs
-          node plugins/code-to-visual-interpreter/mcp/test/reading.test.mjs
-          node plugins/code-to-visual-interpreter/mcp/test/taxonomy.test.mjs
-          node plugins/code-to-visual-interpreter/mcp/test/toolchains.test.mjs
-          node plugins/customer-sales-support/mcp/test/articles.test.mjs
-          node plugins/customer-sales-support/mcp/test/escalation.test.mjs
-          node plugins/customer-sales-support/mcp/test/evaluation.test.mjs
-          node plugins/customer-sales-support/mcp/test/runs.test.mjs
-          node plugins/customer-sales-support/mcp/test/taxonomy.test.mjs
-          node plugins/diagnose-by-sound/mcp/test/acoustics.test.mjs
-          node plugins/diagnose-by-sound/mcp/test/cases.test.mjs
-          node plugins/diagnose-by-sound/mcp/test/match.test.mjs
-          node plugins/emotional-resonance-analyzer/mcp/test/analyses.test.mjs
-          node plugins/emotional-resonance-analyzer/mcp/test/arc.test.mjs
-          node plugins/emotional-resonance-analyzer/mcp/test/causes.test.mjs
-          node plugins/emotional-resonance-analyzer/mcp/test/forms.test.mjs
-          node plugins/emotional-resonance-analyzer/mcp/test/reconcile.test.mjs
-          node plugins/emotional-resonance-analyzer/mcp/test/scenes.test.mjs
-          node plugins/emotional-resonance-analyzer/mcp/test/tells.test.mjs
-          node plugins/emotional-resonance-analyzer/mcp/test/timecode.test.mjs
-          node plugins/five-minute-fluency/mcp/test/lint.test.mjs
-          node plugins/five-minute-fluency/mcp/test/lookups.test.mjs
-          node plugins/five-minute-fluency/mcp/test/sheets.test.mjs
-          node plugins/five-minute-fluency/mcp/test/yield.test.mjs
-          node plugins/generative-digital-twin/mcp/test/domain.test.mjs
-          node plugins/ghost-post-preview/mcp/test/calls.test.mjs
-          node plugins/ghost-post-preview/mcp/test/fold.test.mjs
-          node plugins/ghost-post-preview/mcp/test/lint.test.mjs
-          node plugins/haptic-feedback-mapper/mcp/test/domain.test.mjs
-          node plugins/haptic-feedback-mapper/mcp/test/sessions.test.mjs
-          node plugins/mental-health-chatbot/mcp/test/audit.test.mjs
-          node plugins/mental-health-chatbot/mcp/test/checkin.test.mjs
-          node plugins/mental-health-chatbot/mcp/test/escalation.test.mjs
-          node plugins/mental-health-chatbot/mcp/test/evaluation.test.mjs
-          node plugins/mental-health-chatbot/mcp/test/resources.test.mjs
-          node plugins/mental-health-chatbot/mcp/test/runs.test.mjs
-          node plugins/neural-link-intention-layer/mcp/test/analyse.test.mjs
-          node plugins/neural-link-intention-layer/mcp/test/builds.test.mjs
-          node plugins/neural-link-intention-layer/mcp/test/catalogue.test.mjs
-          node plugins/neural-link-intention-layer/mcp/test/instrumentation.test.mjs
-          node plugins/neural-link-intention-layer/mcp/test/method.test.mjs
-          node plugins/neural-link-intention-layer/mcp/test/predictor.test.mjs
-          node plugins/neural-link-intention-layer/mcp/test/score.test.mjs
-          node plugins/podcast-video-studio/mcp/test/archetypes.test.mjs
-          node plugins/podcast-video-studio/mcp/test/clips.test.mjs
-          node plugins/podcast-video-studio/mcp/test/destinations.test.mjs
-          node plugins/podcast-video-studio/mcp/test/rubric.test.mjs
-          node plugins/predictive-resource-allocation/mcp/test/domain.test.mjs
-          node plugins/professor-mind-reader/mcp/test/domain.test.mjs
+          # Every plugin test file runs — globbed so a new test can never be
+          # silently left out of CI the way an enumerated list allows.
+          set -e
+          for f in plugins/*/mcp/test/*.test.mjs; do
+            echo "== $f"
+            node "$f"
+          done
           node test/plugin-table-lookups.test.mjs
           node test/build.test.mjs
       - name: Tool behaviour probe (every server, every numeric argument)

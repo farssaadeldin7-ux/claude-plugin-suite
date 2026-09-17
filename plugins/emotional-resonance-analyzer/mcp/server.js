@@ -14,6 +14,8 @@
  * No npm dependencies — plugins are installed without an npm install step.
  */
 
+import fs from 'node:fs';
+import path from 'node:path';
 import { McpServer, ToolError } from './mcp-lite.js';
 import { LicenseClient, registerLicenseTools } from './license-client.js';
 import { FORMS, BASELINES, CONVENTION_NOTE, UNLISTED_FORM_NOTE, formFor } from './lib/forms.js';
@@ -27,6 +29,8 @@ import { normaliseScenes } from './lib/scenes.js';
 import { plotArc } from './lib/arc.js';
 import { normaliseQuestions, checkTells } from './lib/tells.js';
 import { reconcileDrops } from './lib/reconcile.js';
+import { engagementGraph, renderEngagementSvg, FORMULA, SERIES_BASIS, SERIES_CAPTION } from './lib/graph.js';
+import { toTimecode } from './lib/timecode.js';
 import { logAnalysis, getAnalysis, reviewAnalyses, ANALYSES_FILE } from './lib/analyses.js';
 
 const PLUGIN_ID = 'emotional-resonance-analyzer';
@@ -44,10 +48,11 @@ const server = new McpServer({
   instructions:
     'Deterministic mechanics for reading the structure of a cut. form_conventions, scoring_anchors ' +
     'and dropoff_causes carry the reference tables; check_tells and plot_arc run threshold checks ' +
-    'and pacing arithmetic on scene scores the editor supplies; reconcile_curve classifies real ' +
-    'retention drops against the tripped tells. Nothing here measures emotion, judges the material ' +
-    'or predicts retention — scoring the scenes and reading the flags is the skill\'s job, and a ' +
-    'real retention curve outranks every output of this server.',
+    'and pacing arithmetic on scene scores the editor supplies; engagement_graph draws the modelled ' +
+    'engagement curve from those same scores as an SVG with the flagged stretches shaded; ' +
+    'reconcile_curve classifies real retention drops against the tripped tells. Nothing here ' +
+    'measures emotion, judges the material or predicts retention — scoring the scenes and reading ' +
+    'the flags is the skill\'s job, and a real retention curve outranks every output of this server.',
 });
 
 const namedForm = (formId) => {
@@ -240,6 +245,82 @@ server.tool('plot_arc', {
     return {
       ...(sceneCountNote ? { scene_count_note: sceneCountNote } : {}),
       ...plotArc(scenes, runtime),
+    };
+  },
+});
+
+server.tool('engagement_graph', {
+  description:
+    'The modelled engagement curve, drawn: one point per scene, computed deterministically from the ' +
+    'method\'s existing arithmetic — the editor\'s intensity score, the valence movement between ' +
+    'consecutive scenes, and a penalty per drop-off tell from the check_tells logic — with every ' +
+    'flagged stretch shaded, written as a self-contained SVG line chart the editor can look at. ' +
+    'Modelled from scene scores: it is not a measurement of any audience, predicts nothing, and a ' +
+    'real retention curve outranks it entirely. Requires a paid plan.',
+  inputSchema: {
+    type: 'object',
+    properties: {
+      form: { type: 'string', description: 'Optional form id; named in the chart and used for the tell thresholds.' },
+      total_runtime: { type: 'string', description: 'Total run-time, e.g. "11:40". Defaults to the end of the last scene.' },
+      scenes: sceneInputSchema,
+      questions: questionInputSchema,
+      output_path: { type: 'string', description: 'Where to write the SVG. Defaults to ./engagement-graph.svg in the server\'s working directory.' },
+    },
+    required: ['scenes'],
+  },
+  handler: async ({ form, total_runtime, scenes: rawScenes, questions: rawQuestions, output_path }) => {
+    await client.requireFeature('tools');
+    const formEntry = namedForm(form);
+    const { scenes, runtime, sceneCountNote } = normaliseScenes(rawScenes, { totalRuntime: total_runtime });
+    const ledgerSupplied = Array.isArray(rawQuestions) && rawQuestions.length > 0;
+    const questions = normaliseQuestions(rawQuestions ?? [], runtime);
+    const graph = engagementGraph({ scenes, questions, runtime, form: formEntry, ledgerSupplied });
+
+    const formLabel = formEntry
+      ? formEntry.label
+      : 'no form named — generic baselines from the tell table';
+    const svg = renderEngagementSvg({
+      series: graph.series,
+      runtime,
+      tellStretches: graph.tellStretches,
+      flatSeries: graph.flatSeries,
+      formLabel,
+    });
+    const svgPath = path.resolve(process.cwd(), output_path ?? './engagement-graph.svg');
+    try {
+      fs.writeFileSync(svgPath, svg);
+    } catch (err) {
+      throw new ToolError('svg_write_failed', `Could not write the graph to ${svgPath}: ${err.message}. Pass output_path to choose a writable location.`);
+    }
+
+    return {
+      basis: SERIES_BASIS,
+      judged_against: formLabel,
+      formula: FORMULA,
+      total_runtime: toTimecode(runtime),
+      series: graph.series.map(({ _mid, ...point }) => point),
+      flagged_segments: {
+        tripped_tells: graph.tellStretches.map(({ _from, _to, ...s }) => s),
+        flat_modelled_series: graph.flatSeries.map(({ _from, _to, ...s }) => s),
+        flat_series_threshold:
+          `no movement of ${graph.flatShift} or more modelled points across ${graph.flatThresholdSeconds} ` +
+          'seconds — the monotony window; the references name no per-form figure for the modelled series',
+      },
+      ...(ledgerSupplied ? {} : {
+        ledger_note:
+          'No Q&A ledger supplied — the no-question-open coverage check and premature resolution were ' +
+          'not checked, so the curve is missing whatever they would have flagged. Supply the ledger for the full read.',
+      }),
+      ...(sceneCountNote ? { scene_count_note: sceneCountNote } : {}),
+      svg: {
+        path: svgPath,
+        written: true,
+        caption_baked_into_image: SERIES_CAPTION,
+      },
+      note:
+        'The curve is a modelled restatement of the editor\'s own scene scores and the tripped tells — ' +
+        'nothing in it measures an audience or predicts retention. Where a real retention curve exists, ' +
+        'read that instead and use reconcile_curve.',
     };
   },
 });

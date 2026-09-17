@@ -28,6 +28,8 @@ import {
   usableBudget, renderVramEstimate, trainingVramEstimate,
 } from '../lib/memory.js';
 import { classifyBottleneck } from '../lib/triage.js';
+import { parseMib, allocatableRamGb } from '../lib/telemetry.js';
+import { headroomCheck } from '../lib/headroom.js';
 import { ToolError } from '../mcp-lite.js';
 
 process.env.XDG_CONFIG_HOME = fs.mkdtempSync(path.join(os.tmpdir(), 'pra-domain-test-'));
@@ -651,6 +653,128 @@ try {
     assert.equal(conflictingUnmapped.verdict.next_test, 'Run one more discriminating test from triage_reference.', 'an unmapped class pair must fall back to the generic next-test message, not a wrong or missing one');
   }
   ok('classifyBottleneck falls back to the generic next-test message for a tied class pair that has no specific entry in the next-test map');
+
+  // ==== telemetry.js / headroom.js: the measured side ========================
+  // The live probes (nvidia-smi, ps, /proc) depend on the machine, so what is
+  // tested here is everything deterministic: the nvidia-smi field parser and
+  // the headroom logic over synthetic snapshots — never a live reading, whose
+  // asserted value would just encode whichever machine ran the tests.
+
+  {
+    assert.equal(parseMib('24564 MiB'), 24564);
+    assert.equal(parseMib(' 1024 MiB '), 1024, 'surrounding whitespace from a CSV split must not defeat the parse');
+    assert.equal(parseMib('[N/A]'), null, 'nvidia-smi\'s own not-available marker must parse to null, never to a number');
+    assert.equal(parseMib('24564'), null, 'a bare number without the MiB unit is not a trusted reading');
+    assert.equal(parseMib(undefined), null);
+  }
+  ok('parseMib reads nvidia-smi\'s "N MiB" fields, tolerates CSV whitespace, and returns null (never a number) for [N/A], unitless or missing fields');
+
+  // A synthetic snapshot: 24 GB card with 6 GB in use (18 GB free), 64 GB RAM
+  // with 40 GB allocatable, and a measured process list.
+  const fakeSnapshot = {
+    taken_at: '2026-01-01T00:00:00.000Z',
+    ram: { label: 'measured', total_gb: 64, free_gb: 12, available_gb: 40 },
+    gpu: {
+      available: true,
+      source: 'nvidia-smi',
+      gpus: [{ label: 'measured', name: 'Test GPU 24GB', memory_total_gb: 24, memory_used_gb: 6, memory_free_gb: 18 }],
+    },
+    top_memory_processes: {
+      available: true,
+      source: 'ps -eo rss,comm --sort=-rss',
+      processes: [{ label: 'measured', command: 'chrome', resident_mb: 4096 }],
+    },
+  };
+  const noGpuSnapshot = {
+    ...fakeSnapshot,
+    gpu: { available: false, reason: 'nvidia-smi not found or no NVIDIA GPU' },
+  };
+
+  {
+    // The reference's worked 24 GB scene (10.68 GB working estimate) against
+    // 18 GB measured free: usableBudget(18) is 15.3–16.2 usable, and
+    // 10.68 x 1.2 = 12.82 < 15.3, so it fits. vram_gb omitted -> the
+    // measured card's total feeds the estimator.
+    const result = headroomCheck({
+      job: 'render',
+      resource: 'gpu_vram',
+      render: {
+        triangles: 18_000_000,
+        textures: [
+          { width_px: 4096, height_px: 4096, channels: 3, bytes_per_channel: 1, count: 18 },
+          { width_px: 8192, height_px: 8192, channels: 4, bytes_per_channel: 2, count: 4 },
+        ],
+        resolution: { width_px: 3840, height_px: 2160 },
+        aov_count: 8,
+      },
+    }, fakeSnapshot);
+    assert.equal(result.estimate.label, 'estimated');
+    assert.equal(result.measured.label, 'measured');
+    assert.equal(result.estimate.total_gb, 10.68, 'the estimate side must be exactly what vram_estimate produces — shared function, not a copy');
+    assert.equal(result.estimate.vram_gb_fed_to_estimator.value, 24);
+    assert.match(result.estimate.vram_gb_fed_to_estimator.source, /^measured/, 'with vram_gb omitted, the card figure is the measured one and says so');
+    assert.equal(result.measured.free_gb, 18);
+    assert.equal(result.headroom.budget_gb.usable_low_gb, 15.3, 'the 10–15% reserve rule applied to the measured free figure: 18 x 0.85');
+    assert.equal(result.headroom.verdict, 'fits');
+    assert.equal(result.background_tasks_to_close, undefined, 'a fitting plan does not tell anyone to close anything');
+  }
+  ok('headroomCheck reuses renderVramEstimate verbatim (10.68 GB for the reference scene), fills vram_gb from the measured card, and applies the reserve rule to the measured 18 GB free (usable 15.3–16.2) for a fits verdict');
+
+  {
+    // 7B full fine-tune (112 GB static) against the same card: does_not_fit,
+    // and the measured process list becomes the tasks-to-close list.
+    const result = headroomCheck({ job: 'training', resource: 'gpu_vram', training: { parameters_billion: 7 } }, fakeSnapshot);
+    assert.equal(result.estimate.total_gb, 112);
+    assert.equal(result.headroom.verdict, 'does_not_fit');
+    assert.equal(result.background_tasks_to_close.processes[0].command, 'chrome', 'the tasks-to-close list is the snapshot\'s measured process list, not advice invented from nothing');
+    assert.match(result.background_tasks_to_close.basis, /not attributed VRAM/, 'the list must say it measures host RAM, not per-process VRAM');
+  }
+  ok('headroomCheck reports a 7B full fine-tune (112 GB, shared trainingVramEstimate) as does_not_fit on an 18 GB-free card and lists the snapshot\'s measured top processes as the background tasks to close');
+
+  {
+    // system_ram resource: checked against available_gb (40), not free_gb (12).
+    const result = headroomCheck({ job: 'training', resource: 'system_ram', training: { vram_gb: 24, parameters_billion: 1.3 } }, fakeSnapshot);
+    assert.equal(result.measured.free_gb, 40, 'system RAM headroom must use MemAvailable-style allocatable RAM, not the understating os.freemem figure');
+    assert.equal(result.estimate.total_gb, 20.8);
+    assert.equal(result.headroom.verdict, 'fits', '20.8 x 1.2 = 24.96 < usableBudget(40).usable_low_gb of 34, so this fits with margin');
+    assert.equal(result.estimate.vram_gb_fed_to_estimator.source, 'reported by the caller');
+    assert.equal(allocatableRamGb(fakeSnapshot.ram), 40);
+    assert.equal(allocatableRamGb({ free_gb: 12 }), 12, 'without MemAvailable the fallback is free_gb');
+  }
+  ok('headroomCheck\'s system_ram resource compares the estimate against measured allocatable RAM (MemAvailable when present, os.freemem otherwise) and keeps a caller-reported vram_gb labelled as reported');
+
+  {
+    // Honesty on the missing GPU: gpu_vram without a measurable card is a
+    // refusal, never a guess; and with no vram_gb from anywhere the estimate
+    // cannot run at all.
+    assert.throws(
+      () => headroomCheck({ job: 'render', resource: 'gpu_vram', render: { vram_gb: 24, triangles: 1000 } }, noGpuSnapshot),
+      (err) => err instanceof ToolError && err.code === 'gpu_unavailable' && /nvidia-smi not found or no NVIDIA GPU/.test(err.message)
+    );
+    assert.throws(
+      () => headroomCheck({ job: 'render', resource: 'system_ram', render: { triangles: 1000 } }, noGpuSnapshot),
+      (err) => err instanceof ToolError && err.code === 'no_vram_figure'
+    );
+    assert.throws(() => headroomCheck({ job: 'bogus', resource: 'gpu_vram' }, fakeSnapshot), (err) => err instanceof ToolError && err.code === 'invalid_job');
+    assert.throws(() => headroomCheck({ job: 'render', resource: 'bogus' }, fakeSnapshot), (err) => err instanceof ToolError && err.code === 'invalid_resource');
+    assert.throws(() => headroomCheck({ job: 'render', resource: 'gpu_vram' }, fakeSnapshot), (err) => err instanceof ToolError && err.code === 'invalid_input');
+    assert.throws(() => headroomCheck({ job: 'render', resource: 'gpu_vram', gpu_index: 3, render: { triangles: 1 } }, fakeSnapshot), (err) => err instanceof ToolError && err.code === 'invalid_gpu_index');
+  }
+  ok('headroomCheck refuses a GPU check without a measurable card (quoting the probe\'s honest reason), refuses to estimate with no vram_gb from caller or measurement, and rejects a bad job, resource or gpu_index');
+
+  {
+    // A card measured completely full: the verdict is does_not_fit with a
+    // negative headroom, not a divide-by-zero or a budget over 0 GB.
+    const fullSnapshot = {
+      ...fakeSnapshot,
+      gpu: { available: true, gpus: [{ label: 'measured', name: 'Full GPU', memory_total_gb: 24, memory_used_gb: 24, memory_free_gb: 0 }] },
+    };
+    const result = headroomCheck({ job: 'render', resource: 'gpu_vram', render: { triangles: 1000 } }, fullSnapshot);
+    assert.equal(result.headroom.verdict, 'does_not_fit');
+    assert.ok(result.headroom.headroom_gb.value < 0, 'headroom against a full card must be negative, not clamped or NaN');
+    assert.ok(result.background_tasks_to_close, 'a full card is exactly the case where the tasks-to-close list matters');
+  }
+  ok('headroomCheck handles a card measured completely full (0 GB free) as does_not_fit with negative headroom and the tasks-to-close list, rather than erroring in usableBudget');
 
   console.log(`\n${passed} predictive-resource-allocation domain checks passed`);
 } catch (err) {

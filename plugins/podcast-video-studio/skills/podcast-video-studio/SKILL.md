@@ -167,6 +167,44 @@ framing usable in 9:16, does the audio clip, is anyone off-camera at the in-poin
 a cough or crosstalk over the key line, does the expression match the claim, is the claim
 safe to publish. Anything that fails comes off the list. That is the system working.
 
+## Show-notes and timestamps
+
+The same scanned transcript yields the episode page. Everything below is derived from the
+transcript and the scan results; nothing is added that the text does not contain.
+
+**Chapter list.** Deterministic rules, applied in order:
+
+1. Chapters run in ascending timecode order, and the first chapter starts at 00:00:00 —
+   YouTube requires it, and a list that opens mid-episode reads as broken.
+2. Open a new chapter at the first sentence of each topic shift. Clusters of scan
+   candidates mark topic centres; the boundary is the sentence where the subject changes,
+   not the strongest line inside it.
+3. Merge any chapter shorter than 3 minutes into the one before it; split a chapter
+   running past 8 minutes at its strongest internal candidate. Those are the
+   `youtube_chapter` band limits from the destination specs.
+4. Title each chapter with the segment's central claim in the speaker's words — at least
+   three consecutive spoken words, and not a question; chapter titles are scanned in a
+   list and questions in a list all look alike.
+5. Output one per line as `hh:mm:ss  Title`.
+
+**Show notes.** Four parts, in this order:
+
+1. **Summary** — two to four sentences using only claims made in the transcript. Every
+   sentence must be traceable to a line; nothing about reception, credentials or numbers
+   the transcript does not state.
+2. **Highlights** — the threshold-clearing clips in ascending timecode order, not score
+   order (notes are read alongside the episode), each as the timecode plus the claim
+   quoted.
+3. **Mentions** — only books, tools, people and places actually named in the transcript,
+   each with the timecode where it was named. Mark a name whose spelling the text cannot
+   confirm as `[spelling unchecked]`, and never guess a URL — leave a slot for the user.
+4. **Claims to source** — the flagged-claims list carried over from scoring, so factual
+   claims get checked before the page publishes.
+
+If the notes need something the transcript does not contain — a guest bio, links, an
+episode number — leave a named slot for the user to fill. A plausible invented sentence
+in show notes is the same failure as an invented view count.
+
 ## Presentation
 
 Rank the table by score, one line of reasoning per clip. Editors work from cut lists, not

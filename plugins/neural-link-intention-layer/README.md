@@ -57,9 +57,16 @@ covered specifically; the method transfers to anything you can get an action log
 **Licensed** — requires a pro or team key
 
 - `analyse_log` — the sequence audit: top actions, bigrams and trigrams, recurring sequences, the undo diagnostic, the navigation share
-- `fit_predictor` — the n-gram model with its honest held-out accuracy, and the contexts that clear the confidence floor
+- `fit_predictor` — the n-gram model with its honest held-out accuracy, and the contexts that clear the confidence floor; with `save: true` the fitted model is persisted locally for `predict_next`
+- `predict_next` — the top-k next-action predictions from the saved model, given your most recent actions: probabilities, the confidence-floor verdict, destructive continuations suppressed, and the model's holdout accuracy attached so you know how far to trust it
+- `model_status` — the saved model's fit date, log size, vocabulary size, holdout accuracy, and a staleness verdict against the eight-week refit rule
 - `score_candidate` — the payback arithmetic against the 8-week build threshold
 - `record_build` / `review_builds` — the local build log and the two-week re-measure
+
+Prediction comes from your own recorded command logs and nothing else — no gaze or
+pointer tracking, no biosensors, no telemetry. The saved model is count tables on your
+machine, and a predicted action is only ever surfaced as an accelerator needing a
+deliberate keystroke, never auto-executed.
 
 **Licensing** — `license_status`, `license_activate`, `start_checkout`, `list_plans`,
 `billing_portal`

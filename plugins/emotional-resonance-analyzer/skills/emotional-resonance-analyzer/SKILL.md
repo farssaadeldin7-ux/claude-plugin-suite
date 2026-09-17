@@ -159,6 +159,19 @@ convert it into a retention percentage.
 
 Give exactly three. A ranked list of eleven changes is a way of not having an opinion.
 
+### 9. Draw the modelled engagement graph
+
+Finish by giving the editor the curve to look at: the `engagement_graph` tool draws the
+scored table as a self-contained SVG line chart — one modelled point per scene, computed
+from the same arithmetic as everything above (intensity, plus the valence movement from
+the previous scene, minus one point per drop-off tell covering the scene), with every
+flagged stretch shaded on the timeline and named in the key.
+
+Say what the curve is when you hand it over: a modelled restatement of the editor's own
+scene scores and the tripped tells, not a measurement of any audience — the caption to
+that effect is baked into the image and stays there. If a real retention curve exists,
+it outranks this graph entirely; put the two side by side and read the real one.
+
 ## The commercial application: the A/B Testing Accelerator
 
 For branded and ad work, what this sells is faster convergence on the cut that holds
@@ -182,7 +195,9 @@ forecast; the accelerator claim is about how few test cycles it takes to get the
 3. The question-and-answer ledger, in full
 4. The valence and intensity plot as a text table
 5. The three highest-leverage cuts, ranked, each with effort rating and exposed run-time
-6. A short honest-limits note
+6. The modelled engagement graph (`engagement_graph`), with its flagged stretches shaded
+   and the modelled-not-measured caption in the image
+7. A short honest-limits note
 
 ## What this skill cannot do
 

@@ -6,9 +6,11 @@ description: >
   like me", "train an AI on my own work", "build a style guide from my portfolio", "the drafts
   all sound like everyone else", "capture my visual style", "why doesn't this look like our
   work", "set up a style profile for the studio", "critique this draft against my style",
-  "our AI output has drifted", "score this against our house style". Also use it for auditing
-  an existing style profile, for onboarding a junior to a studio's style, and for deciding what
-  to disclose to a client about generative involvement.
+  "our AI output has drifted", "score this against our house style". Also use it when a stored
+  profile should do work — "have the apprentice draft these", "do this repetitive task in my
+  style", "generate variations of this project", "fill in the backgrounds to match" — and for
+  auditing an existing style profile, for onboarding a junior to a studio's style, and for
+  deciding what to disclose to a client about generative involvement.
 metadata:
   version: "0.1.0"
 ---
@@ -164,6 +166,41 @@ when the profile was built. Flag any dimension whose mean has fallen by 1.0 or m
 Drift is usually the preamble being trimmed, the corpus ageing, or corrections never being fed
 back; diagnose which before rewriting anything. Protocol and remedies in
 `references/drift-and-governance.md`.
+
+## Apprentice mode
+
+Once a profile is stored, the apprentice can execute work under it: repetitive tasks, alternative
+variations of a current project, or background fill matching the established aesthetic. The
+apprentice is this skill working from a compiled work order — it knows exactly what `save_profile`
+stored and nothing else. It does not observe the director working, watch a screen, or register
+brush pressure, and it does not learn from being run; if the work order is thin, the profile is
+thin, and the fix is editing the profile, not the order.
+
+The loop, in order, every time:
+
+1. **Compile the work order.** Call `apprentice_brief` with the profile id and the task —
+   `type` (`repetitive`, `variation` or `fill`), `description`, optional `count`. The order is
+   the profile rearranged verbatim: the never list as hard constraints, the anchors as
+   exemplars, the dimension entries as measurable requirements, the near-misses as the edge.
+   Nothing in it is invented.
+2. **Produce the work inside the constraints.** Hold every hard constraint on every item and
+   hit the requirement numbers. For `repetitive` work, consistency across items is the point;
+   for `variation`, vary within the profile, never outside it — a variation that needs a
+   constraint relaxed is a different brief; for `fill`, sit beneath the anchors' register
+   without competing with the foreground.
+3. **Self-check before anyone sees it.** Score the output 0 to 4 on each profile dimension —
+   honestly, against the entry's stated numbers, citing the output — and run
+   `apprentice_check`. Any never-list breach, or a weighted mean under 2.8, fails the gate.
+4. **Deliver only what clears the gate.** On a pass in the 2.8-to-3.5 band, deliver with the
+   two weakest dimensions and one specific correction each stated. On a fail, revise against
+   the named weakest dimensions — or remove the breach — and rescore, **at most twice**. Still
+   failing after two revisions, stop and hand the work back with the failure stated: the
+   weakest dimensions, their scores, and whether the profile or the brief is the likelier
+   cause. A third pass polishes; it does not fix.
+
+Never deliver unscored apprentice output, and never soften a fail into a caveat. The gate is
+what separates this from pasting the profile into a prompt: nothing reaches the user without
+clearing it.
 
 ## The commercial application: the Junior-to-Senior Bridge
 

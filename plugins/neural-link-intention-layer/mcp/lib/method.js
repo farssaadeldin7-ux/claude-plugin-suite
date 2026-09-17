@@ -142,6 +142,10 @@ export const REFIT_RULE =
   'Workflows are non-stationary. Refit anything built on a log older than about eight weeks or ' +
   'predating a major version change, and report the date range every time.';
 
+// The refit rule's "about eight weeks" made checkable: past this many days, a
+// saved model is reported stale.
+export const REFIT_AFTER_DAYS = 56;
+
 export const REMEASURE_RULE =
   'Two weeks later, log again and check each new macro is firing at the predicted rate. Remove ' +
   'the ones that are not — dead automation is worse than none, because it still occupies a ' +

@@ -28,6 +28,7 @@ import {
 } from './lib/vocabulary.js';
 import { REFOCUS_FIGURES, FORMULA, DEFAULTS, computeLoad } from './lib/load.js';
 import { PHASES, logSession, reviewSessions } from './lib/sessions.js';
+import { exportProfile, emitEvent, DELIVERY_STATEMENT, LOG_CONTRACT_PATH } from './lib/profile.js';
 
 const PLUGIN_ID = 'haptic-feedback-mapper';
 const PLUGIN_NAME = 'Haptic Feedback Mapper';
@@ -46,10 +47,11 @@ const server = new McpServer({
     'attention. Call event_classes for the four classes and their channels, vocabulary_rules for ' +
     'the pattern-design constraints, refocus_figures for the cost figures and their bases, ' +
     'load_math for the checks x refocus x rate arithmetic at both bounds, mapping_audit and ' +
-    'vocabulary_check for the mechanical rule checks with evidence quoted, and log_session / ' +
-    'review_sessions for the local before/after log and the trust metric. None of these decide ' +
-    'what class an event is, measure a session, or promise a billable-hour gain — that is the ' +
-    'skill\'s and the user\'s job.',
+    'vocabulary_check for the mechanical rule checks with evidence quoted, export_profile / ' +
+    'emit_event for the audited mapping compiled to consumable artefacts and the local event-log ' +
+    'bridge, and log_session / review_sessions for the local before/after log and the trust ' +
+    'metric. None of these decide what class an event is, measure a session, or promise a ' +
+    `billable-hour gain — that is the skill's and the user's job. ${DELIVERY_STATEMENT}`,
 });
 
 // ------------------------------------------------------------------- browse
@@ -160,7 +162,10 @@ server.tool('mapping_audit', {
             event: { type: 'string', description: 'What happens, e.g. "render failed".' },
             class: { type: 'string', description: 'act_now, done, ambient or noise.' },
             decision_fed: { type: 'string', description: 'The decision this check feeds. Pass an empty string to record that it feeds none.' },
-            haptic: { type: ['string', 'boolean'], description: 'The assigned pattern id, true if assigned but unnamed, or omit for none.' },
+            // No "type": it is a string (a pattern id) or boolean true (assigned
+            // but unnamed), and the runtime's schema subset has no union types —
+            // declaring one rejected every valid value at the transport layer.
+            haptic: { description: 'The assigned pattern id, true if assigned but unnamed, or omit for none.' },
           },
           required: ['event', 'class'],
         },
@@ -206,6 +211,97 @@ server.tool('vocabulary_check', {
   handler: async (args) => {
     await client.requireFeature('tools');
     return checkVocabulary(args);
+  },
+});
+
+// ------------------------------------------------------- export and the bridge
+
+server.tool('export_profile', {
+  description:
+    'Compile a designed mapping and vocabulary into ready-to-use artefacts in a caller-supplied ' +
+    'directory: a canonical JSON profile (event id, class, priority, cooldown, and the pattern as ' +
+    'an amplitude/duration/repeat tuple derived from the vocabulary axes) plus a POSIX-sh "notify" ' +
+    'hook that appends a timestamped NDJSON line per mapped event to the local event log — the ' +
+    'documented contract any haptic driver, Stream Deck plugin or automation tool can watch. The ' +
+    'mapping is checked against the mapping_audit and vocabulary_check rules first, and an export ' +
+    'that fails its own audit is refused with the failures named. The plugin designs and exports ' +
+    'the mapping and emits events; the hardware driver on the user\'s machine does the vibrating — ' +
+    'no haptic hardware is driven directly. Requires a paid plan.',
+  inputSchema: {
+    type: 'object',
+    properties: {
+      directory: {
+        type: 'string', minLength: 1,
+        description: 'Where to write the artefacts (created if missing). "~" is resolved against HOME.',
+      },
+      profile_name: {
+        type: 'string', maxLength: 60,
+        description: 'Profile name — lowercased to a slug; the JSON file is named after it. Default "default".',
+      },
+      events: {
+        type: 'array',
+        description: 'The audited mapping, one entry per event. Only act_now and done events are emitted; ambient and noise are recorded as silence.',
+        items: {
+          type: 'object',
+          properties: {
+            event: { type: 'string', description: 'What happens, e.g. "build failed". Its id is the lowercased slug.' },
+            class: { type: 'string', description: 'act_now, done, ambient or noise.' },
+            decision_fed: { type: 'string', description: 'The decision this event feeds.' },
+            // No "type": a pattern id string for act_now/done events; the runtime's
+            // schema subset has no union types (see mapping_audit).
+            haptic: { description: 'The pattern id from "patterns" for act_now/done events; omit for silent classes.' },
+            cooldown_seconds: { type: 'number', minimum: 0, description: 'Advisory minimum gap between deliveries of this event, enforced by the consumer. Default 0.' },
+          },
+          required: ['event', 'class'],
+        },
+      },
+      patterns: {
+        type: 'array',
+        description: 'The vocabulary, in the plugin\'s own axes — compiled into amplitude/duration/repeat tuples.',
+        items: {
+          type: 'object',
+          properties: {
+            id: { type: 'string', description: 'The pattern id events point at, e.g. "double_tap".' },
+            meaning: { type: 'string', description: 'The one meaning, as taught in a sentence.' },
+            count: { type: 'number', description: 'Taps or pulses — becomes the tuple\'s repeat.' },
+            intensity: { type: 'string', description: `${INTENSITIES.join(', ')} — becomes the normalised amplitude.` },
+            rhythm: { type: 'string', description: 'A short label, carried verbatim for drivers that can shape it.' },
+            is_failure: { type: 'boolean', description: 'Mark the failure pattern.' },
+            pulse_ms: { type: 'number', minimum: 1, description: 'Pulse length in ms. Default 150.' },
+            gap_ms: { type: 'number', minimum: 0, description: 'Gap between pulses in ms. Default 100.' },
+          },
+          required: ['id'],
+        },
+      },
+    },
+    required: ['directory', 'events', 'patterns'],
+  },
+  handler: async (args) => {
+    await client.requireFeature('tools');
+    return exportProfile(args);
+  },
+});
+
+server.tool('emit_event', {
+  description:
+    'Append one mapped event to the local event log, atomically, validated against the exported ' +
+    `profile: the line carries the event id, class, the pattern's amplitude/duration/repeat tuple, ` +
+    'priority and cooldown, as NDJSON at ' + LOG_CONTRACT_PATH + ' — the bridge any watching ' +
+    'haptic driver turns into the actual vibration. Structured errors for unmapped events ' +
+    '(unmapped_event), events a profile maps to silence (silent_event), and a missing profile ' +
+    '(no_profile). This server appends the line; it drives no hardware. Requires a paid plan.',
+  inputSchema: {
+    type: 'object',
+    properties: {
+      event: { type: 'string', minLength: 1, description: 'The event id (or its original label) from the exported profile, e.g. "build_failed".' },
+      profile: { type: 'string', description: 'Which exported profile to validate against. Default "default".' },
+      note: { type: 'string', maxLength: 500, description: 'Optional free text carried on the line, e.g. the failing job\'s name.' },
+    },
+    required: ['event'],
+  },
+  handler: async (args) => {
+    await client.requireFeature('tools');
+    return emitEvent(args);
   },
 });
 

@@ -7,7 +7,9 @@ description: >
   "how do I sell my editing services", "turn this portfolio into a pitch", "follow up without
   being annoying". Also use it for choosing a niche to pitch, building a prospect list,
   drafting and sequencing cold messages, and handling replies, objections and pricing
-  conversations.
+  conversations — plus "build a deck for this sales meeting", "help me prep slides for the
+  call", "roleplay this customer's objections with me", and "let me practise handling
+  'too expensive'".
 metadata:
   version: "0.1.0"
 ---
@@ -93,7 +95,22 @@ convert — iterate on that, not on instinct.
 - **Silence after interest** — one direct question: "Should I close this out?" It revives
   more deals than another value paragraph.
 
-### 7. Close and price
+### 7. Build the meeting deck
+
+When a reply becomes a meeting, build the deck to the fixed skeleton in
+`references/meeting-deck.md`: the problem as the prospect stated it, what it costs them
+in their numbers, the change, proof, the ask — eight slides maximum, one claim per
+slide, and no number on any slide that did not come from the account research or from
+the prospect.
+
+### 8. Practise the objections before the meeting
+
+Before the call, run the drill in `references/objection-practice.md`: pick an objection
+from the taxonomy (price, timing, incumbent, authority, no-need), play the prospect in
+character, escalate once, then break character and score the answer 0–2 against
+acknowledge, isolate, evidence and advance, with the thresholds stated there.
+
+### 9. Close and price
 
 First projects are priced to win the relationship, not the invoice — but never free, and
 never open-ended. A scoped pilot with a fixed price, a fixed deliverable and a fixed date

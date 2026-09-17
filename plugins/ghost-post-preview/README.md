@@ -48,7 +48,7 @@ just a better opening to a post nobody needed.
 
 | Component | Purpose |
 | --- | --- |
-| Skill `sales-and-outreach` | The client-getting system: offer, niche, prospect list, cold pitch, follow-up, close |
+| Skill `sales-and-outreach` | The client-getting system: personalised outreach emails from a real prospect list, meeting decks built only from numbers the prospect or the research supplied, and scored objection-handling practice with Claude playing the prospect |
 | MCP server | The mechanics: fold reconstruction, draft lint, platform data, prediction log, licensing |
 
 **Open** — no licence needed:
