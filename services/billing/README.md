@@ -100,10 +100,10 @@ block device (not a network filesystem), same as a VPS.
 
 ```bash
 cd services/billing
-fly launch --no-deploy --name plugin-suite-billing --region iad --dockerfile Dockerfile
+fly launch --no-deploy --name plugin-suite-billing --region arn --dockerfile Dockerfile
 # answers "no" to Postgres/Redis prompts — this service needs neither
 
-fly volumes create billing_data --region iad --size 1 --app plugin-suite-billing
+fly volumes create data --region arn --size 1 --app plugin-suite-billing
 ```
 
 Add the volume mount to the generated `fly.toml` (the app already sets
@@ -111,7 +111,7 @@ Add the volume mount to the generated `fly.toml` (the app already sets
 
 ```toml
 [mounts]
-  source      = "billing_data"
+  source      = "data"
   destination = "/data"
 
 [[services]]
