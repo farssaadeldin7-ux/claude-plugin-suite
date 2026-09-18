@@ -107,9 +107,9 @@ export const CATALOG = {
       },
     },
   },
-  'basecamp-split': {
-    name: 'Basecamp Split',
-    code: 'BCS',
+  'trail-split': {
+    name: 'Trail Split',
+    code: 'TSP',
     // The plugin's MCP server gates its licensed tools on the 'tools' feature.
     plans: {
       pro: {
@@ -119,7 +119,7 @@ export const CATALOG = {
         limits: {},
         seats: 2,
         available: true,
-        stripe_price_env: 'STRIPE_PRICE_BCS_PRO',
+        stripe_price_env: 'STRIPE_PRICE_TSP_PRO',
       },
       team: {
         price: 1500,
@@ -128,7 +128,7 @@ export const CATALOG = {
         limits: {},
         seats: 10,
         available: true,
-        stripe_price_env: 'STRIPE_PRICE_BCS_TEAM',
+        stripe_price_env: 'STRIPE_PRICE_TSP_TEAM',
       },
     },
   },

@@ -41,7 +41,7 @@ try {
   fs.mkdirSync(path.join(fixtureDir, '.claude-plugin'), { recursive: true });
   // Borrow a real plugin.json shape so this fails on the .mcp.json check
   // specifically, not on unrelated missing fields.
-  const template = JSON.parse(fs.readFileSync(path.join(root, 'plugins/basecamp-split/.claude-plugin/plugin.json'), 'utf8'));
+  const template = JSON.parse(fs.readFileSync(path.join(root, 'plugins/trail-split/.claude-plugin/plugin.json'), 'utf8'));
   fs.writeFileSync(
     path.join(fixtureDir, '.claude-plugin', 'plugin.json'),
     JSON.stringify({ ...template, name: fixtureId }, null, 2)

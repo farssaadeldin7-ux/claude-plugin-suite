@@ -16,9 +16,9 @@ let passed = 0;
 const ok = (name) => { passed++; console.log(`  ok  ${name}`); };
 
 try {
-  execFileSync('node', ['scripts/build.mjs', 'basecamp-split'], { cwd: root, stdio: 'pipe' });
-  const version = JSON.parse(fs.readFileSync(path.join(root, 'plugins/basecamp-split/.claude-plugin/plugin.json'), 'utf8')).version;
-  const archivePath = path.join(root, 'dist', `basecamp-split-${version}.plugin`);
+  execFileSync('node', ['scripts/build.mjs', 'trail-split'], { cwd: root, stdio: 'pipe' });
+  const version = JSON.parse(fs.readFileSync(path.join(root, 'plugins/trail-split/.claude-plugin/plugin.json'), 'utf8')).version;
+  const archivePath = path.join(root, 'dist', `trail-split-${version}.plugin`);
   const listing = execFileSync('unzip', ['-l', archivePath], { encoding: 'utf8' });
 
   // ---- the repository LICENSE ships in every archive -----------------------

@@ -1,4 +1,4 @@
-# Basecamp Split
+# Trail Split
 
 Plans a group trip as three ledgers that have to reconcile: gear, weight and cost.
 
@@ -33,7 +33,7 @@ organisers, and anyone who has been the person who ended up carrying the fourth 
 
 | Component | Purpose |
 | --- | --- |
-| Skill `basecamp-split` | The whole thing. Roster, classification, SPOF check, consumables, weight bands, rebalancing, settle-up |
+| Skill `trail-split` | The whole thing. Roster, classification, SPOF check, consumables, weight bands, rebalancing, settle-up |
 | `references/gear-taxonomy.md` | Shared vs personal test, the seven-system table with acceptable backups, splittable items |
 | `references/consumables-planning.md` | Energy, food weight, water, treatment and fuel figures, plus a worked four-person three-day example |
 | `references/cost-splitting.md` | The three split models, the settle-up algorithm and its limits, worked example |
@@ -74,14 +74,14 @@ export PLUGIN_SUITE_BILLING_URL=https://billing.yourdomain.com
 
 Then buy a plan from the pricing page (or with `start_checkout` from inside a
 conversation) and paste the key — it will be stored at
-`~/.config/plugin-suite/basecamp-split.json`.
+`~/.config/plugin-suite/trail-split.json`.
 
 A key can also be supplied by environment variable, which takes precedence:
 
 ```bash
-export BASECAMP_SPLIT_LICENSE_KEY=PS-BCS-...
+export TRAIL_SPLIT_LICENSE_KEY=PS-TSP-...
 # or, shared across the whole suite:
-export PLUGIN_SUITE_LICENSE_KEY=PS-BCS-...
+export PLUGIN_SUITE_LICENSE_KEY=PS-TSP-...
 ```
 
 The tools work best if you can supply body weights, nights per person and a rough

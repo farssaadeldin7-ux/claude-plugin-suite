@@ -10,7 +10,7 @@
  * and sums, not arithmetic), so coverage here is built from SKILL.md step 8's
  * stated rules and the boundary values in the code's own comparisons.
  *
- *   node plugins/basecamp-split/mcp/test/reconcile.test.mjs
+ *   node plugins/trail-split/mcp/test/reconcile.test.mjs
  */
 import assert from 'node:assert/strict';
 import { reconcilePlan } from '../lib/reconcile.js';
