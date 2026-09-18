@@ -26,9 +26,9 @@ alongside the printed criteria. This skill makes all three explicit.
 
 ## Who it is for
 
-University students and professionals writing to any stated set of assessment criteria:
-coursework, dissertation chapters, professional qualifications, graded reports, funding
-applications with published scoring criteria.
+University students writing to any stated set of assessment criteria: coursework,
+dissertation chapters, graded reports, funding applications with published scoring
+criteria.
 
 ## Ethics
 

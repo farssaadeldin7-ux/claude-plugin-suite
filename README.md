@@ -15,20 +15,20 @@ Installable as a marketplace:
 
 | Plugin | For | The judgement it encodes |
 | --- | --- | --- |
-| [`diagnose-by-sound`](plugins/diagnose-by-sound) | Mechanics, DIY | Characterise the noise before naming a cause; report calibrated confidence, not a guess |
-| [`ghost-post-preview`](plugins/ghost-post-preview) | Creators, social teams | Name the most likely reason a post underperforms; never fabricate an engagement number |
-| [`professor-mind-reader`](plugins/professor-mind-reader) | Students, professionals | Answer at the level the rubric verb demands; find the sentence that satisfies each criterion |
+| [`diagnose-by-sound`](plugins/diagnose-by-sound) | Workshop service advisers | Characterise the noise before naming a cause; report calibrated confidence, not a guess |
+| [`ghost-post-preview`](plugins/ghost-post-preview) | Social managers | Name the most likely reason a post underperforms; never fabricate an engagement number |
+| [`professor-mind-reader`](plugins/professor-mind-reader) | University students | Answer at the level the rubric verb demands; find the sentence that satisfies each criterion |
 | [`five-minute-fluency`](plugins/five-minute-fluency) | Competitive players | Three changes maximum, ranked by rating gain per unit of practice |
-| [`basecamp-split`](plugins/basecamp-split) | Guides, expedition leaders | Every critical system has a named owner and a stated backup, or the plan is not finished |
-| [`podcast-video-studio`](plugins/podcast-video-studio) | Agencies, solo creators | A clip that needs context is disqualified however good it was in the room |
-| [`customer-sales-support`](plugins/customer-sales-support) | E-commerce, SaaS | An AI support agent is only as good as the docs; "I don't know — here's a person" is a first-class answer |
-| [`haptic-feedback-mapper`](plugins/haptic-feedback-mapper) | Studios, freelance artists | A haptic that fires for something ignorable is worse than the screen it replaced |
-| [`mental-health-chatbot`](plugins/mental-health-chatbot) | Telehealth, HR wellness | Support, not crisis intervention — escalation is always on and never a severity judgement |
-| [`neural-link-intention-layer`](plugins/neural-link-intention-layer) | Designers, UI/UX | Eliminate, then batch, then automate — in that order |
-| [`generative-digital-twin`](plugins/generative-digital-twin) | Creative directors | A style is defined by what you never do; the "never" list matters most |
-| [`emotional-resonance-analyzer`](plugins/emotional-resonance-analyzer) | Editors, documentarians | Flat stretches are the problem, not low stretches; real retention data always wins |
+| [`basecamp-split`](plugins/basecamp-split) | Expedition leaders | Every critical system has a named owner and a stated backup, or the plan is not finished |
+| [`podcast-video-studio`](plugins/podcast-video-studio) | Content agencies | A clip that needs context is disqualified however good it was in the room |
+| [`customer-sales-support`](plugins/customer-sales-support) | SaaS founders | An AI support agent is only as good as the docs; "I don't know — here's a person" is a first-class answer |
+| [`haptic-feedback-mapper`](plugins/haptic-feedback-mapper) | Creative studios | A haptic that fires for something ignorable is worse than the screen it replaced |
+| [`mental-health-chatbot`](plugins/mental-health-chatbot) | Telehealth platforms | Support, not crisis intervention — escalation is always on and never a severity judgement |
+| [`neural-link-intention-layer`](plugins/neural-link-intention-layer) | UI/UX designers | Eliminate, then batch, then automate — in that order |
+| [`generative-digital-twin`](plugins/generative-digital-twin) | Studio heads | A style is defined by what you never do; the "never" list matters most |
+| [`emotional-resonance-analyzer`](plugins/emotional-resonance-analyzer) | Advertising and marketing video editors | Flat stretches are the problem, not low stretches; real retention data always wins |
 | [`code-to-visual-interpreter`](plugins/code-to-visual-interpreter) | Creative technologists | Structure, modulation, surface — and a seeded PRNG or the piece is unreviewable |
-| [`predictive-resource-allocation`](plugins/predictive-resource-allocation) | 3D, VFX, ML | Find the binding constraint first; buying hardware is the last remedy, not the first |
+| [`predictive-resource-allocation`](plugins/predictive-resource-allocation) | VFX and 3D studios | Find the binding constraint first; buying hardware is the last remedy, not the first |
 
 Audiences, the skill each user must bring, and the monetisation shape are in
 [`docs/AUDIENCES.md`](docs/AUDIENCES.md).

@@ -29,9 +29,9 @@ This plugin enforces that order of operations.
 
 ## Who it is for
 
-Creators, social teams and small businesses in the last five minutes before publishing.
-It is most useful on the posts you are unsure about, and on the post that flopped last
-week when you want to know why.
+Social managers in the last five minutes before publishing. It is most useful on the
+posts you are unsure about, and on the post that flopped last week when you want to know
+why.
 
 ## What you need to bring
 

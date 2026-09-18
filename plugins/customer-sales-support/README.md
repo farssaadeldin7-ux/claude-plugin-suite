@@ -39,8 +39,8 @@ and a question with no covering article escalates, full stop.
 
 ## Who it is for
 
-E-commerce managers and SaaS founders who want basic tickets handled automatically without
-their brand confidently making things up.
+SaaS founders who want basic tickets handled automatically without their brand
+confidently making things up.
 
 You bring your own ticket history and your policies. The plugin finds where policy is
 unstated or contradictory; deciding the policy is yours, and often legal's.

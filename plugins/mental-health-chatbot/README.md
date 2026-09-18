@@ -29,7 +29,7 @@ HR wellness programme:
 
 ## Who it is for
 
-Telehealth platforms and HR wellness programmes. The skill the operator must bring is
+Telehealth platforms. The skill the operator must bring is
 **clinical triage literacy** — knowing that recognising when to hand over is the whole
 job, and that severity estimation is never delegated to a model.
 
