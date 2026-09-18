@@ -1,0 +1,25 @@
+# Fly configuration for the billing service. The app itself was created by the
+# runbook in README.md ("Deploying to fly"); this file exists so deploys are
+# reproducible from CI rather than depending on a locally generated config.
+# Secrets (STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, the STRIPE_PRICE_* ids and
+# BILLING_PUBLIC_URL) live in Fly secrets, never in this file.
+
+app = "plugin-suite-billing"
+primary_region = "iad"
+
+[build]
+  dockerfile = "Dockerfile"
+
+# The store is one JSON file on a volume that follows a single machine — the
+# runbook's "fly scale count 1" invariant. Keep that machine running rather
+# than auto-stopping it: Stripe webhooks should not ride on cold starts.
+[mounts]
+  source      = "billing_data"
+  destination = "/data"
+
+[http_service]
+  internal_port = 8787
+  force_https = true
+  auto_stop_machines = false
+  auto_start_machines = true
+  min_machines_running = 1
