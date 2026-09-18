@@ -80,8 +80,8 @@ export PLUGIN_SUITE_LICENSE_KEY=PS-GDT-...
 
 ## Who it is for
 
-Freelance creative directors, studio heads and small teams who produce enough volume that first
-drafts are a real cost, and who have a body of their own work to build on.
+Studio heads who produce enough volume that first drafts are a real cost, and who have
+a body of their own work to build on.
 
 ## What you need to bring
 

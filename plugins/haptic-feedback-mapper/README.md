@@ -31,8 +31,8 @@ replaced. The channel works because it is scarce and trusted.
 
 ## Who it is for
 
-**Creative freelancers and studios** — drawing, rendering, audio, video work — losing
-focus time to screen-checking mid-session. Steps 1–5 of the skill measure the cost and
+**Creative studios** — drawing, rendering, audio, video work — losing focus time to
+screen-checking mid-session. Steps 1–5 of the skill measure the cost and
 design the fix; step 6 turns it into the case for the plan, priced at your own billable
 rate.
 
@@ -131,7 +131,7 @@ hostname) — never a session, a mapping or a rate.
 
 Served by `services/billing` in this repo; the catalog lives in its `catalog.js`:
 pro $100/month (2 seats) and team $300/month (10 seats) — a Deep-Work premium priced
-against the billable hours it recovers, within reach of the solo artists and small
-product teams it serves. Both plans include the same tools — the licence gates `load_math`,
+against the billable hours it recovers for the studios it serves. Both plans include the
+same tools — the licence gates `load_math`,
 `mapping_audit`, `vocabulary_check`, `log_session` and `review_sessions`; the skill
 content and the reference tools stay open.
