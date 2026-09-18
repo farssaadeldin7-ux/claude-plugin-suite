@@ -44,4 +44,10 @@ jobs:
       - name: Deploy to Fly
         if: steps.token.outputs.present == 'true'
         working-directory: services/billing
-        run: flyctl deploy --remote-only
+        # A Fly token is one continuous line, but pasting it from a wrapped
+        # terminal can smuggle newlines into the secret and Fly then rejects
+        # it as "no verified tokens" — strip them before use.
+        run: |
+          FLY_API_TOKEN="$(printf '%s' "$FLY_API_TOKEN" | tr -d '\r\n')"
+          export FLY_API_TOKEN
+          flyctl deploy --remote-only
