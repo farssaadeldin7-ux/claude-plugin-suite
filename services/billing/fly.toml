@@ -5,7 +5,7 @@
 # BILLING_PUBLIC_URL) live in Fly secrets, never in this file.
 
 app = "plugin-suite-billing"
-primary_region = "iad"
+primary_region = "arn"
 
 [build]
   dockerfile = "Dockerfile"
@@ -14,7 +14,7 @@ primary_region = "iad"
 # runbook's "fly scale count 1" invariant. Keep that machine running rather
 # than auto-stopping it: Stripe webhooks should not ride on cold starts.
 [mounts]
-  source      = "billing_data"
+  source      = "data"
   destination = "/data"
 
 [http_service]
@@ -23,3 +23,11 @@ primary_region = "iad"
   auto_stop_machines = false
   auto_start_machines = true
   min_machines_running = 1
+
+# Pin the machine size so a start-from-zero matches what is already running
+# (shared-cpu-1x, 1GB). fly deploy leaves an existing machine's size alone
+# without this, but a cold start falls back to the shared-cpu-1x default.
+[[vm]]
+  memory = "1gb"
+  cpu_kind = "shared"
+  cpus = 1
