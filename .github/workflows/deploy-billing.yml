@@ -4,8 +4,9 @@ name: deploy-billing
 # FLY_API_TOKEN repository secret (an app-scoped deploy token:
 #   fly tokens create deploy --app plugin-suite-billing
 # pasted into Settings -> Secrets and variables -> Actions). Until that secret
-# exists the workflow skips with a warning instead of failing, so merging this
-# file is safe before the token is set up.
+# exists (or if it is invalid for CI deploys), the workflow skips with a
+# warning instead of failing, so merging this file is safe before the token is
+# set up.
 #
 # Pull requests into main already run the full validate workflow as a required
 # check, so anything landing here has passed the whole test suite.
