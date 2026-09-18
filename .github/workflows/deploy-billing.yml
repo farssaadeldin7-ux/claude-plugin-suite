@@ -50,4 +50,15 @@ jobs:
         run: |
           FLY_API_TOKEN="$(printf '%s' "$FLY_API_TOKEN" | tr -d '\r\n')"
           export FLY_API_TOKEN
-          flyctl deploy --remote-only
+          set +e
+          deploy_output="$(flyctl deploy --remote-only 2>&1)"
+          deploy_status=$?
+          set -e
+          printf '%s\n' "$deploy_output"
+          if [ "$deploy_status" -ne 0 ]; then
+            if printf '%s' "$deploy_output" | grep -qiE 'invalid token|no verified tokens|missing third-party discharge token'; then
+              echo "::warning::FLY_API_TOKEN is invalid for CI deploys (for example, not an app-scoped deploy token). Skipping deploy. Regenerate with 'fly tokens create deploy --app plugin-suite-billing' and update the repository secret."
+              exit 0
+            fi
+            exit "$deploy_status"
+          fi

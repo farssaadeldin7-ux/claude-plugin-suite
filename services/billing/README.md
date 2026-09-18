@@ -142,8 +142,9 @@ Continuous deploys are wired up in `.github/workflows/deploy-billing.yml`: every
 change to `services/billing/` that lands on `main` redeploys the app automatically.
 It needs one repository secret, `FLY_API_TOKEN` — create an app-scoped deploy token
 with `fly tokens create deploy --app plugin-suite-billing` and add it under the
-repository's Settings → Secrets and variables → Actions. Until the secret exists the
-workflow skips with a warning rather than failing.
+repository's Settings → Secrets and variables → Actions. Until the secret exists (or
+if it is invalid for CI deploys), the workflow skips with a warning rather than
+failing.
 
 `fly scale count 1` is the load-bearing line: a volume follows its machine, so scaling
 out would either fail to attach a second one or (worse) hand a second instance an empty
