@@ -26,8 +26,9 @@ enforces that order and refuses to call a plan finished while a name is missing.
 
 ## Who it is for
 
-Expedition leaders, guides, DofE and scout leaders, climbing and paddling club trip
-organisers, and anyone who has been the person who ended up carrying the fourth stove.
+Expedition leaders — the person accountable for a group's shared gear, food and cost on
+a multi-day trip, whether that trip is a DofE expedition, a scout outing, or a climbing
+or paddling club trip.
 
 ## Components
 

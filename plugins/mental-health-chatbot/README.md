@@ -36,7 +36,7 @@ HR wellness programme:
 
 ## Who it is for
 
-Telehealth platforms and HR wellness programmes. The skill the operator must bring is
+Telehealth platforms. The skill the operator must bring is
 **clinical triage literacy** — knowing that recognising when to hand over is the whole
 job, and that severity estimation is never delegated to a model.
 
@@ -173,7 +173,7 @@ operator who can hold that line.
 
 ## Plans
 
-Pricing is defined in the suite catalog: pro $20/month (2 seats) and team $50/month
+Pricing is defined in the suite catalog: pro $100/month (2 seats) and team $250/month
 (10 seats). The licence gates the operator's measurement workflow — red-team
 specification, the evaluation gate, the run record, the summary template and the session
 audit log. The skill content, every safety and escalation lookup, and the scope wording

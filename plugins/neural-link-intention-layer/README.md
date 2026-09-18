@@ -32,8 +32,7 @@ repeat, costing them, and deciding which are worth eliminating, batching or auto
 
 ## Who it is for
 
-Professional digital artists and UI/UX designers who can reason about their own
-repetitive command patterns. Photoshop, Illustrator, Figma, Blender and After Effects are
+UI/UX designers who can reason about their own repetitive command patterns. Photoshop, Illustrator, Figma, Blender and After Effects are
 covered specifically; the method transfers to anything you can get an action log out of.
 
 ## Components

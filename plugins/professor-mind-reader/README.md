@@ -26,9 +26,9 @@ alongside the printed criteria. This skill makes all three explicit.
 
 ## Who it is for
 
-University students and professionals writing to any stated set of assessment criteria:
-coursework, dissertation chapters, professional qualifications, graded reports, funding
-applications with published scoring criteria.
+University students writing to any stated set of assessment criteria: coursework,
+dissertation chapters, graded reports, funding applications with published scoring
+criteria.
 
 ## Ethics
 
@@ -117,7 +117,7 @@ own guidance — where they disagree with this, they are right.
 
 ## Plans
 
-Pricing is defined in the suite catalog: pro $50/month (2 seats) and team $150/month
+Pricing is defined in the suite catalog: pro $19/month (2 seats) and team $25/month
 (10 seats). Both plans include the same tools; the licence gates `effort_map`,
 `audit_scorecard` and the audit history. Skill content and the knowledge-base tools
 stay open.

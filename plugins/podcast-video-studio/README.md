@@ -28,7 +28,7 @@ that still works for a stranger holding a phone. This plugin enforces the second
 
 ## Who it is for
 
-Content agencies cutting client episodes at volume, and solo creators repurposing their own.
+Content agencies cutting client episodes at volume.
 
 **The skill you must bring is content strategy.** The plugin will tell you which segments
 are structurally clippable. It cannot tell you which of them are worth your audience's

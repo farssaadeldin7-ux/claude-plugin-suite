@@ -40,8 +40,8 @@ tool returns, not a flat tier. From `catalog.js`:
 | Haptic Feedback Mapper | $100/mo | $300/mo |
 | Neural-Link Intention Layer | $100/mo | $300/mo |
 | Diagnose by Sound | $50/mo | $150/mo |
-| Professor Mind-Reader | $50/mo | $150/mo |
-| Mental-Health Chatbot | $20/mo | $50/mo |
+| Professor Mind-Reader | $19/mo | $25/mo |
+| Mental-Health Chatbot | $100/mo | $250/mo |
 | 5-Minute Fluency | $10/mo | $30/mo |
 | Trail Split | $5/mo | $15/mo |
 

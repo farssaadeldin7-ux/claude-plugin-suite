@@ -35,7 +35,7 @@ and this plugin enforces the right order of operations for each.
 
 ## Who it is for
 
-Creative technologists and web developers. The skill you must bring is **computational
+Creative technologists. The skill you must bring is **computational
 design** — an understanding of how visual geometry relates to the code that generates
 it. It will not teach you what a flow field is; it will tell you yours costs 1,000,000
 line segments and belongs on a canvas. Covers p5.js, three.js, GLSL, SVG, Canvas 2D,

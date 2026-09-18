@@ -64,10 +64,10 @@ reaches a driver.
 
 ## Who it is for
 
-**Creative freelancers and studios** — drawing, rendering, audio, video work — losing
-focus time to screen-checking mid-session. Steps 1–6 of the skill measure the cost, design
-the fix and wire it to the machine; step 7 turns it into the case for the plan, priced at
-your own billable rate.
+**Creative studios** — drawing, rendering, audio, video work — losing focus time to
+screen-checking mid-session. Steps 1–6 of the skill measure the cost, design the fix and
+wire it to the machine; step 7 turns it into the case for the plan, priced at your own
+billable rate.
 
 The plugin supplies the measurement method, the mapping discipline and the ROI framing;
 the before/after numbers must come from your own sessions, and the skill will say so
@@ -179,7 +179,7 @@ hostname) — never a session, a mapping, an event or a rate.
 
 Served by `services/billing` in this repo; the catalog lives in its `catalog.js`:
 pro $100/month (2 seats) and team $300/month (10 seats) — a Deep-Work premium priced
-against the billable hours it recovers, within reach of the solo artists and small
-product teams it serves. Both plans include the same tools — the licence gates `load_math`,
+against the billable hours it recovers for the studios it serves. Both plans include the
+same tools — the licence gates `load_math`,
 `mapping_audit`, `vocabulary_check`, `export_profile`, `emit_event`, `log_session` and
 `review_sessions`; the skill content and the reference tools stay open.

@@ -32,9 +32,9 @@ where attention drops to explaining a drop already measured.
 
 ## Who it is for
 
-Professional video editors and documentary film-makers. It assumes you bring narrative
-pacing theory — you understand the *why* behind drop-off and want a structured second
-reading of your cut, not a lesson. It will not teach you to edit.
+Advertising and marketing video editors. It assumes you bring narrative pacing theory —
+you understand the *why* behind drop-off and want a structured second reading of your
+cut, not a lesson. It will not teach you to edit.
 
 Feed it a paper edit or timecoded transcript, the intended form, length and venue, and any
 real retention curve you have. Without timecodes every duration-based tell is lost.

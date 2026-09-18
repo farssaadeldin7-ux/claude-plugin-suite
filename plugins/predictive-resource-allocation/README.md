@@ -67,8 +67,7 @@ the machine.
 
 ## Who it is for, and what it requires
 
-3D animators, VFX artists and data scientists who own a deadline and a machine that is
-not fast enough for it. Using it well requires **system architecture literacy** — a
+VFX and 3D studios who own a deadline and a machine that is not fast enough for it. Using it well requires **system architecture literacy** — a
 working understanding of what CPU, GPU, RAM and I/O each do and why they fail
 differently. The skill talks in occupancy against utilisation, bandwidth against
 capacity, cliffs against slopes. If those distinctions are unfamiliar, the output reads
