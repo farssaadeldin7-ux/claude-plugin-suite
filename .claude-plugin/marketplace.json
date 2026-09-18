@@ -13,7 +13,7 @@
     { "source": "./plugins/ghost-post-preview", "category": "marketing" },
     { "source": "./plugins/professor-mind-reader", "category": "education" },
     { "source": "./plugins/five-minute-fluency", "category": "gaming" },
-    { "source": "./plugins/basecamp-split", "category": "outdoors" },
+    { "source": "./plugins/trail-split", "category": "outdoors" },
     { "source": "./plugins/podcast-video-studio", "category": "media" },
     { "source": "./plugins/customer-sales-support", "category": "operations" },
     { "source": "./plugins/haptic-feedback-mapper", "category": "design" },

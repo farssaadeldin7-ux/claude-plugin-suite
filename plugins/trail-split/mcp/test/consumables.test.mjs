@@ -8,7 +8,7 @@
  * figures into an assertion is the point: those numbers were computed once
  * by a human for the doc and now have to agree with the code a second time.
  *
- *   node plugins/basecamp-split/mcp/test/consumables.test.mjs
+ *   node plugins/trail-split/mcp/test/consumables.test.mjs
  */
 import assert from 'node:assert/strict';
 import { sizeConsumables, ENERGY_BANDS, FOOD_WEIGHT, WATER, FUEL } from '../lib/consumables.js';

@@ -2,7 +2,7 @@
 /**
  * Regression tests for lib/weight.js.
  *
- *   node plugins/basecamp-split/mcp/test/weight.test.mjs
+ *   node plugins/trail-split/mcp/test/weight.test.mjs
  */
 import assert from 'node:assert/strict';
 import { weightLedger } from '../lib/weight.js';
