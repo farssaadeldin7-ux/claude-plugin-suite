@@ -119,12 +119,3 @@ Pricing is defined in the suite catalog: pro $5/month (2 seats) and team $15/mon
 (10 seats). A licence gates the four ledger computations — `size_consumables`,
 `weight_ledger`, `settle_costs` and `reconcile_plan`. The skill content and the three
 reference-table tools stay open, so the method can be evaluated before buying.
-
-## Trademark note
-
-"Basecamp Split" describes what the plugin does: splitting gear, food, weight
-and cost across a group at an expedition base camp. It is an outdoor-trip
-planning tool. This project is not affiliated with, endorsed by, or connected
-to 37signals, LLC, and has no relationship to their project-management
-product. "Basecamp" is a trademark of 37signals, LLC in the context of that
-product.
