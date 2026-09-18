@@ -19,7 +19,7 @@ Installable as a marketplace:
 | [`ghost-post-preview`](plugins/ghost-post-preview) | Creators, social teams | Name the most likely reason a post underperforms; never fabricate an engagement number |
 | [`professor-mind-reader`](plugins/professor-mind-reader) | Students, professionals | Answer at the level the rubric verb demands; find the sentence that satisfies each criterion |
 | [`five-minute-fluency`](plugins/five-minute-fluency) | Competitive players | Three changes maximum, ranked by rating gain per unit of practice |
-| [`trail-split`](plugins/trail-split) | Guides, expedition leaders | Every critical system has a named owner and a stated backup, or the plan is not finished |
+| [`basecamp-split`](plugins/basecamp-split) | Guides, expedition leaders | Every critical system has a named owner and a stated backup, or the plan is not finished |
 | [`podcast-video-studio`](plugins/podcast-video-studio) | Agencies, solo creators | A clip that needs context is disqualified however good it was in the room |
 | [`customer-sales-support`](plugins/customer-sales-support) | E-commerce, SaaS | An AI support agent is only as good as the docs; "I don't know — here's a person" is a first-class answer |
 | [`haptic-feedback-mapper`](plugins/haptic-feedback-mapper) | Studios, freelance artists | A haptic that fires for something ignorable is worse than the screen it replaced |

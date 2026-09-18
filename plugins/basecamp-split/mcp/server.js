@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Trail Split — MCP server.
+ * Basecamp Split — MCP server.
  *
  * The deterministic half of the method: the gear taxonomy and seven-system
  * tables, consumables arithmetic from the planning figures, the weight ledger
@@ -27,8 +27,8 @@ import { CARRY_BANDS, BANDS_CAVEAT, REBALANCE_ORDER, weightLedger } from './lib/
 import { SPLIT_MODELS, MODEL_RULES, settleCosts } from './lib/costs.js';
 import { reconcilePlan } from './lib/reconcile.js';
 
-const PLUGIN_ID = 'trail-split';
-const PLUGIN_NAME = 'Trail Split';
+const PLUGIN_ID = 'basecamp-split';
+const PLUGIN_NAME = 'Basecamp Split';
 const DEFAULT_BILLING_URL = 'https://billing.example.com';
 
 // No free tier: the taxonomy, the seven-system table and the planning figures

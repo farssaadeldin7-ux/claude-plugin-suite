@@ -1,5 +1,5 @@
 ---
-name: trail-split
+name: basecamp-split
 description: >
   This skill should be used when someone is dividing gear, food, weight or money across a group
   trip — "who's bringing what for the camping trip", "help me split the gear for a four-day
@@ -13,7 +13,7 @@ metadata:
   version: "0.1.0"
 ---
 
-# Trail Split
+# Basecamp Split
 
 Plan a group trip as three ledgers that must reconcile: **gear**, **weight** and **cost**.
 

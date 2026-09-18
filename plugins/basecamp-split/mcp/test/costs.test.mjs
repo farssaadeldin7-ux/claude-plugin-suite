@@ -10,7 +10,7 @@
  * debtor)) before being encoded here, so this checks the code against an
  * independently-computed reference, not the code's own math reflected back.
  *
- *   node plugins/trail-split/mcp/test/costs.test.mjs
+ *   node plugins/basecamp-split/mcp/test/costs.test.mjs
  */
 import assert from 'node:assert/strict';
 import { buildLedger, settleCosts } from '../lib/costs.js';

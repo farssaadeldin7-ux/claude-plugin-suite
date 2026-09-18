@@ -56,9 +56,9 @@ try {
   }
   ok('eleven id-lookup functions treat "constructor" and "__proto__" as unrecognised, not as Object.prototype members');
 
-  // ---- trail-split: sizeConsumables (exertion/water/fuel conditions) ----
+  // ---- basecamp-split: sizeConsumables (exertion/water/fuel conditions) ----
   {
-    const { sizeConsumables } = await import(plugin('trail-split/mcp/lib/consumables.js'));
+    const { sizeConsumables } = await import(plugin('basecamp-split/mcp/lib/consumables.js'));
     assert.throws(
       () => sizeConsumables({ people: 2, days: 3, exertion: 'constructor' }),
       (err) => err.code === 'unknown_exertion'
@@ -77,9 +77,9 @@ try {
   }
   ok('sizeConsumables rejects "constructor" as an exertion/water/fuel condition instead of silently accepting it');
 
-  // ---- trail-split: buildLedger (expense split model) ------------------
+  // ---- basecamp-split: buildLedger (expense split model) ------------------
   {
-    const { buildLedger } = await import(plugin('trail-split/mcp/lib/costs.js'));
+    const { buildLedger } = await import(plugin('basecamp-split/mcp/lib/costs.js'));
     assert.throws(
       () => buildLedger(['a', 'b'], [{ label: 'x', amount: 10, payer: 'a', model: 'constructor' }]),
       (err) => err.code === 'unknown_model'
@@ -89,9 +89,9 @@ try {
   }
   ok('buildLedger rejects "constructor" as a split model instead of falling through to the itemised branch');
 
-  // ---- trail-split: reconcilePlan (gear tag) ----------------------------
+  // ---- basecamp-split: reconcilePlan (gear tag) ----------------------------
   {
-    const { reconcilePlan } = await import(plugin('trail-split/mcp/lib/reconcile.js'));
+    const { reconcilePlan } = await import(plugin('basecamp-split/mcp/lib/reconcile.js'));
     const result = reconcilePlan({ gear: [{ item: 'stove', tag: 'constructor', carrier: 'a' }] });
     assert.ok(
       result.failures.gear_ledger?.some((f) => /unknown tag "constructor"/.test(f)),
@@ -134,9 +134,9 @@ try {
   }
   ok('trainingVramEstimate rejects "constructor" as a configuration instead of producing NaN downstream');
 
-  // ---- trail-split: weightLedger (CARRY_BANDS) --------------------------
+  // ---- basecamp-split: weightLedger (CARRY_BANDS) --------------------------
   {
-    const { weightLedger } = await import(plugin('trail-split/mcp/lib/weight.js'));
+    const { weightLedger } = await import(plugin('basecamp-split/mcp/lib/weight.js'));
     assert.throws(
       () => weightLedger([{ name: 'a', body_weight_kg: 70, band: 'constructor' }]),
       (err) => err.code === 'unknown_band'
