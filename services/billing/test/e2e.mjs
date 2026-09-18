@@ -849,7 +849,7 @@ try {
   assert.equal(stripeState.prices.find((p) => p.lookup_key === 'css_team')?.unit_amount, 500000);
   assert.equal(stripeState.prices.find((p) => p.lookup_key === 'pra_team')?.unit_amount, 250000);
   assert.equal(stripeState.prices.find((p) => p.lookup_key === 'pmr_pro')?.unit_amount, 1900);
-  assert.equal(stripeState.prices.find((p) => p.lookup_key === 'mhc_team')?.unit_amount, 5000);
+  assert.equal(stripeState.prices.find((p) => p.lookup_key === 'mhc_team')?.unit_amount, 25000);
   assert.equal(stripeState.prices.length, 28);
   assert.equal(stripeState.webhooks[0].url, 'https://billing.example.test/v1/stripe/webhook');
   ok('setup-stripe provisions both plugins’ products, per-plugin prices, webhook, and the env file');
