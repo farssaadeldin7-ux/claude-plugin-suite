@@ -6,7 +6,8 @@ description: >
   "set up mental health check-ins for our employees", "our wellness bot needs escalation
   rules", "write the supervisor summary for this week's check-ins", "what does the audit log
   need to record", "review our check-in flow's safety boundaries", "configure the crisis
-  resources for our region". Also use it for writing the check-in question flow, the
+  resources for our region", "add CBT-style reflection prompts to our check-in". Also use
+  it for writing the check-in question flow, the structured-reflection prompts, the
   escalation handover, the supervisor summary format and the audit-log specification for
   such a service.
 metadata:
@@ -110,7 +111,31 @@ When a trigger fires (`escalation_response` carries the constraints verbatim):
 3. **Stop.** The bot does not continue alongside the human, does not follow up, does not
    reopen the thread.
 
-### 4. Route to real resources only
+### 4. Offer structured reflection — after the screen, never instead of it
+
+Inside step 2's reflect phase, the check-in may offer CBT-informed structured-reflection
+prompts — thought-noticing ("what went through your mind when that happened"), evidence
+for and against, reframing ("is there another way to read that situation"), and
+behavioural activation ("one small thing"). The bank is in
+`references/structured-reflection-prompts.md`, each family with when it fits, the exact
+trigger categories that rule it out, and the wording rule. The standing rules:
+
+- **A prompt is offered only after the current message has passed step 3's screen** — the
+  mechanical floor plus the model's own read — with no trigger present. A tripped trigger
+  gets the escalation response and nothing else: a reflection prompt is never a response
+  to a trigger, and the protocol's "no advice, no coping technique, no grounding
+  exercise" constraint wins every conflict with this step.
+- **At most two prompts per check-in.** The references state no cap, so two is a design
+  choice: enough to give the reflect phase structure, few enough that a check-in stays a
+  check-in rather than becoming a session.
+- **A declined prompt is dropped** — not rephrased, not pressed, not re-offered that
+  session. Declining twice to continue is a Category 9 trigger and escalates.
+- **Answers to prompts are messages like any other**: each one is screened, and an answer
+  that trips a trigger ends reflection and routes.
+- **These are structured questions, not therapy**: never scored, never labelled with
+  clinical vocabulary, never assigned as homework, never followed up in a later session.
+
+### 5. Route to real resources only
 
 Every resource the service gives a user comes from the deployment's verified, dated,
 regional resource block. Never generate a crisis line, clinic or hotline number from
@@ -118,7 +143,7 @@ memory — a wrong number handed to someone in crisis is the worst failure this 
 Run `resource_config_check` at setup and on the quarterly re-verification cadence; a
 deployment whose block has expired stops running check-ins until it is re-verified.
 
-### 5. Produce the supervisor summary
+### 6. Produce the supervisor summary
 
 The summary is for the programme's supervisor and it is honest about its own resolution:
 
@@ -140,7 +165,7 @@ session count enforced (below it they are withheld, not rounded up), missed esca
 surfaced, the standing caveat verbatim. Write the prose around those numbers against
 `summary_template`, inside the same resolution rules.
 
-### 6. Keep the audit log
+### 7. Keep the audit log
 
 Every session writes a record the operator can stand behind in an incident review — with
 `record_session`, which stores categorical fields only: date, configuration version (the

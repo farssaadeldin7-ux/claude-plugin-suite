@@ -238,7 +238,7 @@ export const REGRESSIONS = [
   {
     id: '33',
     summary: 'the weight ledger compared rounded totals; the headroom warning threshold did not match its own message; any body weight was accepted',
-    testFiles: ['plugins/basecamp-split/mcp/test/weight.test.mjs'],
+    testFiles: ['plugins/trail-split/mcp/test/weight.test.mjs'],
     pattern: /implausible_body_weight/,
   },
   {

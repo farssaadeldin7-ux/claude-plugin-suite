@@ -109,8 +109,11 @@ export function checkTells({ scenes, questions, runtime, form }) {
   };
 
   // ---- 1. No question open -----------------------------------------------
+  // Tagged from_ledger_coverage so a caller that ran without a ledger (an
+  // empty questions array reads as one uncovered stretch spanning the whole
+  // film) can tell these apart from the scene-based information-only runs.
   const gapStretches = uncoveredStretches(questions, runtime, BASELINES.no_question_stretch_seconds);
-  for (const gap of gapStretches) addStretch('no_question_open', gap._from, gap._to, {});
+  for (const gap of gapStretches) addStretch('no_question_open', gap._from, gap._to, { from_ledger_coverage: true });
 
   const hasInfoFlags = scenes.some((s) => s.information_only !== null);
   const infoRuns = hasInfoFlags

@@ -29,6 +29,7 @@ import {
   NEVER_TARGET, ANCHOR_TARGET, PROFILE_SECTIONS, PREAMBLE_RULES,
   profileFacts, saveProfile, getProfile, listProfiles, PROFILES_FILE,
 } from './lib/profiles.js';
+import { TASK_TYPES, GATE_PASS_MEAN, compileBrief, apprenticeGate } from './lib/apprentice.js';
 
 const PLUGIN_ID = 'generative-digital-twin';
 const PLUGIN_NAME = 'Generative Digital Twin';
@@ -46,9 +47,11 @@ const server = new McpServer({
     'Deterministic mechanics for building and policing a style profile. Call style_dimensions for the ' +
     'taxonomy, curation_rules before assembling a corpus, corpus_check on the labelled list, score_draft ' +
     'to run the arithmetic on scores you have already assigned, drift_audit at re-audit time, and ' +
-    'save_profile / get_profile for the local store. Nothing here reads work, extracts a style or judges ' +
-    'a draft — extraction and scoring judgements are the skill\'s job, and there is no twin: the product ' +
-    'is a document of checkable rules.',
+    'save_profile / get_profile for the local store. apprentice_brief compiles a stored profile into a ' +
+    'governed work order for a repetitive, variation or fill task, and apprentice_check is the delivery ' +
+    'gate an apprentice output must clear before the user sees it. Nothing here reads work, extracts a ' +
+    'style or judges a draft — extraction, producing work and scoring judgements are the skill\'s job, ' +
+    'and there is no twin: the product is a document of checkable rules.',
 });
 
 // ----------------------------------------------------------------- open tools
@@ -132,6 +135,26 @@ server.tool('governance_reference', {
 
 // ------------------------------------------------------------- licensed tools
 
+// Shared by score_draft and apprentice_check, which run the same arithmetic
+// on the same score shape — one validator, so the two can never drift apart.
+function assertScoreEntries(scores) {
+  if (!Array.isArray(scores) || !scores.length) {
+    throw new ToolError('invalid_request', 'Supply at least one per-dimension score.');
+  }
+  for (const s of scores) {
+    if (!s?.dimension || !scoreIsValid(s.score)) {
+      throw new ToolError('invalid_score', 'Each entry needs a dimension name and an integer score from 0 to 4.');
+    }
+    if (s.score === 0 && !s.breached_never_entry) {
+      throw new ToolError('breach_not_named',
+        `"${s.dimension}" scores 0, and a 0 means a never-list breach — name the entry breached in breached_never_entry.`);
+    }
+    if (s.weight !== undefined && !(typeof s.weight === 'number' && s.weight > 0)) {
+      throw new ToolError('invalid_weight', `"${s.dimension}" has a weight that is not a positive number.`);
+    }
+  }
+}
+
 server.tool('corpus_check', {
   description:
     'Mechanical checks on a labelled corpus list: size band, schema violations, missing near-miss notes, ' +
@@ -197,21 +220,7 @@ server.tool('score_draft', {
   },
   handler: async ({ scores }) => {
     await client.requireFeature('tools');
-    if (!Array.isArray(scores) || !scores.length) {
-      throw new ToolError('invalid_request', 'Supply at least one per-dimension score.');
-    }
-    for (const s of scores) {
-      if (!s?.dimension || !scoreIsValid(s.score)) {
-        throw new ToolError('invalid_score', 'Each entry needs a dimension name and an integer score from 0 to 4.');
-      }
-      if (s.score === 0 && !s.breached_never_entry) {
-        throw new ToolError('breach_not_named',
-          `"${s.dimension}" scores 0, and a 0 means a never-list breach — name the entry breached in breached_never_entry.`);
-      }
-      if (s.weight !== undefined && !(typeof s.weight === 'number' && s.weight > 0)) {
-        throw new ToolError('invalid_weight', `"${s.dimension}" has a weight that is not a positive number.`);
-      }
-    }
+    assertScoreEntries(scores);
     return scoreDraft(scores);
   },
 });
@@ -366,6 +375,110 @@ server.tool('get_profile', {
     const profile = getProfile(profile_id);
     if (!profile) throw new ToolError('unknown_profile', `No profile "${profile_id}".`);
     return { profile, ...profileFacts(profile), stored_at: PROFILES_FILE };
+  },
+});
+
+server.tool('apprentice_brief', {
+  description:
+    'Compile a stored style profile into a governed work order for an apprentice task — repetitive execution, ' +
+    'alternative variations of a current project, or background fill. The profile\'s never list becomes the ' +
+    'hard constraints, its anchors the exemplars, its dimension entries the measurable requirements, all ' +
+    'quoted verbatim, plus the standing rule that the output is scored with apprentice_check before delivery. ' +
+    'It compiles the order; producing the work is the apprentice\'s job in the skill, and nothing in the ' +
+    'order is invented. Requires a paid plan.',
+  inputSchema: {
+    type: 'object',
+    properties: {
+      profile_id: { type: 'string', description: 'The stored profile to compile the work order from.' },
+      task: {
+        type: 'object',
+        properties: {
+          type: {
+            type: 'string',
+            enum: Object.keys(TASK_TYPES),
+            description: '"repetitive" (execute the same task per item), "variation" (alternative treatments of the current project) or "fill" (background elements matching the established aesthetic).',
+          },
+          description: { type: 'string', description: 'What the apprentice is being asked to produce, in the user\'s words.' },
+          count: { type: 'integer', minimum: 1, description: 'How many items or variations. Default 1.' },
+        },
+        required: ['type', 'description'],
+      },
+    },
+    required: ['profile_id', 'task'],
+  },
+  handler: async ({ profile_id, task }) => {
+    await client.requireFeature('tools');
+    const profile = getProfile(profile_id);
+    if (!profile) {
+      throw new ToolError('unknown_profile',
+        `No profile "${profile_id}" — build and store one with save_profile first, or call get_profile with no id to list what is stored.`);
+    }
+    if (!task.description?.trim()) {
+      throw new ToolError('invalid_request', 'The task needs a description — what the apprentice is being asked to produce.');
+    }
+    if (!profile.never_list?.length) {
+      throw new ToolError('no_never_list',
+        'This profile has no never list, and no work order ships without one — the hard constraints are what ' +
+        'the output is gated on. Add one with save_profile.',
+        { rule: NEVER_TARGET.rule });
+    }
+    return compileBrief(profile, task);
+  },
+});
+
+server.tool('apprentice_check', {
+  description:
+    'The delivery gate for apprentice output: run the score_draft arithmetic against the same stored profile ' +
+    'the work order was compiled from, and return pass or fail per the profile\'s hard-fail and band rules, ' +
+    `with the weakest dimensions named. A never-list breach or a weighted mean under ${GATE_PASS_MEAN} does not clear the ` +
+    'gate, and output that does not clear it is not delivered. Weights default to the profile\'s own dimension ' +
+    'weights, and a 0 must quote the profile\'s never entry verbatim. Assigning the 0-4 scores is still the ' +
+    'reviewer\'s judgement — this only does the arithmetic and reads the verdict. Requires a paid plan.',
+  inputSchema: {
+    type: 'object',
+    properties: {
+      profile_id: { type: 'string', description: 'The stored profile the apprentice was briefed from.' },
+      scores: {
+        type: 'array',
+        description: 'One entry per profile dimension, scored against the apprentice\'s output.',
+        items: {
+          type: 'object',
+          properties: {
+            dimension: { type: 'string' },
+            score: { type: 'number', description: 'Integer 0-4 from the scale in governance_reference.' },
+            weight: { type: 'number', description: 'Optional; defaults to the profile\'s weight for this dimension.' },
+            breached_never_entry: { type: 'string', description: 'Required when score is 0: the profile\'s never-list entry breached, verbatim.' },
+          },
+          required: ['dimension', 'score'],
+        },
+      },
+    },
+    required: ['profile_id', 'scores'],
+  },
+  handler: async ({ profile_id, scores }) => {
+    await client.requireFeature('tools');
+    const profile = getProfile(profile_id);
+    if (!profile) {
+      throw new ToolError('unknown_profile',
+        `No profile "${profile_id}" — build and store one with save_profile first, or call get_profile with no id to list what is stored.`);
+    }
+    assertScoreEntries(scores);
+    const neverList = profile.never_list ?? [];
+    for (const s of scores) {
+      if (s.score === 0 && !neverList.includes(s.breached_never_entry)) {
+        throw new ToolError('breach_not_in_profile',
+          `"${s.dimension}" scores 0 against an entry that is not on this profile's never list — quote the ` +
+          'breached entry verbatim from the profile (get_profile shows it).',
+          { named: s.breached_never_entry });
+      }
+    }
+    const profileWeights = new Map((profile.dimensions ?? []).map((d) => [d.name, d.weight]));
+    const resolved = scores.map((s) => (
+      s.weight === undefined && typeof profileWeights.get(s.dimension) === 'number'
+        ? { ...s, weight: profileWeights.get(s.dimension) }
+        : s
+    ));
+    return apprenticeGate(profile, resolved);
   },
 });
 

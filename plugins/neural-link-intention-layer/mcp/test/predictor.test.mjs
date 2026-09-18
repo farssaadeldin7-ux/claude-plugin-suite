@@ -7,7 +7,8 @@
  *   node plugins/neural-link-intention-layer/mcp/test/predictor.test.mjs
  */
 import assert from 'node:assert/strict';
-import { fitPredictor, confidentContexts, CONTEXT_MIN, BACKOFF_DISCOUNT, HELD_OUT_FRACTION, LIFT_REQUIRED_POINTS, BUG_THRESHOLD_TOP1, DESTRUCTIVE_PATTERN } from '../lib/predictor.js';
+import { fitPredictor, confidentContexts, buildModelRecord, predictFromRecord, describeModelRecord, CONTEXT_MIN, BACKOFF_DISCOUNT, HELD_OUT_FRACTION, LIFT_REQUIRED_POINTS, BUG_THRESHOLD_TOP1, DESTRUCTIVE_PATTERN, SAVED_MODEL_FORMAT } from '../lib/predictor.js';
+import { REFIT_AFTER_DAYS } from '../lib/method.js';
 import { ToolError } from '../mcp-lite.js';
 
 let passed = 0;
@@ -169,6 +170,108 @@ try {
     assert.equal(surfacedA5.p, 0.6);
   }
   ok('confidentContexts\' floor comparison is a strict ">": a context whose probability lands exactly on the floor (A2, p=0.5 at k=1) is excluded, while one a hair above it (A3) is surfaced');
+
+  // ================= buildModelRecord: the persisted shape ======================
+  // The same hand-verified contexts as above, but with the FILLER padding
+  // first so the chronological held-out slice contains evaluable pair
+  // transitions (all-filler at the end would leave fitPredictor nothing to
+  // evaluate). Whole-log counts are identical to the fixture above. The
+  // record is round-tripped through JSON exactly as the model store does —
+  // every check below runs against the parsed copy, so nothing can pass only
+  // because a Map survived in memory.
+  const recordSequences = [];
+  for (let i = 0; i < fillerNeeded; i++) recordSequences.push([tok('FILLER')]);
+  recordSequences.push(
+    ...seqPairs(79, 'A1', 'T1'),
+    ...seqPairs(17, 'A2', 'T2'), ...seqPairs(4, 'A2', 'A2_OTHER'),
+    ...seqPairs(18, 'A3', 'T3'), ...seqPairs(3, 'A3', 'A3_OTHER'),
+    ...seqPairs(60, 'A4', 'flatten_image'),
+    ...seqPairs(20, 'A5', 'T5'),
+    ...seqPairs(19, 'A6', 'T6'),
+  );
+  const recordNormalised = { sequences: recordSequences, sessions: 1, tokens: 2000, rawCount: 2000, dateRange: null };
+  const fit = fitPredictor(recordNormalised);
+  const record = JSON.parse(JSON.stringify(buildModelRecord(recordNormalised, fit)));
+  {
+    assert.equal(record.format, SAVED_MODEL_FORMAT);
+    assert.equal(record.vocabulary_size, 15);
+    assert.equal(record.log.actions_after_normalisation, 2000);
+    assert.deepEqual(record.holdout_accuracy, fit.accuracy);
+    assert.equal(record.lift_over_baseline_points, fit.lift_over_baseline_points);
+    // Counts are over the whole log, not the 80% training slice: A1 -> T1
+    // occurs 79 times in total, and both tokens appear 79 times each.
+    assert.equal(record.counts.unigrams.A1, 79);
+    assert.equal(record.counts.bigrams.A1.T1, 79);
+    assert.match(record.counts_over, /whole normalised log/);
+  }
+  ok('buildModelRecord persists the current format, the whole-log counts (A1->T1 seen 79 times), the vocabulary size (15) and the holdout accuracy exactly as fitPredictor reported it');
+
+  // ================= predictFromRecord: hand-verified, shared maths =============
+  {
+    // Context A1, seen 79 times: bigram order, no discount. p(T1) = 80/94 =
+    // 0.851064..., every other candidate 1/94 = 0.0106..., self (A1) excluded.
+    const result = predictFromRecord(record, ['A1']);
+    assert.equal(result.context.order_used, 2);
+    assert.equal(result.context.backoff_discount_applied, 1);
+    assert.equal(result.predictions[0].action, 'T1');
+    assert.equal(result.predictions[0].p, 0.851);
+    assert.equal(result.predictions[0].clears_floor, true, '0.851 > the default 0.8 floor');
+    assert.equal(result.predictions[1].clears_floor, false, 'the runner-up at 1/94 must not clear the floor');
+    assert.ok(!result.predictions.some((r) => r.action === 'A1'), 'self-transitions are excluded from predictions, as in the evaluation');
+    assert.match(result.confidence_floor.verdict, /^surface the top prediction/);
+    assert.equal(result.predictions.length, 3, 'default top_k is 3');
+    assert.deepEqual(result.model_trust.holdout_accuracy, fit.accuracy, 'the saved holdout accuracy travels with every prediction');
+  }
+  ok('predictFromRecord on context A1 reproduces the hand-computed bigram distribution (T1 at 80/94 = 0.851, order 2, no discount), excludes the self-transition, and quotes the saved holdout accuracy');
+
+  {
+    // Context A4: the top-ranked continuation is flatten_image at 61/75 =
+    // 0.813 — destructive, so it is listed as suppressed and never surfaced,
+    // and nothing that remains clears the floor.
+    const result = predictFromRecord(record, ['A4']);
+    assert.equal(result.suppressed_destructive.rows[0].action, 'flatten_image');
+    assert.equal(result.suppressed_destructive.rows[0].p, 0.813);
+    assert.ok(!result.predictions.some((r) => r.action === 'flatten_image'), 'a destructive continuation must never appear in predictions, at any confidence');
+    assert.match(result.confidence_floor.verdict, /^do not surface/);
+  }
+  ok('predictFromRecord suppresses a destructive top continuation (flatten_image at 0.813) into its own list rather than surfacing or silently dropping it, and the floor verdict falls to the remainder');
+
+  {
+    // Two actions the fitted log never saw: no trigram or bigram context, so
+    // the prediction backs off to unigrams with discount 0.4^2 = 0.16, and
+    // says so.
+    const result = predictFromRecord(record, ['NEVER_SEEN_1', 'NEVER_SEEN_2']);
+    assert.equal(result.context.order_used, 1);
+    assert.equal(result.context.backoff_discount_applied, 0.16);
+    assert.match(result.context.note, /Never seen in the fitted log/);
+    assert.match(result.confidence_floor.verdict, /^do not surface/);
+  }
+  ok('predictFromRecord on unseen context backs off to unigrams (order 1, discount 0.16), reports the unseen actions, and does not surface anything');
+
+  {
+    assert.throws(() => predictFromRecord(record, []), (err) => err instanceof ToolError && err.code === 'invalid_request');
+    assert.throws(() => predictFromRecord(record, ['A1'], { k: 0 }), (err) => err instanceof ToolError && err.code === 'invalid_k');
+    assert.throws(() => predictFromRecord({ ...record, format: 999 }, ['A1']), (err) => err instanceof ToolError && err.code === 'model_format_unsupported');
+  }
+  ok('predictFromRecord rejects an empty context, a non-positive k, and a saved model in an unknown format, each with a named error');
+
+  // ================= describeModelRecord: staleness against the refit rule =====
+  {
+    const fresh = describeModelRecord(record);
+    assert.match(fresh.staleness, /^Within/);
+    assert.equal(fresh.vocabulary_size, 15);
+    assert.deepEqual(fresh.holdout_accuracy, fit.accuracy);
+    assert.match(fresh.age.note, /no timestamps/, 'this fixture has no date range, so age must be measured from the fit date and say so');
+
+    const staleDays = REFIT_AFTER_DAYS + 10;
+    const past = new Date(Date.now() - staleDays * 86_400_000).toISOString();
+    const stale = describeModelRecord({ ...record, log: { ...record.log, date_range: { from: past, to: past } } });
+    assert.match(stale.staleness, /^Stale/);
+    assert.match(stale.staleness, new RegExp(`${REFIT_AFTER_DAYS}-day`));
+
+    assert.throws(() => describeModelRecord({ format: 0 }), (err) => err instanceof ToolError && err.code === 'model_format_unsupported');
+  }
+  ok(`describeModelRecord reports a just-fitted model as within the refit window, one whose log ended ${REFIT_AFTER_DAYS + 10} days ago as stale against the ${REFIT_AFTER_DAYS}-day rule, and refuses an unknown format`);
 
   console.log(`\n${passed} predictor.js checks passed`);
 } catch (err) {

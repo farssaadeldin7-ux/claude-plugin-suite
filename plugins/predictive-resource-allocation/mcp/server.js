@@ -12,6 +12,12 @@
  * threshold check, and every estimate carries the method's factor-of-two
  * error band.
  *
+ * The one exception to "over stated inputs" is lib/telemetry.js: the
+ * system_snapshot and headroom_check tools measure this machine (RAM, CPU,
+ * load averages, NVIDIA GPU via a probed nvidia-smi) and label every figure
+ * measured or estimated, reporting each gap — no nvidia-smi, Windows load
+ * averages — with its reason rather than a guess.
+ *
  * No npm dependencies — plugins are installed without an npm install step.
  */
 
@@ -27,6 +33,8 @@ import {
 import { DOMAINS, REMEDY_LADDER, domainFor } from './lib/domains.js';
 import { dispatchPlan, checkpointInterval, WORK_TYPES } from './lib/dispatch.js';
 import { logEstimate, recordActual, reviewEstimates, ESTIMATES_FILE } from './lib/estimates.js';
+import { systemSnapshot } from './lib/telemetry.js';
+import { headroomCheck, JOBS, RESOURCES } from './lib/headroom.js';
 
 const PLUGIN_ID = 'predictive-resource-allocation';
 const PLUGIN_NAME = 'Predictive Resource Allocation';
@@ -46,8 +54,11 @@ const server = new McpServer({
     'usually binds in each application, then the licensed arithmetic: vram_estimate and ' +
     'training_memory_estimate for the capacity cliff, classify_bottleneck to turn measured test ' +
     'readings into a named class, dispatch_plan for farm batching and checkpoint intervals. ' +
-    'Everything is arithmetic over reported inputs with a stated factor-of-two error band — nothing ' +
-    'here measures the machine, and one measured run beats any estimate it produces.',
+    'The estimate tools are arithmetic over reported inputs with a stated factor-of-two error band. ' +
+    'Two licensed tools measure the machine itself: system_snapshot (RAM, cores, load averages, ' +
+    'NVIDIA GPU via nvidia-smi — gaps reported honestly, never guessed) and headroom_check, which ' +
+    'runs the same estimate arithmetic against the measured free memory and labels every figure ' +
+    'measured or estimated. One measured run of the actual job still beats any estimate here.',
 });
 
 // ---------------------------------------------------------------- reference
@@ -133,6 +144,61 @@ server.tool('remedy_ladder', {
 
 // --------------------------------------------------------------- arithmetic
 
+// Declared once and shared between the estimate tools and headroom_check, so
+// the published schemas cannot drift apart: headroom_check promises "the same
+// inputs vram_estimate / training_memory_estimate take" and this is what
+// makes that promise structural rather than a comment.
+const RENDER_INPUT_PROPERTIES = {
+  vram_gb: { type: 'number', description: 'Nominal VRAM of the card, in GB.' },
+  triangles: { type: 'number', description: 'Unique (non-instanced) triangle count. Instanced copies are close to free.' },
+  bytes_per_triangle: { type: 'number', description: 'Reference range 50–100; default 64.' },
+  subdivision_level: { type: 'number', description: 'Render-time subdivision level (each level is 4x the triangles). Default 0.' },
+  textures: {
+    type: 'array',
+    description: 'Texture sets: [{width_px, height_px, channels, bytes_per_channel, count}]. E.g. a 4K 8-bit RGB set is {width_px: 4096, height_px: 4096, channels: 3, bytes_per_channel: 1}.',
+    items: {
+      type: 'object',
+      properties: {
+        width_px: { type: 'number' },
+        height_px: { type: 'number' },
+        channels: { type: 'number' },
+        bytes_per_channel: { type: 'number', description: '1 for 8-bit, 2 for 16-bit half.' },
+        count: { type: 'number', description: 'How many sets of this size. Default 1.' },
+      },
+      required: ['width_px', 'height_px', 'channels', 'bytes_per_channel'],
+    },
+  },
+  resolution: {
+    type: 'object',
+    description: 'Output resolution, for the framebuffer term.',
+    properties: { width_px: { type: 'number' }, height_px: { type: 'number' } },
+  },
+  aov_count: { type: 'number', description: 'AOV / render pass count, for the framebuffer term.' },
+  engine_overhead_gb: { type: 'number', description: 'Renderer and driver overhead in GB; default 1.5.' },
+};
+
+const TRAINING_INPUT_PROPERTIES = {
+  vram_gb: { type: 'number', description: 'Nominal VRAM of the card, in GB.' },
+  parameters_billion: { type: 'number', description: 'Model size in billions of parameters, e.g. 7 for a 7B model.' },
+  configuration: {
+    type: 'string',
+    description: `One of: ${Object.keys(BYTES_PER_PARAMETER).join(', ')}. Default fp32_or_mixed_adam (16 bytes per parameter).`,
+  },
+  trainable_adapter_parameters_million: { type: 'number', description: 'LoRA only: trainable adapter parameters, in millions.' },
+  activations: {
+    type: 'object',
+    description: 'Optional transformer activation inputs. Without them the total is static state only.',
+    properties: {
+      layers: { type: 'number' },
+      batch_size: { type: 'number' },
+      seq_len: { type: 'number' },
+      hidden_size: { type: 'number' },
+      fused_attention: { type: 'boolean', description: 'True if a FlashAttention-style kernel is in use; without one an uncounted seq_len-squared term applies.' },
+    },
+    required: ['layers', 'batch_size', 'seq_len', 'hidden_size'],
+  },
+};
+
 server.tool('vram_estimate', {
   description:
     'GPU rendering capacity arithmetic against a card\'s usable budget (nominal minus the 10–15% ' +
@@ -143,34 +209,7 @@ server.tool('vram_estimate', {
     'Requires a paid plan.',
   inputSchema: {
     type: 'object',
-    properties: {
-      vram_gb: { type: 'number', description: 'Nominal VRAM of the card, in GB.' },
-      triangles: { type: 'number', description: 'Unique (non-instanced) triangle count. Instanced copies are close to free.' },
-      bytes_per_triangle: { type: 'number', description: 'Reference range 50–100; default 64.' },
-      subdivision_level: { type: 'number', description: 'Render-time subdivision level (each level is 4x the triangles). Default 0.' },
-      textures: {
-        type: 'array',
-        description: 'Texture sets: [{width_px, height_px, channels, bytes_per_channel, count}]. E.g. a 4K 8-bit RGB set is {width_px: 4096, height_px: 4096, channels: 3, bytes_per_channel: 1}.',
-        items: {
-          type: 'object',
-          properties: {
-            width_px: { type: 'number' },
-            height_px: { type: 'number' },
-            channels: { type: 'number' },
-            bytes_per_channel: { type: 'number', description: '1 for 8-bit, 2 for 16-bit half.' },
-            count: { type: 'number', description: 'How many sets of this size. Default 1.' },
-          },
-          required: ['width_px', 'height_px', 'channels', 'bytes_per_channel'],
-        },
-      },
-      resolution: {
-        type: 'object',
-        description: 'Output resolution, for the framebuffer term.',
-        properties: { width_px: { type: 'number' }, height_px: { type: 'number' } },
-      },
-      aov_count: { type: 'number', description: 'AOV / render pass count, for the framebuffer term.' },
-      engine_overhead_gb: { type: 'number', description: 'Renderer and driver overhead in GB; default 1.5.' },
-    },
+    properties: RENDER_INPUT_PROPERTIES,
     required: ['vram_gb', 'triangles'],
   },
   handler: async (args) => {
@@ -189,27 +228,7 @@ server.tool('training_memory_estimate', {
     'or convergence. Requires a paid plan.',
   inputSchema: {
     type: 'object',
-    properties: {
-      vram_gb: { type: 'number', description: 'Nominal VRAM of the card, in GB.' },
-      parameters_billion: { type: 'number', description: 'Model size in billions of parameters, e.g. 7 for a 7B model.' },
-      configuration: {
-        type: 'string',
-        description: `One of: ${Object.keys(BYTES_PER_PARAMETER).join(', ')}. Default fp32_or_mixed_adam (16 bytes per parameter).`,
-      },
-      trainable_adapter_parameters_million: { type: 'number', description: 'LoRA only: trainable adapter parameters, in millions.' },
-      activations: {
-        type: 'object',
-        description: 'Optional transformer activation inputs. Without them the total is static state only.',
-        properties: {
-          layers: { type: 'number' },
-          batch_size: { type: 'number' },
-          seq_len: { type: 'number' },
-          hidden_size: { type: 'number' },
-          fused_attention: { type: 'boolean', description: 'True if a FlashAttention-style kernel is in use; without one an uncounted seq_len-squared term applies.' },
-        },
-        required: ['layers', 'batch_size', 'seq_len', 'hidden_size'],
-      },
-    },
+    properties: TRAINING_INPUT_PROPERTIES,
     required: ['vram_gb', 'parameters_billion'],
   },
   handler: async (args) => {
@@ -300,6 +319,62 @@ server.tool('dispatch_plan', {
     await client.requireFeature('tools');
     const plan = dispatchPlan(rest);
     return spot ? { ...plan, checkpointing: checkpointInterval(spot) } : plan;
+  },
+});
+
+// ------------------------------------------------------- measured telemetry
+
+server.tool('system_snapshot', {
+  description:
+    'Measured host telemetry from this machine, via Node built-ins and a probed nvidia-smi: total ' +
+    'and free RAM (plus MemAvailable on Linux), logical cores and CPU model, 1/5/15-minute load ' +
+    'averages (reported as unsupported on Windows rather than shown as zeros), platform and ' +
+    'architecture, NVIDIA GPU name and memory when nvidia-smi answers — otherwise gpu is reported ' +
+    'unavailable, never guessed, so AMD, Intel and Apple GPUs show as unavailable — and the top ' +
+    'resident-memory processes on Linux. Every figure is measured; a snapshot is a point in time, ' +
+    'not a profile over a job, and nothing leaves this machine. Requires a paid plan.',
+  inputSchema: { type: 'object', properties: {} },
+  handler: async () => {
+    await client.requireFeature('tools');
+    return systemSnapshot();
+  },
+});
+
+server.tool('headroom_check', {
+  description:
+    'Check an estimate against this machine\'s actual memory: takes a snapshot internally, runs the ' +
+    'same arithmetic as vram_estimate or training_memory_estimate (pass the same inputs in the ' +
+    'render or training block; vram_gb may be omitted when an NVIDIA card is measurable), and ' +
+    'reports fits / thin / does_not_fit against the MEASURED free memory — free VRAM via nvidia-smi ' +
+    'for resource gpu_vram, allocatable system RAM for resource system_ram — with the references\' ' +
+    '10–15% reserve applied to the real number. When it does not fit, the machine\'s largest ' +
+    'measured memory consumers are listed as the concrete background tasks to close. Every figure ' +
+    'is labelled measured or estimated. Requires a paid plan.',
+  inputSchema: {
+    type: 'object',
+    properties: {
+      job: { type: 'string', enum: JOBS, description: 'Which estimator to run: render (vram_estimate\'s arithmetic) or training (training_memory_estimate\'s).' },
+      resource: { type: 'string', enum: RESOURCES, description: 'Which measured resource to check against: gpu_vram (needs nvidia-smi) or system_ram.' },
+      gpu_index: { type: 'number', description: 'Which measured GPU to check on a multi-card machine. Default 0.' },
+      render: {
+        type: 'object',
+        description: 'For job "render": the same inputs vram_estimate takes. vram_gb is optional here — when omitted, the measured card\'s total is used.',
+        properties: RENDER_INPUT_PROPERTIES,
+        required: ['triangles'],
+      },
+      training: {
+        type: 'object',
+        description: 'For job "training": the same inputs training_memory_estimate takes. vram_gb is optional here — when omitted, the measured card\'s total is used.',
+        properties: TRAINING_INPUT_PROPERTIES,
+        required: ['parameters_billion'],
+      },
+    },
+    required: ['job', 'resource'],
+  },
+  handler: async (args) => {
+    await client.requireFeature('tools');
+    const snapshot = await systemSnapshot();
+    return headroomCheck(args, snapshot);
   },
 });
 

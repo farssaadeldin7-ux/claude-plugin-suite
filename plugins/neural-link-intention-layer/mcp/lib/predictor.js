@@ -6,13 +6,18 @@
  */
 
 import { ToolError } from '../mcp-lite.js';
-import { MIN_LOG_SIZES, EXPECTED_ACCURACY, CONFIDENCE_FLOOR, floorForK } from './method.js';
+import { MIN_LOG_SIZES, EXPECTED_ACCURACY, CONFIDENCE_FLOOR, REFIT_RULE, REFIT_AFTER_DAYS, floorForK } from './method.js';
 
 export const CONTEXT_MIN = 20; // use an order only where its context was seen 20+ times
 export const BACKOFF_DISCOUNT = 0.4; // per level dropped
 export const HELD_OUT_FRACTION = 0.2;
 export const LIFT_REQUIRED_POINTS = 10;
 export const BUG_THRESHOLD_TOP1 = 70;
+
+// The on-disk shape of a saved model. Bumped whenever the counts layout or
+// the prediction maths changes incompatibly, so a stale file is refused with
+// an instruction to refit rather than silently misread.
+export const SAVED_MODEL_FORMAT = 1;
 
 // Actions never surfaced as suggestions at any confidence, per the skill:
 // destructive or hard to undo. Matched by name; matches are reported, not
@@ -58,12 +63,15 @@ function smoothed(inner, vocabSize) {
 }
 
 /**
- * Predict the ranked continuations for (prev2, prev1) using the highest order
- * whose context has been seen CONTEXT_MIN times, discounting BACKOFF_DISCOUNT
- * per level dropped, add-1 smoothing throughout. Self-transitions (candidate
- * equal to prev1) are excluded.
+ * Rank every continuation for (prev2, prev1) using the highest order whose
+ * context has been seen CONTEXT_MIN times, discounting BACKOFF_DISCOUNT per
+ * level dropped, add-1 smoothing throughout. Self-transitions (candidate
+ * equal to prev1) are excluded. This is the one implementation of the
+ * prediction maths: the held-out evaluation in fitPredictor and the live
+ * predictFromRecord both go through it, so the accuracy quoted at fit time
+ * is measured on exactly the arithmetic that later predicts.
  */
-function predict(models, prev2, prev1, topN) {
+function rankContinuations(models, prev2, prev1) {
   const vocabSize = models.vocab.size || 1;
   const highestOrder = prev2 != null ? 3 : 2;
   let inner;
@@ -84,11 +92,16 @@ function predict(models, prev2, prev1, topN) {
   const discount = BACKOFF_DISCOUNT ** (highestOrder - order);
 
   const p = smoothed(inner, vocabSize);
-  return [...models.vocab]
+  const candidates = [...models.vocab]
     .filter((c) => c !== prev1)
     .map((c) => ({ action: c, p: p(c) * discount }))
-    .sort((a, b) => b.p - a.p)
-    .slice(0, topN);
+    .sort((a, b) => b.p - a.p);
+  return { order, highestOrder, discount, candidates };
+}
+
+/** The top-N continuations only — the shape the held-out evaluation needs. */
+function predict(models, prev2, prev1, topN) {
+  return rankContinuations(models, prev2, prev1).candidates.slice(0, topN);
 }
 
 /**
@@ -258,5 +271,205 @@ export function confidentContexts(normalised, { k } = {}) {
     },
     never_auto_execute:
       'Surface these as accelerators needing a deliberate keystroke. Never auto-execute a predicted action.',
+  };
+}
+
+// ----------------------------------------------------------------- persistence
+
+/** The count Maps as plain JSON-serialisable objects. */
+function serialiseCounts(models) {
+  const flatten = (map) => {
+    const out = {};
+    for (const [ctx, inner] of map) out[ctx] = Object.fromEntries(inner);
+    return out;
+  };
+  return {
+    unigrams: Object.fromEntries(models.uni),
+    bigrams: flatten(models.bi),
+    trigrams: flatten(models.tri),
+    vocabulary: [...models.vocab],
+  };
+}
+
+/** The inverse: a saved counts object back into the Maps predict() reads. */
+function deserialiseCounts(counts) {
+  const inflate = (obj) => {
+    const map = new Map();
+    for (const [ctx, inner] of Object.entries(obj)) map.set(ctx, new Map(Object.entries(inner)));
+    return map;
+  };
+  return {
+    uni: new Map(Object.entries(counts.unigrams)),
+    bi: inflate(counts.bigrams),
+    tri: inflate(counts.trigrams),
+    vocab: new Set(counts.vocabulary),
+  };
+}
+
+/**
+ * The record fit_predictor persists when asked to save: the count tables the
+ * backoff predictor reads, refitted over the whole normalised log, plus the
+ * fit metadata and the holdout accuracy from the 80/20 chronological split —
+ * the number predict_next later quotes so a caller knows how far to trust it.
+ */
+export function buildModelRecord(normalised, fit) {
+  const models = countModels(normalised.sequences, Infinity);
+  return {
+    format: SAVED_MODEL_FORMAT,
+    fitted_at: new Date().toISOString(),
+    model: fit.model,
+    log: fit.log,
+    vocabulary_size: models.vocab.size,
+    holdout_accuracy: fit.accuracy,
+    lift_over_baseline_points: fit.lift_over_baseline_points,
+    learnable_structure: fit.learnable_structure,
+    ...(fit.provisional ? { provisional: fit.provisional } : {}),
+    ...(fit.note ? { note: fit.note } : {}),
+    counts_over:
+      'the whole normalised log — the holdout accuracy above was measured on a model trained ' +
+      'on the first 80% only, per the evaluation rules',
+    counts: serialiseCounts(models),
+  };
+}
+
+function requireCurrentFormat(record) {
+  if (record.format !== SAVED_MODEL_FORMAT || !record.counts) {
+    throw new ToolError(
+      'model_format_unsupported',
+      `The saved model uses format ${record.format ?? 'unknown'}; this version reads format ${SAVED_MODEL_FORMAT}. Refit and save again: fit_predictor with { log, save: true }.`,
+      { saved_format: record.format ?? null, supported_format: SAVED_MODEL_FORMAT }
+    );
+  }
+}
+
+/**
+ * Live prediction from a saved model: the top-k continuations of the user's
+ * most recent actions, through exactly the same backoff arithmetic the
+ * holdout evaluation measured. Destructive continuations are listed
+ * separately and never surfaced, at any confidence; everything else carries
+ * its probability and whether it clears the confidence floor.
+ */
+export function predictFromRecord(record, recentActions, { top_k, k } = {}) {
+  requireCurrentFormat(record);
+
+  const actions = (recentActions ?? []).map((a) => String(a).trim()).filter(Boolean);
+  if (!actions.length) {
+    throw new ToolError('invalid_request', 'recent_actions needs at least one normalised action name — there is no context to predict from.');
+  }
+  const topK = top_k ?? 3;
+  if (!Number.isInteger(topK) || topK < 1) {
+    throw new ToolError('invalid_request', 'top_k must be a positive integer.');
+  }
+  const kValue = k ?? CONFIDENCE_FLOOR.default_k;
+  if (!(kValue > 0)) throw new ToolError('invalid_k', 'k must be a positive number.');
+  const floor = floorForK(kValue);
+
+  const models = deserialiseCounts(record.counts);
+  const prev1 = actions[actions.length - 1];
+  const prev2 = actions.length >= 2 ? actions[actions.length - 2] : null;
+  const unseen = [...new Set([prev2, prev1].filter((a) => a != null && !models.vocab.has(a)))];
+
+  const ranked = rankContinuations(models, prev2, prev1);
+  const surfaced = [];
+  const suppressed = [];
+  for (const candidate of ranked.candidates) {
+    if (surfaced.length >= topK) break;
+    if (DESTRUCTIVE_PATTERN.test(candidate.action)) {
+      // Ranked above the cut but destructive: reported, never surfaced.
+      suppressed.push(candidate);
+    } else {
+      surfaced.push(candidate);
+    }
+  }
+
+  const row = ({ action, p }) => ({ action, p: +p.toFixed(3), clears_floor: p > floor });
+  const topClears = surfaced.length > 0 && surfaced[0].p > floor;
+
+  return {
+    model: record.model,
+    fitted_at: record.fitted_at,
+    context: {
+      used: prev2 != null ? [prev2, prev1] : [prev1],
+      order_used: ranked.order,
+      backoff_discount_applied: +ranked.discount.toFixed(3),
+      ...(unseen.length
+        ? { note: `Never seen in the fitted log: ${unseen.join(', ')}. The prediction backed off to lower-order statistics.` }
+        : {}),
+    },
+    predictions: surfaced.map(row),
+    confidence_floor: {
+      k: kValue,
+      floor: +floor.toFixed(2),
+      rule: CONFIDENCE_FLOOR.rule,
+      verdict: topClears
+        ? `surface the top prediction — p ${+surfaced[0].p.toFixed(3)} clears the ${+floor.toFixed(2)} floor`
+        : `do not surface — no prediction clears the ${+floor.toFixed(2)} floor; the correct outcome for most contexts`,
+    },
+    suppressed_destructive: {
+      rule: CONFIDENCE_FLOOR.never,
+      matched_by: String(DESTRUCTIVE_PATTERN),
+      rows: suppressed.map(({ action, p }) => ({ action, p: +p.toFixed(3) })),
+    },
+    model_trust: {
+      holdout_accuracy: record.holdout_accuracy,
+      lift_over_baseline_points: record.lift_over_baseline_points,
+      learnable_structure: record.learnable_structure,
+      log_date_range: record.log?.date_range ?? null,
+      ...(record.learnable_structure === false
+        ? { warning: 'The fitted log contained no learnable sequence structure (lift under 10 points) — treat every prediction here as noise.' }
+        : {}),
+      ...(record.provisional ? { provisional: record.provisional } : {}),
+    },
+    never_auto_execute:
+      'Surface a prediction as an accelerator needing a deliberate keystroke. Never auto-execute a predicted action.',
+  };
+}
+
+/**
+ * What model_status reports about a saved model: fit date, log size,
+ * vocabulary size, holdout accuracy, and the staleness verdict against the
+ * refit rule's eight weeks — measured from the log's newest timestamp where
+ * the log carried timestamps, from the fit date otherwise.
+ */
+export function describeModelRecord(record) {
+  requireCurrentFormat(record);
+
+  const now = Date.now();
+  const days = (iso) => {
+    const at = Date.parse(iso ?? '');
+    return Number.isFinite(at) ? +((now - at) / 86_400_000).toFixed(1) : null;
+  };
+  const modelAgeDays = days(record.fitted_at);
+  const logAgeDays = days(record.log?.date_range?.to);
+  const ageForVerdict = logAgeDays ?? modelAgeDays;
+
+  return {
+    fitted_at: record.fitted_at ?? null,
+    model: record.model,
+    log: {
+      actions_after_normalisation: record.log?.actions_after_normalisation ?? null,
+      raw_actions: record.log?.raw_actions ?? null,
+      sessions: record.log?.sessions ?? null,
+      date_range: record.log?.date_range ?? null,
+    },
+    vocabulary_size: record.vocabulary_size ?? null,
+    holdout_accuracy: record.holdout_accuracy,
+    lift_over_baseline_points: record.lift_over_baseline_points,
+    learnable_structure: record.learnable_structure,
+    ...(record.provisional ? { provisional: record.provisional } : {}),
+    age: {
+      model_days: modelAgeDays,
+      log_end_days: logAgeDays,
+      ...(logAgeDays == null
+        ? { note: 'The fitted log carried no timestamps, so age is measured from the fit date instead of the log itself.' }
+        : {}),
+    },
+    refit_rule: REFIT_RULE,
+    staleness:
+      ageForVerdict == null
+        ? 'The saved model carries no readable fit date, so no staleness verdict can be given.'
+        : ageForVerdict > REFIT_AFTER_DAYS
+          ? `Stale: the ${logAgeDays == null ? 'model' : 'log'} is ${ageForVerdict} days old, past the ${REFIT_AFTER_DAYS}-day (eight-week) refit window. Record a fresh log and refit before trusting predictions.`
+          : `Within the ${REFIT_AFTER_DAYS}-day (eight-week) refit window.`,
   };
 }

@@ -103,6 +103,12 @@ For each clip:
    watch-through; an overclaiming hook that collapses at four seconds scores worse than
    a modest one that plays to the end, and the damage follows the account.
 
+For the mechanical half, use the `caption_pack` tool (licensed): given the clip's
+transcript and destination, it returns the destination's character limits with actual
+counts, the hashtag rule, and the clip's first sentence as the verbatim hook line. The
+context-or-position line and the tags come back as slots — it structures what it is
+given and never invents copy.
+
 ### 6. Ship the clip list
 
 One row per clip, ranked by strength:
@@ -116,6 +122,27 @@ marked moments" tells the user the filter ran. Then state the footage pass: a hu
 checks each clip against the actual video before publishing — framing in 9:16, audio
 quality, whether the speaker is on camera at the in-point, whether the claim is safe to
 publish. Anything that fails comes off the list.
+
+### 7. Cut the files with `cut_clips`
+
+End by cutting the actual media. Given the source file's path, call the `cut_clips` tool
+(licensed) with the shipped rows — start, end, label, destination. Per clip it produces
+a lossless stream-copy cut, plus the destination-formatted variant where a destination
+is named: scaled and centre-cropped to the spec's frame (9:16 1080×1920 for
+TikTok/Reels/Shorts), with any clip longer than the destination's length band refused
+outright, citing the spec. The files it cuts are exactly what the footage pass reviews.
+
+Rules that are not optional:
+
+- **ffmpeg must be installed on the user's machine.** When it is not, the tool cuts
+  nothing and returns the exact per-clip commands instead — pass them on verbatim and
+  say plainly that nothing was cut.
+- **Report only confirmed cuts.** Each output comes back with `cut: true` or a failure
+  carrying ffmpeg's own stderr. Never present a failed or unattempted output as a file
+  that exists.
+- **Know what the plain cut is.** The stream copy starts on the nearest keyframe at or
+  before the in-point, so it can carry a few seconds of lead-in; the destination variant
+  is re-encoded and frame-accurate. Say which is which when handing the files over.
 
 ## Limits of the method
 

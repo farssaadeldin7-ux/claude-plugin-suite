@@ -27,7 +27,10 @@ import {
   NAVIGATION_NOTE, SCORING, CONFIDENCE_FLOOR, REFIT_RULE, REMEASURE_RULE,
 } from './lib/method.js';
 import { parseLog, normalise, audit } from './lib/analyse.js';
-import { fitPredictor, confidentContexts } from './lib/predictor.js';
+import {
+  fitPredictor, confidentContexts, buildModelRecord, predictFromRecord, describeModelRecord,
+} from './lib/predictor.js';
+import { saveModel, loadModel, MODEL_FILE } from './lib/model-store.js';
 import { scoreCandidate } from './lib/score.js';
 import { recordBuild, recordFollowup, reviewBuilds, BUILDS_FILE } from './lib/builds.js';
 
@@ -48,9 +51,10 @@ const server = new McpServer({
     'neural link and nothing here reads minds — the name is a product name, and every number ' +
     'is n-gram counting over a log the user recorded themselves. Call instrumentation_guide to ' +
     'get a log out of an application, analyse_log for the sequence audit, fit_predictor for ' +
-    'the model and its honest accuracy, score_candidate for the payback arithmetic. None of ' +
-    'these decide what to automate — that is the skill\'s job — and nothing numeric exists ' +
-    'without a recorded log.',
+    'the model and its honest accuracy (save: true persists it locally), predict_next for the ' +
+    'top-k next-action predictions from the saved model, model_status for its age and ' +
+    'accuracy, score_candidate for the payback arithmetic. None of these decide what to ' +
+    'automate — that is the skill\'s job — and nothing numeric exists without a recorded log.',
 });
 
 /**
@@ -230,9 +234,10 @@ server.tool('fit_predictor', {
     'split with the last 20% held out, baseline top-1, model top-1 with self-transitions ' +
     'excluded, top-3, and the log\'s date range and size — plus the contexts that clear the ' +
     'confidence floor (default 0.80), with destructive continuations suppressed. Requires at ' +
-    'least 2,000 normalised actions; under 5,000 the trigram figures are provisional. It ' +
-    'predicts the user\'s own recorded habits, not intention, and nothing is auto-executed. ' +
-    'Requires a paid plan.',
+    'least 2,000 normalised actions; under 5,000 the trigram figures are provisional. With ' +
+    'save: true, the fitted counts are also persisted locally so predict_next can answer ' +
+    'later without refitting. It predicts the user\'s own recorded habits, not intention, and ' +
+    'nothing is auto-executed. Requires a paid plan.',
   inputSchema: {
     type: 'object',
     properties: {
@@ -247,18 +252,110 @@ server.tool('fit_predictor', {
           'Optional cost asymmetry: how many times worse a wrong suggestion is than a right one ' +
           'is good. Floor is k / (1 + k). Default 4, giving 0.80.',
       },
+      save: {
+        type: 'boolean',
+        description:
+          'Optional: persist the fitted model (counts, fit metadata, holdout accuracy) to the ' +
+          'local config directory, replacing any previously saved model, so predict_next and ' +
+          'model_status can use it. The model never leaves the machine.',
+      },
     },
     required: ['log'],
   },
-  handler: async ({ log, k }) => {
+  handler: async ({ log, k, save }) => {
     await client.requireFeature('tools');
     const { result, privacy_warning } = normalisedLog(log);
-    return {
+    const fit = fitPredictor(result);
+    const response = {
       ...(privacy_warning ? { privacy_warning } : {}),
-      ...fitPredictor(result),
+      ...fit,
       confident_contexts: confidentContexts(result, { k }),
       refit_rule: REFIT_RULE,
     };
+    if (save) {
+      const record = saveModel(buildModelRecord(result, fit));
+      response.saved = {
+        to: MODEL_FILE,
+        fitted_at: record.fitted_at,
+        replaces_any_previous_model: true,
+        will_predict_at: {
+          holdout_top1: fit.accuracy.model_top1_excluding_self_transitions,
+          holdout_top3: fit.accuracy.model_top3_excluding_self_transitions,
+          note:
+            'Measured on the chronological 20% holdout with self-transitions excluded; the ' +
+            'saved counts are refitted over the whole log. predict_next quotes these figures back.',
+        },
+      };
+    }
+    return response;
+  },
+});
+
+server.tool('predict_next', {
+  description:
+    'The top-k next-action predictions from the saved model, given the most recent actions: ' +
+    'each with its probability and whether it clears the confidence floor (default 0.80), ' +
+    'destructive continuations listed separately and never surfaced, and the model\'s holdout ' +
+    'accuracy attached so the caller knows how far to trust it. Same trigram-with-backoff ' +
+    'arithmetic the holdout evaluation measured — it predicts the user\'s own recorded habits, ' +
+    'not intention, and nothing is auto-executed. Needs a model saved by fit_predictor with ' +
+    'save: true. Requires a paid plan.',
+  inputSchema: {
+    type: 'object',
+    properties: {
+      recent_actions: {
+        type: 'array',
+        items: { type: 'string', minLength: 1 },
+        description:
+          'The most recent actions, oldest first, as normalised action names from the same ' +
+          'vocabulary as the fitted log. The last one or two are the prediction context.',
+      },
+      top_k: {
+        type: 'integer',
+        minimum: 1,
+        maximum: 10,
+        description: 'How many predictions to return. Default 3.',
+      },
+      k: {
+        type: 'number',
+        description:
+          'Optional cost asymmetry: how many times worse a wrong suggestion is than a right one ' +
+          'is good. Floor is k / (1 + k). Default 4, giving 0.80.',
+      },
+    },
+    required: ['recent_actions'],
+  },
+  handler: async ({ recent_actions, top_k, k }) => {
+    await client.requireFeature('tools');
+    const record = loadModel();
+    if (!record) {
+      throw new ToolError(
+        'no_saved_model',
+        'No fitted model is saved, so there is nothing to predict with. Run fit_predictor with save: true on a recorded log first.',
+        { fix: 'fit_predictor with { log, save: true }', expected_location: MODEL_FILE }
+      );
+    }
+    return { ...predictFromRecord(record, recent_actions, { top_k, k }), stored_at: MODEL_FILE };
+  },
+});
+
+server.tool('model_status', {
+  description:
+    'The saved predictor model\'s vital signs: fit date, log size and date range, vocabulary ' +
+    'size, holdout accuracy, and a staleness verdict against the refit rule\'s eight weeks. ' +
+    'Reads the local model file only; nothing is refitted. Requires a paid plan.',
+  inputSchema: { type: 'object', properties: {} },
+  handler: async () => {
+    await client.requireFeature('tools');
+    const record = loadModel();
+    if (!record) {
+      throw new ToolError(
+        'no_saved_model',
+        'No fitted model is saved. Run fit_predictor with save: true on a recorded log first.',
+        { fix: 'fit_predictor with { log, save: true }', expected_location: MODEL_FILE }
+      );
+    }
+    return { ...describeModelRecord(record), stored_at: MODEL_FILE };
   },
 });
 

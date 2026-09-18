@@ -43,10 +43,10 @@ tool returns, not a flat tier. From `catalog.js`:
 | Professor Mind-Reader | $19/mo | $25/mo |
 | Mental-Health Chatbot | $100/mo | $250/mo |
 | 5-Minute Fluency | $10/mo | $30/mo |
-| Basecamp Split | $5/mo | $15/mo |
+| Trail Split | $5/mo | $15/mo |
 
 Env keys follow the plugin codes: `STRIPE_PRICE_<CODE>_PRO` / `_TEAM` for DBS, GPP,
-PMR, FMF, BCS, PVS, CSS, HFM, MHC, NLI, GDT, ERA, CVI and PRA.
+PMR, FMF, TSP, PVS, CSS, HFM, MHC, NLI, GDT, ERA, CVI and PRA.
 
 **The pro/team split is seats, deliberately.** Both plans of every plugin carry
 identical `features` and `limits`; the licence gates what a plugin's server checks, not

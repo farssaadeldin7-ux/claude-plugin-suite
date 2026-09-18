@@ -15,9 +15,10 @@ const MONOTONY_SHIFT = 2; // "no shift of two or more valence points"
 /**
  * Maximal stretches of consecutive scenes where a value never moves by
  * `shift` or more, lasting at least `windowSeconds`. Used for the
- * tonal-monotony tell (valence) and the fatigue pattern (intensity).
+ * tonal-monotony tell (valence), the fatigue pattern (intensity) and the
+ * flat-series check on the modelled engagement series (graph.js).
  */
-function flatStretches(scenes, valueOf, { shift, windowSeconds }) {
+export function flatStretches(scenes, valueOf, { shift, windowSeconds }) {
   const found = [];
   let left = 0;
   for (let right = 0; right < scenes.length; right++) {

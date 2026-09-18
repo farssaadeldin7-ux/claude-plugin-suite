@@ -45,6 +45,16 @@ The minimum intake, and refuse to predict without it:
 | Storage: NVMe, SATA SSD, spinning disk, or network | 10x to 100x spread on I/O-bound work |
 | One timed run, however small | Anchors everything; one measured frame beats any estimate here |
 
+With a licence, the hardware half of this intake can be **measured instead of asked
+for**: the `system_snapshot` tool reads the machine the MCP server runs on — total and
+free RAM, logical cores and CPU model, load averages, and NVIDIA GPU memory via
+`nvidia-smi`. Prefer a measured figure to a remembered one; people misreport their own
+VRAM constantly. Two honesty rules when using it: a snapshot describes the machine the
+server runs on, which is not always the machine the job will run on — confirm which is
+which — and a non-NVIDIA GPU reports `unavailable` rather than a guess, so ask for the
+card's nominal figure in that case. The **baseline timed run can never come from a
+snapshot** and must still come from the user.
+
 If they cannot give a baseline, ask for the cheapest one to produce — one frame, one
 epoch, one hundred training steps — and wait for it. Say plainly, in the output rather
 than only in your reasoning: **one measured run beats any estimate this skill produces.**
@@ -95,6 +105,14 @@ Check capacity first, with arithmetic rather than optimism.
 
 Leave 10–15% headroom for fragmentation, driver reserve and allocator slack. A plan
 that fits in 23.8 GB of 24 GB does not fit.
+
+With a licence and the server running on the machine in question, `headroom_check`
+runs this same arithmetic against what is **measured free right now** — free VRAM via
+`nvidia-smi`, or allocatable system RAM — rather than against the card's nominal
+figure, and lists the machine's largest measured memory consumers when the plan does
+not fit. Its output labels every number measured or estimated; keep that labelling in
+yours. The comparison inherits the estimate's error band — a measured budget does not
+make an estimated footprint any more precise.
 
 ### 3. Rank remedies cheapest first, and be explicit that hardware is last
 
@@ -191,8 +209,14 @@ Be direct about all of these when they apply.
 - **These are estimates, and the error band is roughly a factor of two.** Say so every
   time you give a number. A prediction of "about 6 minutes a frame" means somewhere
   between 3 and 12, and it means that even when the arithmetic is careful.
-- **Nothing here is measured.** The skill has no profiler, no telemetry and no access
-  to the machine. Every input is what the user reported.
+- **The estimates are never measured, and the measurements are never a profile.** The
+  licensed telemetry tools read the machine's RAM, CPU, load and NVIDIA GPU memory at
+  one instant — they are not a profiler, they see card-level VRAM but not which process
+  holds it, they see nothing on a non-NVIDIA GPU (and say so instead of guessing), and
+  they describe the machine the server runs on, not necessarily the machine the job
+  will run on. Every other input is what the user reported. Never present a snapshot
+  figure as if it validated an estimate: label each number measured or estimated, as
+  the tools themselves do.
 - **Scene and model content dominates.** Two scenes with identical polygon counts can
   differ tenfold on render time through transparency depth, volumetrics, light count
   or shader complexity. Ask about those before predicting.

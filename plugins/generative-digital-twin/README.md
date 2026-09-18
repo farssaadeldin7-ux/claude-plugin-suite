@@ -27,13 +27,16 @@ enforces that order.
   fail regardless of the mean
 - **Drift detection** — a quarterly or every-20-outputs re-audit with explicit thresholds for
   flagging a dimension that has regressed toward house-average output
+- **Apprentice work orders** — a stored profile compiled into hard constraints, exemplars and
+  measurable requirements for repetitive tasks, variations or background fill, with a delivery
+  gate the output must clear before the user sees it
 
 ## Components
 
 | Component | Purpose |
 | --- | --- |
 | Skill `generative-digital-twin` | The sequence — rights gate, curation, extraction, the never list, the preamble, the scoring pass, drift — and every judgement in it |
-| MCP server | The deterministic half: taxonomy and rule data, the mechanical corpus check, scoring and re-audit arithmetic, the local profile store, licensing |
+| MCP server | The deterministic half: taxonomy and rule data, the mechanical corpus check, scoring and re-audit arithmetic, the local profile store, the apprentice work-order compiler and delivery gate, licensing |
 
 ### Tools
 
@@ -49,9 +52,16 @@ enforces that order.
 - `score_draft` — the scoring-pass arithmetic: weighted mean, reading band, weakest dimensions, the hard-fail rule
 - `drift_audit` — sample means against baseline, flagged by the stated regression thresholds, breach counting
 - `save_profile` / `get_profile` — the local style-profile store, versioned, with countable facts about each profile
+- `apprentice_brief` — compiles a stored profile into a governed work order for an apprentice
+  task (repetitive, variation or fill): the never list as hard constraints, the anchors as
+  exemplars, the dimension entries as measurable requirements, all quoted verbatim
+- `apprentice_check` — the delivery gate for apprentice output: the score_draft arithmetic
+  against the same profile, pass or fail per the hard-fail and band rules, with the weakest
+  dimensions named; output that does not clear it is not delivered
 
-None of the tools reads work, extracts a style or scores a draft — extraction and scoring are
-the reviewer's judgement, made in the skill; the server counts, stores and compares.
+None of the tools reads work, extracts a style or scores a draft — extraction, producing the
+work and scoring are the reviewer's (or the apprentice skill's) judgement, made in the skill;
+the server counts, stores, compiles verbatim and compares.
 
 **Licensing** — `license_status`, `license_activate`, `start_checkout`, `list_plans`,
 `billing_portal`
@@ -110,6 +120,10 @@ plus a scoring rubric. The honest metaphor is an apprentice — first drafts at 
 to be directed and corrected. Treated that way it saves hours; expected to be a twin it
 disappoints immediately.
 
+**It does not observe you working.** No screen watching, no brush pressure, no session
+recording. The apprentice mimics documented style: it reads the corpus you curated and the
+profile written from it, and nothing else.
+
 **Extraction is lossy.** The best work in most portfolios is good for reasons that resist being
 written down. What survives extraction is the checkable part. That part is real and it is not
 all of it.
@@ -132,5 +146,6 @@ agency claiming ownership — go to a lawyer.
 
 Pricing is defined in the suite catalog (`services/billing/catalog.js`):
 pro $200/month (2 seats) and team $500/month (10 seats). Both plans include the same tools —
-`corpus_check`, `score_draft`, `drift_audit` and the profile store; team buys seats, not
-capabilities. The skill content and the open tools stay free.
+`corpus_check`, `score_draft`, `drift_audit`, the apprentice work order and gate, and the
+profile store; team buys seats, not capabilities. The skill content and the open tools stay
+free.

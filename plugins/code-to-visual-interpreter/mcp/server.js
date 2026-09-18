@@ -4,12 +4,16 @@
  *
  * The deterministic half of the method: the structure/modulation/surface
  * taxonomy with its discrimination tests, the degenerate-parameter table, the
- * per-toolchain notes, the budget arithmetic behind every switch point, and a
- * textual scan of source for unseeded randomness and known bloat-trap calls.
- * The judgement half — reading an image, choosing between candidate
- * structures, writing the implementation, deciding whether the result is any
- * good — lives in the skill, and nothing here renders code, profiles hardware
- * or parses a language.
+ * per-toolchain notes, the budget arithmetic behind every switch point, a
+ * textual scan of source for unseeded randomness and known bloat-trap calls,
+ * and the preview loop: render_preview writes a self-contained HTML harness
+ * for supplied CSS/Canvas 2D/GLSL code with a slider per extracted parameter,
+ * and apply_params writes chosen values back into the source. The judgement
+ * half — reading an image, choosing between candidate structures, writing the
+ * implementation, deciding whether the result is any good — lives in the
+ * skill, and nothing here renders code on the server, profiles hardware or
+ * parses a language: extraction and rewriting are textual pattern matches on
+ * declared constants, refused where ambiguous.
  *
  * No npm dependencies — plugins are installed without an npm install step.
  */
@@ -23,6 +27,12 @@ import {
 import { EDGE_CONDITIONS, EDGE_RULE, scanSource } from './lib/reading.js';
 import { TOOLCHAINS, toolchainFor } from './lib/toolchains.js';
 import { costBudget, svgExportBudget, TECHNOLOGIES } from './lib/budgets.js';
+import {
+  KINDS, extractParameters, buildPreviewHtml, applyParams,
+  CANVAS2D_EXPECTED_SHAPE, HARNESS_NOTE,
+} from './lib/preview.js';
+import fs from 'node:fs';
+import path from 'node:path';
 
 const PLUGIN_ID = 'code-to-visual-interpreter';
 const PLUGIN_NAME = 'Code-to-Visual Interpreter';
@@ -43,8 +53,11 @@ const server = new McpServer({
     'toolchain_notes for per-library strengths and traps, edge_conditions for where parameters ' +
     'degenerate. The licensed tools apply the tables: structure_match filters candidates from ' +
     'answers to the five questions, cost_budget and svg_export_budget do the switch-point and ' +
-    'file-size arithmetic, source_scan finds determinism and bloat-trap markers in pasted source. ' +
-    'Nothing here renders code, profiles hardware or judges an image — that is the skill\'s job.',
+    'file-size arithmetic, source_scan finds determinism and bloat-trap markers in pasted source, ' +
+    'render_preview writes a self-contained interactive HTML preview of supplied CSS, Canvas 2D ' +
+    'or GLSL code with a slider per extracted parameter, and apply_params writes chosen values ' +
+    'back into the source. Nothing here renders code on the server, profiles hardware or judges ' +
+    'an image — that is the skill\'s job.',
 });
 
 // ---------------------------------------------------------------- reference
@@ -228,6 +241,103 @@ server.tool('source_scan', {
   handler: async ({ source }) => {
     await client.requireFeature('tools');
     return scanSource(source);
+  },
+});
+
+// ------------------------------------------------------------ preview (paid)
+
+server.tool('render_preview', {
+  description:
+    'Turn supplied CSS, Canvas 2D or GLSL source into one self-contained interactive HTML file: ' +
+    'the code running in a stage, one slider per extracted parameter (numeric literals attached ' +
+    'to named constants — CSS custom properties, JS const/let/var, GLSL const and #define — plus ' +
+    'detected GLSL float uniforms), live updates, and a copyable JSON block of the current values ' +
+    'that feeds straight into apply_params. A canvas2d source must define draw(ctx, params, t); ' +
+    'anything else is refused with the expected shape, never guessed at. The preview is a harness, ' +
+    'not the user\'s environment. Requires a paid plan.',
+  inputSchema: {
+    type: 'object',
+    properties: {
+      kind: { type: 'string', enum: KINDS, description: 'What the code is: "css", "canvas2d" or "glsl".' },
+      code: {
+        type: 'string',
+        minLength: 1,
+        description: 'The source itself. css: the stylesheet, animations included. canvas2d: JS defining ' +
+          'draw(ctx, params, t). glsl: a WebGL1 fragment shader; the harness supplies uniforms ' +
+          '"resolution" (vec2) and "time" (float) if declared.',
+      },
+      html: { type: 'string', description: 'css only: optional markup snippet for the stage. Defaults to a single square subject element.' },
+      out_path: { type: 'string', description: 'Where to write the HTML file. Defaults to ./cvi-preview.html.' },
+    },
+    required: ['kind', 'code'],
+  },
+  handler: async ({ kind, code, html, out_path }) => {
+    await client.requireFeature('tools');
+    if (!code.trim()) {
+      throw new ToolError('empty_code', 'Pass the source itself — the actual code, not a description of it.');
+    }
+    if (html !== undefined && kind !== 'css') {
+      throw new ToolError('html_only_for_css', 'The html stage snippet only applies to kind "css" — the other kinds render into a canvas.');
+    }
+    if (kind === 'canvas2d' && !/(?:\bfunction\s+draw\s*\(|(?:\bconst|\blet|\bvar)\s+draw\s*=)/.test(code)) {
+      throw new ToolError('draw_entry_missing',
+        'The canvas2d harness found no draw entry point in the code, so it will not guess at how to run it.',
+        { expected_shape: CANVAS2D_EXPECTED_SHAPE });
+    }
+    const { parameters, ambiguous } = extractParameters(kind, code);
+    const outPath = path.resolve(out_path || './cvi-preview.html');
+    if (!/\.html?$/.test(outPath)) {
+      throw new ToolError('bad_out_path', `out_path must end in .html, got "${out_path}".`);
+    }
+    fs.mkdirSync(path.dirname(outPath), { recursive: true });
+    fs.writeFileSync(outPath, buildPreviewHtml({ kind, code, html, parameters }));
+    return {
+      file: outPath,
+      kind,
+      parameters: parameters.map(({ name, value, unit, min, max, step, line, source }) => ({
+        name, value, ...(unit ? { unit } : {}), range: [min, max], step, line,
+        declared_as: source.replace(/_/g, ' '),
+      })),
+      ...(ambiguous.length
+        ? {
+            ambiguous_names_without_sliders: ambiguous,
+            ambiguity_note: 'A name declared more than once cannot be rewritten without guessing which ' +
+              'declaration is meant, so it gets no slider. Rename the duplicates apart to expose them.',
+          }
+        : {}),
+      round_trip: 'The page shows the current slider values as a copyable JSON block; pass that JSON ' +
+        'to apply_params to write the chosen values back into the source.',
+      harness_note: HARNESS_NOTE,
+    };
+  },
+});
+
+server.tool('apply_params', {
+  description:
+    'Deterministically rewrite named constants\' numeric literals in supplied source — the ' +
+    'write-back half of render_preview\'s loop: values copied from the preview\'s JSON block feed ' +
+    'straight in here. Handles CSS custom properties, JS const/let/var and GLSL const/#define ' +
+    'declarations; units and float-ness are preserved. Any name that does not resolve to exactly ' +
+    'one literal fails the whole call and nothing is rewritten — it never rewrites a guess. ' +
+    'Returns the updated code and each change as old, new and line. Requires a paid plan.',
+  inputSchema: {
+    type: 'object',
+    properties: {
+      code: { type: 'string', minLength: 1, description: 'The source to rewrite — the same code the preview was generated from.' },
+      params: {
+        type: 'object',
+        description: 'Parameter name to new numeric value, e.g. {"SPEED": 2.5} — the shape of the preview\'s JSON block.',
+      },
+    },
+    required: ['code', 'params'],
+  },
+  handler: async ({ code, params }) => {
+    await client.requireFeature('tools');
+    const result = applyParams(code, params);
+    return {
+      ...result,
+      note: 'Only the named literals changed; every other character of the source is untouched.',
+    };
   },
 });
 

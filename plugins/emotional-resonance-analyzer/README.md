@@ -63,6 +63,10 @@ real retention curve you have. Without timecodes every duration-based tell is lo
   and Q&A ledger, with overlaps, priority and exposed run-time
 - `plot_arc` — the valence and intensity series read as a derivative: flat stretches,
   the largest gap between valence changes, peaks and whether they land
+- `engagement_graph` — the modelled engagement curve drawn as a self-contained SVG line
+  chart: one point per scene from intensity, valence movement and tell penalties, with
+  every flagged stretch shaded and the modelled-not-measured caption baked into the
+  image. Modelled from scene scores — it is not a measurement of any audience
 - `reconcile_curve` — classify real retention drops as explained, unexplained or
   model-only against the tripped tells
 - `log_analysis` / `review_analyses` — local analysis history, version against version

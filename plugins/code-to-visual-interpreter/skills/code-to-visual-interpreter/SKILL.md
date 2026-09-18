@@ -157,6 +157,23 @@ be visible and always settable, which is metadata, not a design control.
 A designer given nine sliders explores a fraction of the space and reports the piece
 does not do much. Given two, they find the range.
 
+### 8. Close the loop with a live preview
+
+The refresh-and-tweak cycle is where prototyping time goes, and the server tools close
+it. Use `render_preview` with the user's CSS, Canvas 2D or GLSL source to write one
+self-contained HTML file: the code running live, a slider per extracted parameter
+(numeric literals attached to named constants, plus custom GLSL float uniforms), and the
+current values as a copyable JSON block. The user adjusts the sliders, copies the JSON,
+and that JSON feeds straight into `apply_params`, which rewrites exactly those named
+constants' literals in the source and reports each change (old, new, line). That is the
+bi-directional loop: code to visual, adjusted visual back to code.
+
+Two limits to state whenever you use it. The preview is a harness — the code runs in the
+harness's page, canvas or WebGL1 quad, so behaviour identical to the user's own
+environment is not guaranteed. And both tools are textual: a Canvas 2D source must define
+`draw(ctx, params, t)` or the preview is refused with the expected shape, and a name
+declared more than once gets no slider and no rewrite — neither tool ever guesses.
+
 ## The commercial application: the Time-to-Market Accelerator
 
 What this sells is a compressed prototyping cycle. The cost being removed is the

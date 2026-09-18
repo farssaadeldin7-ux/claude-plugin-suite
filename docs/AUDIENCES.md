@@ -13,7 +13,7 @@ answer to "why doesn't this work for everyone".
 | Ghost Post Preview | Social managers | Content strategy — knowing which hooks are worth testing | Tied to revenue. Stops effort and paid spend going behind a post that was never going to convert |
 | Professor Mind-Reader | University students | Willingness to revise, and academic honesty | Premium subscription for students targeting the top band. Value is the grade delta, not the words |
 | 5-Minute Fluency | Competitive players | Accurate self-report of what actually happens in their matches | The most scalable. On-demand coaching at a fraction of a human coach's cost, sold as a subscription |
-| Basecamp Split | Expedition leaders | Judgement about route and group competence, which the plugin explicitly does not provide | Growing guided-experience market. Reduces overhead and the forgotten-kit failure that ruins trips |
+| Trail Split | Expedition leaders | Judgement about route and group competence, which the plugin explicitly does not provide | Growing guided-experience market. Reduces overhead and the forgotten-kit failure that ruins trips |
 
 ## The nine professional plugins
 

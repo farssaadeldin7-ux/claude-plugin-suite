@@ -20,6 +20,11 @@ that still works for a stranger holding a phone. This plugin enforces the second
   argued on retention economics rather than on manners
 - Output as a cut list an editor can work from: timecode in/out, score, destination,
   cold-open line, three title options, caption first line
+- Actual cutting: `cut_clips` runs ffmpeg on the source file — a lossless stream-copy
+  cut per clip, plus a destination-formatted 9:16 variant for TikTok/Reels/Shorts —
+  or returns the exact commands when ffmpeg is not installed
+- Caption mechanics: `caption_pack` applies each destination's character limits and
+  hashtag rules to the clip's own words, with real counts and no invented copy
 
 ## Who it is for
 
@@ -36,7 +41,7 @@ recording and it will faithfully score forty bad moments.
 | Component | Purpose |
 | --- | --- |
 | Skill `auto-clip` | Automatically clips the most engaging ≤60s segments and formats them for TikTok/Reels/Shorts |
-| MCP server | Archetype tell scan, rubric arithmetic, destination bands, clip log, licensing |
+| MCP server | Archetype tell scan, rubric arithmetic, destination bands, media cutting via ffmpeg, caption mechanics, clip log, licensing |
 
 ### Tools
 
@@ -50,6 +55,8 @@ recording and it will faithfully score forty bad moments.
 
 - `scan_candidates` — find the archetype tells in a transcript, with evidence quoted and timecodes attached
 - `score_clip` — the rubric applied mechanically: disqualifiers, thresholds, the terminal premise rule, destination fit by length
+- `cut_clips` — cut the actual media file with ffmpeg: a lossless stream-copy cut per clip, plus a destination-formatted variant (scale and centre-crop to the spec's frame, 9:16 1080×1920 for TikTok/Reels/Shorts) where a destination is named; refuses a clip longer than the destination's length band, citing the spec; without ffmpeg it cuts nothing and returns the exact per-clip commands instead
+- `caption_pack` — the destination's caption spec applied to a clip's own transcript: the first sentence verbatim as the hook line, character limits enforced with actual counts, and the hashtag rule — the judgement lines come back as slots, never invented copy
 - `log_clip` / `record_footage_pass` / `review_clips` — the local clip log that turns the assumed one-third footage-pass failure rate into your own measured count
 
 **Licensing** — `license_status`, `license_activate`, `start_checkout`, `list_plans`,
@@ -64,6 +71,11 @@ moment and never predicts views — that split is the design, not a gap.
 A transcript with timecodes at sentence level or finer, speaker labels, and verbatim text.
 Any ASR output with word or sentence timings works. A tidied transcript with no timecodes
 is not enough — the skill will say so rather than guessing at in-points.
+
+For actual cutting, **ffmpeg on your machine** (ffmpeg.org, or your OS package manager).
+`cut_clips` checks for it before touching anything: with ffmpeg present it cuts the files
+and reports per clip what ran and what it produced; without it, it cuts nothing and
+returns the exact commands to run yourself — it never claims a cut that did not happen.
 
 ## Setup
 
@@ -91,7 +103,7 @@ export PLUGIN_SUITE_LICENSE_KEY=PS-PVS-...
 
 The skill content and the three browsing tools are free — the whole method can be read
 and inspected before buying. A licence gates the compute and the history: the transcript
-scan, the threshold arithmetic and the clip log.
+scan, the threshold arithmetic, the media cutting, the caption mechanics and the clip log.
 
 The server runs locally over stdio, so no part of your recording leaves the machine.
 The clip log is written only to `~/.config/plugin-suite/podcast-video-studio-clips.json`;
@@ -108,8 +120,10 @@ device label (your machine's hostname) — never a transcript.
   footage is required before anything is published; budget for a substantial fraction —
   assume around a third — of threshold-clearing clips failing that pass for reasons
   invisible in text.
-- **It is not an editor.** It produces a cut list, not a rendered file. Timecodes come from
-  ASR and drift by around a second.
+- **It is not an edit suite.** `cut_clips` produces the plain cut and the
+  destination-formatted variant when ffmpeg is installed; burned-in captions, punch-ins,
+  b-roll and the creative edit remain the editor's work. The plain cut is a stream copy
+  and lands on keyframes; timecodes come from ASR and drift by around a second.
 - **It does not fact-check.** Specific numbers make strong clips and carry real liability.
   Every factual claim is flagged for someone to source.
 - **It does not handle rights, music clearance or guest approval**, and a guest who agreed
@@ -123,6 +137,6 @@ device label (your machine's hostname) — never a transcript.
 
 Served by `services/billing` in this repo; the catalog lives in its `catalog.js`:
 pro $100/month (2 seats) and team $300/month (10 seats). Both plans include the same
-tools — the licence gates `scan_candidates`, `score_clip` and the clip log
-(`log_clip`, `record_footage_pass`, `review_clips`); the skill content and the
-browsing tools stay open.
+tools — the licence gates `scan_candidates`, `score_clip`, `cut_clips`, `caption_pack`
+and the clip log (`log_clip`, `record_footage_pass`, `review_clips`); the skill content
+and the browsing tools stay open.

@@ -26,6 +26,12 @@ and this plugin enforces the right order of operations for each.
 - **Determinism, first.** Anything reviewed or reproduced needs a seeded PRNG with the
   seed recorded. `Math.random` makes a piece unreviewable, and the plugin says so before
   anything about performance.
+- **The preview loop.** `render_preview` turns supplied CSS animations, Canvas 2D drawing
+  code or a GLSL fragment shader into one self-contained interactive HTML file: the code
+  running live, one slider per extracted parameter, and a copyable JSON block of the
+  current values. `apply_params` takes that JSON and writes the chosen values back into
+  the source, reporting each change. Adjust the visual, copy the JSON, apply it — that is
+  the bi-directional loop.
 
 ## Who it is for
 
@@ -43,7 +49,7 @@ WebGL/WebGPU, D3 and Processing.
 | `references/decomposition-method.md` | The taxonomy, the five questions to ask of an image, three worked decompositions |
 | `references/performance-budgets.md` | Numeric budgets, the arithmetic, per-technology limits, switch points |
 | `references/toolchain-notes.md` | Per-library idioms, determinism story, the bloat trap in each |
-| MCP server | The tables as lookups, the budget arithmetic, structure matching, source scanning, licensing |
+| MCP server | The tables as lookups, the budget arithmetic, structure matching, source scanning, the preview loop, licensing |
 
 ### Tools
 
@@ -63,16 +69,55 @@ WebGL/WebGPU, D3 and Processing.
   for the use case
 - `source_scan` — textual scan of pasted source for unseeded randomness, the GLSL sin hash
   and known bloat-trap calls, each finding with its line quoted
+- `render_preview` — one self-contained HTML file from supplied CSS, Canvas 2D or GLSL
+  source: the code running in a stage, a slider per extracted parameter with live updates,
+  and the current values as a copyable JSON block
+- `apply_params` — the write-back half of the loop: rewrites exactly the named constants'
+  numeric literals in the source and lists each change (old, new, line), refusing any name
+  it cannot resolve unambiguously
 
 **Licensing** — `license_status`, `license_activate`, `start_checkout`, `list_plans`,
 `billing_portal`
+
+### The preview loop
+
+`render_preview` takes `{ kind: "css" | "canvas2d" | "glsl", code }` (plus an optional
+`html` stage snippet for CSS and an `out_path`, default `./cvi-preview.html`) and writes
+one HTML file with no external assets:
+
+- **css** — the stylesheet applied to a stage element with its animations running;
+- **canvas2d** — the code run in a `<canvas>` harness that calls
+  `draw(ctx, params, t)` every frame. The code must define that function; anything else
+  is refused with the expected shape spelled out, never guessed at;
+- **glsl** — the fragment shader compiled in a minimal inline WebGL1 harness (fullscreen
+  triangle), with `resolution` (vec2) and `time` (float) supplied if declared, plus every
+  detected custom `float` uniform driven from its slider.
+
+Parameter extraction is a textual scan for numeric literals attached to named constants:
+CSS custom properties (`--speed: 4s`, unit kept), JS `const`/`let`/`var` declarations
+whose whole initialiser is one literal (never a loop counter or part of an expression),
+GLSL `const float`/`const int` and `#define` declarations, and custom GLSL `float`
+uniforms. Each parameter becomes a slider: range 0–1 when the value already sits in 0..1,
+value ±100% otherwise, and 0–2 for a uniform with no default literal. A name declared
+more than once is ambiguous — it gets no slider, and is reported as such.
+
+The page shows the current slider values as a copyable JSON block. `apply_params` takes
+`{ code, params }` — values copied from that JSON block feed straight into it — and
+deterministically rewrites exactly those named constants' literals, returning the updated
+code and a per-parameter change list (old, new, line). Any name it cannot find
+unambiguously fails the whole call and nothing is rewritten. That copy-adjust-apply cycle
+is the bi-directional loop.
+
+The preview is a harness, not your environment: it runs the code inside its own page,
+canvas or WebGL1 quad, so behaviour identical to your own setup is not guaranteed.
 
 ## Free and paid
 
 The skill content is open — install it and the whole procedure is available. The server's
 reference tools stay open too: the taxonomy, the toolchain notes and the edge-condition
 table need no key. The compute tools — structure matching, budget arithmetic, export
-sizing, source scanning — require a paid licence. Everything runs locally: the billing
+sizing, source scanning, preview generation and parameter write-back — require a paid
+licence. Everything runs locally: the billing
 service sees a licence key, a plugin id, a hashed device identifier and a device label
 (your machine's hostname), and nothing else — never your code. It works best if you paste the actual source rather than describing it,
 and — for a visual → code request — supply a reference image or a precise description of
@@ -102,9 +147,14 @@ export PLUGIN_SUITE_LICENSE_KEY=PS-CVI-...
 
 ## What this is not
 
-- **Not a renderer.** It cannot see output unless you supply an image. Every claim about
-  what code draws comes from reading it, and blend modes and alpha accumulation are hard
-  to predict from source — render it back and correct the description.
+- **Not a renderer.** The server never runs your code; `render_preview` writes a file for
+  your own browser to render, and the plugin itself cannot see the result. Every claim it
+  makes about what code draws comes from reading it, and blend modes and alpha
+  accumulation are hard to predict from source — open the preview and correct the
+  description against what you see.
+- **The preview is a harness.** Your code runs inside the harness's page, canvas or
+  WebGL1 quad, not your build. Sizing, pixel density, colour management and any code the
+  snippet depends on can differ — check anything that matters back in the real context.
 - **Not a profiler.** Every cost figure is an order-of-magnitude estimate from stated
   arithmetic; ±3x is normal, more between an integrated and a discrete GPU. It tells you
   which side of a switch point you are on, not your frame time.
@@ -125,5 +175,5 @@ export PLUGIN_SUITE_LICENSE_KEY=PS-CVI-...
 Served by `services/billing` in this repo; the catalog lives in its `catalog.js`.
 Pro $150/month (2 seats) and team $400/month (10 seats). Both carry the same `tools`
 capability: the licence gates the compute tools — `structure_match`, `cost_budget`,
-`svg_export_budget` and `source_scan` — while the skill content and the reference
-tools stay open.
+`svg_export_budget`, `source_scan`, `render_preview` and `apply_params` — while the
+skill content and the reference tools stay open.
