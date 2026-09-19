@@ -36,6 +36,7 @@ jobs:
             node "$f"
           done
           node test/plugin-table-lookups.test.mjs
+          node test/tool-properties.test.mjs
           node test/build.test.mjs
       - name: Tool behaviour probe (every server, every numeric argument)
         run: node test/tool-behaviour.test.mjs
