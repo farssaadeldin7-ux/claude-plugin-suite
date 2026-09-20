@@ -378,8 +378,26 @@ export function outwardLimits(limits) {
   return Object.fromEntries(Object.entries(limits).map(([meter, limit]) => [meter, limit === -1 ? null : limit]));
 }
 
+/**
+ * Whether a plan can actually be bought right now.
+ *
+ * `available` in the table above is the editorial half of the answer — "we
+ * intend to sell this". The other half is operational: POST /v1/checkout
+ * answers 503 plan_not_configured when process.env[stripe_price_env] is
+ * unset, so a plan whose price id was never provisioned is not purchasable
+ * no matter what the table says. Reporting the table's flag alone let the
+ * storefront and the plugins' own list_plans advertise a Buy button that
+ * could only ever 503, which is how a whole plugin's launch went unnoticed.
+ * Both halves must hold.
+ */
+export function isPurchasable(planDef, env = process.env) {
+  if (!planDef || planDef.available !== true) return false;
+  if (!planDef.price) return false;
+  return Boolean(env[planDef.stripe_price_env]);
+}
+
 /** The shape GET /v1/catalog/:pluginId returns, matching the client's list_plans. */
-export function publicCatalog(pluginId) {
+export function publicCatalog(pluginId, env = process.env) {
   const entry = plugin(pluginId);
   if (!entry) return null;
   return {
@@ -391,7 +409,23 @@ export function publicCatalog(pluginId) {
       features: p.features,
       limits: outwardLimits(p.limits),
       seats: p.seats,
-      available: p.available,
+      available: isPurchasable(p, env),
+    })),
+  };
+}
+
+/**
+ * The shape GET /v1/catalog (no plugin id) returns: one row per plugin, so a
+ * storefront can render the whole suite without fourteen round trips. Plan
+ * detail stays on the per-plugin route; this is an index, not a dump.
+ */
+export function catalogIndex(env = process.env) {
+  return {
+    plugins: Object.entries(CATALOG).map(([id, entry]) => ({
+      id,
+      name: entry.name,
+      plans: Object.keys(entry.plans),
+      available: Object.values(entry.plans).some((p) => isPurchasable(p, env)),
     })),
   };
 }
