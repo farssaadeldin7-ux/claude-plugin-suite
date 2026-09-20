@@ -21,6 +21,7 @@ import { spawn } from 'node:child_process';
 import { signWebhookPayload } from '../lib/stripe.js';
 import { Store } from '../lib/store.js';
 import { recordUsage } from '../lib/licenses.js';
+import { CATALOG } from '../catalog.js';
 
 const serverPath = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'server.js');
 const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'billing-test-'));
@@ -553,6 +554,62 @@ try {
   assert.deepEqual(thirdSeat, { active: false, reason: 'seat_limit_reached' });
   ok('a third device on a 2-seat pro plan is refused');
 
+  // ---- a full licence cannot be used by simply not naming a device -------
+  // Regression test: the whole seat check lived inside `if (deviceId)`, and
+  // activate validated device_id only when it was present. Omitting the
+  // field skipped seat accounting entirely: a 2-seat licence with both
+  // seats taken answered `active: true` with the full feature list to any
+  // number of further machines, and activated every one of them.
+  {
+    const anonymous = (await api('GET', '/v1/entitlement?plugin_id=diagnose-by-sound', { key })).data;
+    assert.deepEqual(anonymous, { active: false, reason: 'seat_limit_reached' },
+      'an unidentified caller on a full licence must not be entitled');
+    const anonymousActivate = await api('POST', '/v1/license/activate', {
+      body: { license_key: key, plugin_id: 'diagnose-by-sound' },
+    });
+    assert.equal(anonymousActivate.status, 400, 'activation must name the seat it binds');
+    assert.equal(anonymousActivate.data.error, 'invalid_request');
+    // a registered device is unaffected
+    const registered = (await api('GET', '/v1/entitlement?plugin_id=diagnose-by-sound&device_id=device-a', { key })).data;
+    assert.equal(registered.active, true);
+    assert.equal(registered.seats.used, 2);
+  }
+  ok('seat limits hold for a caller that omits device_id, and activation requires one');
+
+  // ---- device_label is validated before it reaches the seat list ---------
+  // Regression test: device_id was length- and charset-checked precisely so
+  // a caller could not store an arbitrary blob against a licence, while
+  // device_label — pushed onto that same list one line later — had no check
+  // at all and accepted a 40 000-character string or a nested object.
+  for (const label of [{ nested: true }, 42, ['a']]) {
+    // eslint-disable-next-line no-await-in-loop
+    const res = await api('POST', '/v1/license/activate', {
+      body: { license_key: key, plugin_id: 'diagnose-by-sound', device_id: 'device-a', device_label: label },
+    });
+    assert.equal(res.status, 400, `a non-string device_label ${JSON.stringify(label).slice(0, 20)} must be refused`);
+    assert.equal(res.data.error, 'invalid_request');
+  }
+  {
+    // A long label is cosmetic, not an attack, and a machine with a long
+    // FQDN must still activate — so it is truncated, not refused. On its
+    // own licence, so this cannot disturb the seat arithmetic above.
+    const born = completeCheckout('evt_label_1', {
+      id: 'cs_label_1', customer: 'cus_label_1', subscription: 'sub_label_1',
+      customer_details: { email: 'label@example.com' },
+      metadata: { plugin_id: 'diagnose-by-sound', plan: 'pro' },
+    });
+    assert.equal((await api('POST', '/v1/stripe/webhook', { raw: born.payload, headers: born.headers })).status, 200);
+    const labelKey = /PS-DBS(?:-[A-Z2-9]+){4}/.exec((await api('GET', '/success?session_id=cs_label_1')).data)?.[0];
+    assert.ok(labelKey, 'precondition: a fresh licence was issued');
+    const res = await api('POST', '/v1/license/activate', {
+      body: { license_key: labelKey, plugin_id: 'diagnose-by-sound', device_id: 'label-device', device_label: 'L'.repeat(4000) },
+    });
+    assert.equal(res.status, 200, 'a long label must not fail a real activation');
+    const seat = new Store(path.join(tmpDir, 'store.json')).getLicense(labelKey).seats.devices.find((d) => d.id === 'label-device');
+    assert.equal(seat.label.length, 128, 'the stored label is bounded, not the arbitrary blob that was sent');
+  }
+  ok('a non-string device_label is refused, and a long one is bounded before it reaches the seat list');
+
   const wrongPlugin = (await api('GET', '/v1/entitlement?plugin_id=ghost-post-preview&device_id=device-a', { key })).data;
   assert.deepEqual(wrongPlugin, { active: false, reason: 'wrong_plugin' });
   ok('the key is scoped to its plugin');
@@ -629,6 +686,51 @@ try {
     assert.equal(Object.prototype.polluted, before, 'Object.prototype must come out exactly as it went in');
   }
   ok('dangerous meter names are refused before any of them reaches an object key');
+
+  // ---- meter and idempotency_key are bounded -----------------------------
+  // Regression test: both were charset/type-checked but never length-checked,
+  // unlike isSafeDeviceId (128) and looksLikeEmail (254) two lines away.
+  // Every distinct meter is a permanent key on the licence and every
+  // distinct idempotency_key a permanent entry in the event ledger, neither
+  // ever pruned — so one licence could grow the store without bound, and
+  // every later request pays a full synchronous rewrite of the file.
+  {
+    const longMeter = await api('POST', '/v1/usage', {
+      key, body: { plugin_id: 'diagnose-by-sound', meter: `m${'x'.repeat(64)}`, quantity: 1, idempotency_key: 'bound-1' },
+    });
+    assert.equal(longMeter.status, 400, 'a 65-character meter must be refused');
+    const longIdem = await api('POST', '/v1/usage', {
+      key, body: { plugin_id: 'diagnose-by-sound', meter: 'diagnoses_per_month', quantity: 1, idempotency_key: 'k'.repeat(201) },
+    });
+    assert.equal(longIdem.status, 400, 'a 201-character idempotency_key must be refused');
+    assert.equal(longIdem.data.error, 'invalid_request');
+  }
+  ok('meter and idempotency_key are length-bounded, not just charset-checked');
+
+  // ---- one retry key across two meters records both ----------------------
+  // Regression test: the claim id was `usage:<key>:<idempotency_key>` with
+  // no meter in it, so a caller reporting two meters for one operation
+  // under a single retry key — the documented way to make a retry safe —
+  // had the second increment silently dropped while the response still
+  // said `recorded: true` and reported `used: 0` for it.
+  {
+    const one = (await api('POST', '/v1/usage', {
+      key, body: { plugin_id: 'diagnose-by-sound', meter: 'alpha_meter', quantity: 1, idempotency_key: 'shared-key' },
+    })).data;
+    assert.equal(one.used, 1);
+    const two = (await api('POST', '/v1/usage', {
+      key, body: { plugin_id: 'diagnose-by-sound', meter: 'beta_meter', quantity: 1, idempotency_key: 'shared-key' },
+    })).data;
+    assert.equal(two.deduplicated, undefined, 'a different meter is not a replay of the first');
+    assert.equal(two.used, 1, 'the second meter records its own increment');
+    // the same meter under the same key still dedupes
+    const replay = (await api('POST', '/v1/usage', {
+      key, body: { plugin_id: 'diagnose-by-sound', meter: 'beta_meter', quantity: 1, idempotency_key: 'shared-key' },
+    })).data;
+    assert.equal(replay.deduplicated, true);
+    assert.equal(replay.used, 1);
+  }
+  ok('usage idempotency is scoped to the meter, so one retry key across two meters records both');
 
   // ---- activation ---------------------------------------------------------
   const activate = (await api('POST', '/v1/license/activate', { body: {
@@ -760,6 +862,76 @@ try {
   const cancelled = (await api('GET', '/v1/entitlement?plugin_id=diagnose-by-sound&device_id=device-a', { key })).data;
   assert.deepEqual(cancelled, { active: false, reason: 'inactive' });
   ok('subscription.deleted deactivates the licence');
+
+  // ---- GET /v1/catalog (bare) is an index, not a 404 ----------------------
+  // Regression test: the bare path shared a branch with the per-plugin one,
+  // where url.pathname.split('/').pop() handed the lookup the literal
+  // string "catalog" — so the route the storefront is pointed at always
+  // answered 404 unknown_plugin: No catalog for "catalog".
+  {
+    const index = await api('GET', '/v1/catalog');
+    assert.equal(index.status, 200, 'the bare catalog path must not 404');
+    assert.equal(index.data.error, undefined);
+    const ids = index.data.plugins.map((p) => p.id);
+    assert.ok(ids.includes('diagnose-by-sound') && ids.includes('ghost-post-preview'), 'the index lists every plugin');
+    assert.equal(ids.length, Object.keys(CATALOG).length);
+    const dbs = index.data.plugins.find((p) => p.id === 'diagnose-by-sound');
+    assert.deepEqual(dbs.plans.sort(), ['pro', 'team']);
+    assert.equal(dbs.name, 'Diagnose by Sound');
+  }
+  ok('GET /v1/catalog answers with an index of every plugin instead of 404 No catalog for "catalog"');
+
+  // ---- available reflects whether the plan can actually be bought ---------
+  // Regression test: `available: true` was hardcoded on all 28 plans, so a
+  // plugin whose STRIPE_PRICE_* env var was never provisioned advertised a
+  // Buy button — in the storefront and in the plugin's own list_plans —
+  // that could only ever answer 503 plan_not_configured at checkout. This
+  // server runs with DBS and GPP prices set and no others.
+  {
+    const dbsPlans = (await api('GET', '/v1/catalog/diagnose-by-sound')).data.plans;
+    assert.deepEqual(dbsPlans.map((p) => p.available), [true, true], 'a provisioned plan is available');
+    const cssPlans = (await api('GET', '/v1/catalog/customer-sales-support')).data.plans;
+    assert.deepEqual(cssPlans.map((p) => p.available), [false, false], 'an unprovisioned plan is not available');
+    // and the flag agrees with what checkout actually does
+    const css = await api('POST', '/v1/checkout', { body: { plugin_id: 'customer-sales-support', plan: 'pro' } });
+    assert.equal(css.status, 503);
+    assert.equal(css.data.error, 'plan_not_configured');
+    const index = (await api('GET', '/v1/catalog')).data.plugins;
+    assert.equal(index.find((p) => p.id === 'diagnose-by-sound').available, true);
+    assert.equal(index.find((p) => p.id === 'customer-sales-support').available, false);
+  }
+  ok('available tracks the provisioned Stripe price instead of being hardcoded true');
+
+  // ---- a cancelled licence cannot still drive the meter -------------------
+  // Regression test: /v1/usage — the one route that writes to the store —
+  // checked only that the key existed, while entitlementFor refuses
+  // anything whose status is not exactly 'active'. A cancelled, past_due or
+  // unpaid licence could keep incrementing usage indefinitely.
+  {
+    const ent = (await api('GET', '/v1/entitlement?plugin_id=diagnose-by-sound&device_id=device-a', { key })).data;
+    assert.equal(ent.active, false, 'precondition: this licence is cancelled');
+    const used = await api('POST', '/v1/usage', {
+      key, body: { plugin_id: 'diagnose-by-sound', meter: 'diagnoses_per_month', quantity: 1, idempotency_key: 'after-cancel' },
+    });
+    assert.equal(used.status, 403, 'a cancelled licence must not be able to record usage');
+    assert.equal(used.data.error, 'inactive_license');
+  }
+  ok('a licence whose status is not active is refused by /v1/usage, not just by /v1/entitlement');
+
+  // ---- a JSON body that is not an object is a 400, not a 500 --------------
+  // Regression test: `null` is valid JSON and 'null' is a truthy string, so
+  // readJsonBody returned null to handlers that immediately read a property
+  // off it — an uncaught TypeError surfacing as a generic internal_error.
+  for (const raw of ['null', '[]', '"x"', '7']) {
+    for (const route of ['/v1/usage', '/v1/license/activate', '/v1/checkout', '/v1/portal']) {
+      // eslint-disable-next-line no-await-in-loop
+      const res = await api('POST', route, { raw, headers: { 'content-type': 'application/json' } });
+      assert.equal(res.status, 400, `${route} with body ${raw} must be a 400, not a 500`);
+      assert.equal(res.data.error, 'invalid_json');
+    }
+  }
+  ok('a JSON body that parses but is not an object is a clean 400 on every route that parses a body');
+
 
   // ---- CORS for the storefront -------------------------------------------
   const SITE = 'https://www.codestudioplugin.com';
