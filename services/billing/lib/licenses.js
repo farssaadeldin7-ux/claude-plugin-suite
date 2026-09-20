@@ -105,16 +105,21 @@ export function entitlementFor(store, { key, pluginId, deviceId, deviceLabel = n
   if (license.status !== 'active') {
     return { active: false, reason: 'inactive' };
   }
-  if (deviceId) {
-    const registered = license.seats.devices.some((d) => d.id === deviceId);
-    if (!registered) {
-      if (license.seats.devices.length >= license.seats.limit) {
-        return { active: false, reason: 'seat_limit_reached' };
-      }
-      if (register) {
-        license.seats.devices.push({ id: deviceId, label: deviceLabel, activated_at: new Date(now).toISOString() });
-        store.putLicense(license);
-      }
+  // The seat ceiling used to live entirely inside `if (deviceId)`, so a
+  // caller that simply omitted device_id was never measured against it and
+  // got a fully active entitlement on a licence whose seats were all taken.
+  // Seats are the paid differentiator between pro and team across the whole
+  // catalog, so an unidentified caller is checked against the ceiling too:
+  // it cannot be shown to occupy one of the seats already spoken for.
+  const registered = deviceId !== undefined && deviceId !== null
+    && license.seats.devices.some((d) => d.id === deviceId);
+  if (!registered) {
+    if (license.seats.devices.length >= license.seats.limit) {
+      return { active: false, reason: 'seat_limit_reached' };
+    }
+    if (deviceId && register) {
+      license.seats.devices.push({ id: deviceId, label: deviceLabel, activated_at: new Date(now).toISOString() });
+      store.putLicense(license);
     }
   }
 
