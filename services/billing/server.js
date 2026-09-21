@@ -8,6 +8,7 @@
  *   POST /v1/usage                               Bearer <license key>
  *   POST /v1/license/activate
  *   POST /v1/checkout
+ *   GET  /v1/catalog
  *   GET  /v1/catalog/:plugin_id
  *   POST /v1/portal
  *
@@ -21,7 +22,7 @@ import http from 'node:http';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Store } from './lib/store.js';
-import { CATALOG, plan as planFor, publicCatalog } from './catalog.js';
+import { CATALOG, plan as planFor, publicCatalog, fullCatalog } from './catalog.js';
 import {
   issueLicense, entitlementFor, recordUsage, usageFor, looksLikeKey, currentPeriod,
 } from './lib/licenses.js';
@@ -227,7 +228,14 @@ async function handle(req, res) {
     return json(res, 200, { activated: true, plan: entitlement.plan, features: entitlement.features, seats: entitlement.seats });
   }
 
-  if (route === 'GET /v1/catalog' || /^GET \/v1\/catalog\/[\w-]+$/.test(route)) {
+  if (route === 'GET /v1/catalog') {
+    // The bare route used to fall through to the per-plugin lookup, split the
+    // path, and ask for a plugin literally named "catalog" — a guaranteed 404
+    // on a route the file header advertises.
+    return json(res, 200, fullCatalog());
+  }
+
+  if (/^GET \/v1\/catalog\/[\w-]+$/.test(route)) {
     const pluginId = url.pathname.split('/').pop();
     const catalog = publicCatalog(pluginId);
     if (!catalog) return fail(res, 404, 'unknown_plugin', `No catalog for "${pluginId}".`);
