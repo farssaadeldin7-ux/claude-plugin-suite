@@ -299,6 +299,31 @@ try {
   assert.equal((await api('GET', '/v1/catalog/nonsense')).status, 404);
   ok('unknown plugin catalog is a 404');
 
+  // ---- availability reflects configuration, not intent --------------------
+  // Regression tests: the bare /v1/catalog route split its own path and
+  // looked up a plugin named "catalog" (a guaranteed 404 on an advertised
+  // route), and every plan reported available:true regardless of whether
+  // its Stripe price env was set — so the catalog claimed a plan was
+  // purchasable while checkout refused it with 503 plan_not_configured.
+  const bare = await api('GET', '/v1/catalog');
+  assert.equal(bare.status, 200);
+  assert.equal(bare.data.plugins.length, 14);
+  const bareDbs = bare.data.plugins.find((p) => p.id === 'diagnose-by-sound');
+  assert.equal(bareDbs.name, 'Diagnose by Sound');
+  assert.deepEqual(bareDbs.plans.map((p) => p.id).sort(), ['pro', 'team']);
+  ok('the bare catalog route lists every plugin instead of 404ing');
+
+  // This harness configures price ids for DBS and GPP only, so those plans
+  // are available and every other plugin's are not — matching exactly what
+  // checkout would allow.
+  assert.equal(catalog.plans.every((p) => p.available === true), true);
+  const tspCatalog = (await api('GET', '/v1/catalog/trail-split')).data;
+  assert.equal(tspCatalog.plans.every((p) => p.available === false), true);
+  const tspCheckout = await api('POST', '/v1/checkout', { body: { plugin_id: 'trail-split', plan: 'pro' } });
+  assert.equal(tspCheckout.status, 503);
+  assert.equal(tspCheckout.data.error, 'plan_not_configured');
+  ok('available mirrors configured price ids, agreeing with checkout');
+
   // ---- a catalog lookup never resolves an inherited member -----------------
   // Regression test: CATALOG[pluginId] on a plain object resolves inherited
   // Object.prototype members too, so /v1/catalog/constructor found the

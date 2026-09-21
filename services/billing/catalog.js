@@ -379,7 +379,7 @@ export function outwardLimits(limits) {
 }
 
 /** The shape GET /v1/catalog/:pluginId returns, matching the client's list_plans. */
-export function publicCatalog(pluginId) {
+export function publicCatalog(pluginId, env = process.env) {
   const entry = plugin(pluginId);
   if (!entry) return null;
   return {
@@ -391,7 +391,19 @@ export function publicCatalog(pluginId) {
       features: p.features,
       limits: outwardLimits(p.limits),
       seats: p.seats,
-      available: p.available,
+      // A plan is only purchasable when its Stripe price id is actually
+      // configured — the same condition checkout enforces with 503
+      // plan_not_configured. Reporting the catalog's intent alone let the
+      // two ends disagree: the catalog said "available" while checkout
+      // refused the sale.
+      available: p.available && Boolean(env[p.stripe_price_env]),
     })),
+  };
+}
+
+/** The whole storefront in one response: every plugin with its public plans. */
+export function fullCatalog(env = process.env) {
+  return {
+    plugins: Object.keys(CATALOG).map((id) => ({ id, ...publicCatalog(id, env) })),
   };
 }
