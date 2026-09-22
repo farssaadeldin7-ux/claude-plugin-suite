@@ -13,14 +13,28 @@ swap in a real database later.
 | Route | Purpose |
 | --- | --- |
 | `GET /v1/entitlement?plugin_id&device_id` | Entitlement check (Bearer licence key). Registers the device against a seat. |
-| `POST /v1/usage` | Metered usage, idempotent per `idempotency_key`. |
-| `POST /v1/license/activate` | Bind a key to a device. |
+| `POST /v1/usage` | Metered usage, idempotent per `idempotency_key` **per meter**. Requires an active licence. |
+| `POST /v1/license/activate` | Bind a key to a device. `device_id` is required — an activation names the seat it binds. |
 | `POST /v1/checkout` | Create a Stripe Checkout session for a paid plan. |
+| `GET /v1/catalog` | The whole storefront in one response: every plugin with its public plans. |
 | `GET /v1/catalog/:plugin_id` | Plans, prices, features, limits, seats. |
 | `POST /v1/portal` | Stripe billing portal session for a paid licence. |
 | `POST /v1/stripe/webhook` | Signature-verified; issues keys on `checkout.session.completed`, tracks subscription updates and cancellations. |
 | `GET /success?session_id=` | Post-checkout page that shows the licence key once. |
 | `GET /health` | Liveness. |
+
+### `available`
+
+A plan reports `available: true` only when both halves hold: the catalog marks it
+as one we intend to sell, **and** its `STRIPE_PRICE_*` env var is actually set.
+`POST /v1/checkout` answers `503 plan_not_configured` when the price id is
+missing, so a plan that advertises a Buy button it cannot honour is a lie the
+storefront and each plugin's own `list_plans` would repeat. Set the price ids and
+the flag follows; there is nothing else to flip.
+
+Seats are enforced for every caller, including one that sends no `device_id`: an
+unidentified caller cannot be shown to occupy a seat that is already taken, so on
+a full licence it is refused with `seat_limit_reached`.
 
 ## Plans
 

@@ -144,6 +144,54 @@ export const REGRESSIONS = [
 
   // ---- billing service (services/billing) ----------------------------------
   {
+    id: 'catalog-index',
+    summary: 'GET /v1/catalog shared a branch with the per-plugin route, so split(\'/\').pop() looked up the literal "catalog" and the storefront\'s own route always 404ed',
+    testFiles: ['services/billing/test/e2e.mjs'],
+    pattern: /bare catalog path/,
+  },
+  {
+    id: 'plan-availability',
+    summary: 'available was hardcoded true on all 28 plans, so a plugin with no provisioned Stripe price advertised a Buy button that could only 503',
+    testFiles: ['services/billing/test/e2e.mjs'],
+    pattern: /unprovisioned plan/,
+  },
+  {
+    id: 'usage-requires-active',
+    summary: 'POST /v1/usage checked only that the licence key existed, so a cancelled, past_due or unpaid licence could keep driving the meter',
+    testFiles: ['services/billing/test/e2e.mjs'],
+    pattern: /cancelled licence/i,
+  },
+  {
+    id: 'seat-ceiling-unidentified',
+    summary: 'the seat check lived inside if (deviceId), so omitting device_id skipped seat accounting and gave an unlimited number of machines a fully active entitlement',
+    testFiles: ['services/billing/test/e2e.mjs'],
+    pattern: /unidentified caller/,
+  },
+  {
+    id: 'device-label-validation',
+    summary: 'device_label was pushed onto the seat list with no type or length check, beside a device_id validator written to stop exactly that',
+    testFiles: ['services/billing/test/e2e.mjs'],
+    pattern: /device_label/,
+  },
+  {
+    id: 'usage-input-bounds',
+    summary: 'meter and idempotency_key were charset-checked but never length-bounded, and neither is ever pruned from the store',
+    testFiles: ['services/billing/test/e2e.mjs'],
+    pattern: /65-character meter/,
+  },
+  {
+    id: 'usage-idempotency-meter-scope',
+    summary: 'the usage claim id omitted the meter, so a second meter reported under one retry key was dropped while the response still said recorded: true',
+    testFiles: ['services/billing/test/e2e.mjs'],
+    pattern: /replay of the first/,
+  },
+  {
+    id: 'json-body-must-be-object',
+    summary: 'a body of the literal JSON value null parsed fine and was returned to handlers that read a property off it — an uncaught 500 on four routes',
+    testFiles: ['services/billing/test/e2e.mjs'],
+    pattern: /not a 500/,
+  },
+  {
     id: '43',
     summary: 'the store swallowed every read error and started empty',
     testFiles: ['services/billing/test/e2e.mjs'],

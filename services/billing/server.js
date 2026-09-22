@@ -91,14 +91,27 @@ const WEBHOOK_BODY_LIMIT = 1024 * 1024;
 const readJsonBody = async (req) => {
   const raw = await readBody(req);
   if (!raw) return {};
+  let parsed;
   try {
-    return JSON.parse(raw);
+    parsed = JSON.parse(raw);
   } catch {
     const err = new Error('Request body is not valid JSON.');
     err.status = 400;
     err.code = 'invalid_json';
     throw err;
   }
+  // `null`, `[]`, `"x"` and `7` are all valid JSON, so JSON.parse returns
+  // them happily — and every caller below immediately reads a property off
+  // the result. `null` in particular threw TypeError inside the handler and
+  // surfaced as a generic 500. A body that is not a JSON object is as
+  // malformed as one that does not parse, and gets the same clean 400.
+  if (parsed === null || typeof parsed !== 'object' || Array.isArray(parsed)) {
+    const err = new Error('Request body must be a JSON object.');
+    err.status = 400;
+    err.code = 'invalid_json';
+    throw err;
+  }
+  return parsed;
 };
 
 // __proto__ already fails the pattern (leading underscore); constructor and
@@ -106,7 +119,8 @@ const readJsonBody = async (req) => {
 // internals as __proto__ is, so they're excluded explicitly.
 const SAFE_METER_PATTERN = /^[a-z][a-z0-9_]*$/;
 const UNSAFE_METER_NAMES = new Set(['constructor', 'prototype', '__proto__']);
-const isSafeMeter = (meter) => typeof meter === 'string' && SAFE_METER_PATTERN.test(meter) && !UNSAFE_METER_NAMES.has(meter);
+const isSafeMeter = (meter) => typeof meter === 'string' && meter.length <= MAX_METER_LENGTH
+  && SAFE_METER_PATTERN.test(meter) && !UNSAFE_METER_NAMES.has(meter);
 
 // Loose on purpose (an exact RFC 5322 check rejects real addresses); this is
 // only to stop garbage and oversized values from reaching Stripe unchecked.
@@ -115,6 +129,20 @@ const looksLikeEmail = (email) => typeof email === 'string' && email.length <= 2
 // stops a caller from storing arbitrary blobs against a licence's seat list.
 const isSafeDeviceId = (id) => typeof id === 'string' && id.length > 0 && id.length <= 128 && /^[A-Za-z0-9_-]+$/.test(id);
 const MAX_USAGE_QUANTITY = 100_000;
+// Every distinct meter becomes a permanent key on the licence, and every
+// distinct idempotency_key a permanent entry in the event ledger — neither
+// is ever pruned. Unbounded, they are a write-amplified way to grow the
+// store without limit; bounded, they are what the catalog's meter names and
+// a UUID actually need. The same reasoning as isSafeDeviceId's 128.
+const MAX_METER_LENGTH = 64;
+const MAX_IDEMPOTENCY_KEY_LENGTH = 200;
+const MAX_DEVICE_LABEL_LENGTH = 128;
+// A label is cosmetic — it names a seat in a list a human reads. A wrong
+// *type* is a caller bug worth reporting; merely being long is not, and
+// refusing it would turn a real activation from a machine with a long FQDN
+// into a failure. Wrong types are refused, long strings are truncated.
+const isSafeDeviceLabel = (label) => label === undefined || label === null || typeof label === 'string';
+const boundDeviceLabel = (label) => (typeof label === 'string' ? label.slice(0, MAX_DEVICE_LABEL_LENGTH) : null);
 
 const escapeHtml = (s) => String(s).replace(/[&<>"']/g, (c) => (
   { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
@@ -178,14 +206,22 @@ async function handle(req, res) {
     const body = await readJsonBody(req);
     const license = key && looksLikeKey(key) ? store.getLicense(key) : null;
     if (!license) return fail(res, 401, 'unknown_license', 'No licence matches this key.');
+    // The only route that writes to the store checked that the key exists and
+    // stopped there, while entitlementFor refuses anything that is not
+    // exactly 'active'. A cancelled, past_due or unpaid licence could still
+    // drive the meter — the same allow-list has to hold here.
+    if (license.status !== 'active') {
+      return fail(res, 403, 'inactive_license', 'This licence is not active.');
+    }
     if (!isSafeMeter(body.meter)) {
       return fail(res, 400, 'invalid_request', 'A valid meter name is required.');
     }
     if (body.plugin_id && body.plugin_id !== license.plugin_id) {
       return fail(res, 403, 'wrong_plugin', 'This licence is not for the plugin named in the request.');
     }
-    if (typeof body.idempotency_key !== 'string' || !body.idempotency_key) {
-      return fail(res, 400, 'invalid_request', 'An idempotency_key is required.');
+    if (typeof body.idempotency_key !== 'string' || !body.idempotency_key
+      || body.idempotency_key.length > MAX_IDEMPOTENCY_KEY_LENGTH) {
+      return fail(res, 400, 'invalid_request', `An idempotency_key of at most ${MAX_IDEMPOTENCY_KEY_LENGTH} characters is required.`);
     }
     const quantity = body.quantity ?? 1;
     if (!Number.isInteger(quantity) || quantity < 1 || quantity > MAX_USAGE_QUANTITY) {
@@ -193,7 +229,11 @@ async function handle(req, res) {
     }
     // Scoped by licence key: two different customers omitting or colliding
     // on the same idempotency_key must never dedupe against each other.
-    const usageEventId = `usage:${license.key}:${body.idempotency_key}`;
+    // Scoped by meter too: one operation that reports two meters under a
+    // single retry key is the documented way to use this API, and without
+    // the meter the second report was swallowed and answered
+    // `recorded: true, used: 0` for an increment that never happened.
+    const usageEventId = `usage:${license.key}:${body.meter}:${body.idempotency_key}`;
     if (store.isEventClaimed(usageEventId)) {
       return json(res, 200, {
         recorded: true, deduplicated: true, meter: body.meter, period: currentPeriod(), used: usageFor(license)[body.meter] ?? 0,
@@ -208,14 +248,24 @@ async function handle(req, res) {
   if (route === 'POST /v1/license/activate') {
     const body = await readJsonBody(req);
     const key = String(body.license_key ?? '').trim().toUpperCase();
-    if (body.device_id !== undefined && !isSafeDeviceId(body.device_id)) {
-      return fail(res, 400, 'invalid_request', 'device_id is malformed.');
+    // An activation binds a seat, so it has to name the seat it binds. The
+    // check used to be conditional on the field being present, which meant
+    // omitting it skipped seat accounting altogether and activated an
+    // unlimited number of machines against a 2-seat plan.
+    if (!isSafeDeviceId(body.device_id)) {
+      return fail(res, 400, 'invalid_request', 'A valid device_id is required.');
+    }
+    // isSafeDeviceId exists so a caller cannot store an arbitrary blob
+    // against a licence's seat list; device_label is pushed onto that same
+    // list one line later and had no check at all.
+    if (!isSafeDeviceLabel(body.device_label)) {
+      return fail(res, 400, 'invalid_request', 'device_label must be a string.');
     }
     const entitlement = entitlementFor(store, {
       key,
       pluginId: body.plugin_id,
       deviceId: body.device_id,
-      deviceLabel: body.device_label,
+      deviceLabel: boundDeviceLabel(body.device_label),
     });
     if (!entitlement.active) {
       // One generic code for every failure reason: echoing entitlement.reason
