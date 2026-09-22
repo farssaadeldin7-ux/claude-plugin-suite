@@ -414,18 +414,9 @@ export function publicCatalog(pluginId, env = process.env) {
   };
 }
 
-/**
- * The shape GET /v1/catalog (no plugin id) returns: one row per plugin, so a
- * storefront can render the whole suite without fourteen round trips. Plan
- * detail stays on the per-plugin route; this is an index, not a dump.
- */
-export function catalogIndex(env = process.env) {
+/** The whole storefront in one response: every plugin with its public plans. */
+export function fullCatalog(env = process.env) {
   return {
-    plugins: Object.entries(CATALOG).map(([id, entry]) => ({
-      id,
-      name: entry.name,
-      plans: Object.keys(entry.plans),
-      available: Object.values(entry.plans).some((p) => isPurchasable(p, env)),
-    })),
+    plugins: Object.keys(CATALOG).map((id) => ({ id, ...publicCatalog(id, env) })),
   };
 }

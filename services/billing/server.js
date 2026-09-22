@@ -8,7 +8,7 @@
  *   POST /v1/usage                               Bearer <license key>
  *   POST /v1/license/activate
  *   POST /v1/checkout
- *   GET  /v1/catalog            (index of every plugin)
+ *   GET  /v1/catalog
  *   GET  /v1/catalog/:plugin_id
  *   POST /v1/portal
  *
@@ -22,7 +22,7 @@ import http from 'node:http';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Store } from './lib/store.js';
-import { CATALOG, plan as planFor, publicCatalog, catalogIndex } from './catalog.js';
+import { CATALOG, plan as planFor, publicCatalog, fullCatalog } from './catalog.js';
 import {
   issueLicense, entitlementFor, recordUsage, usageFor, looksLikeKey, currentPeriod,
 } from './lib/licenses.js';
@@ -278,12 +278,11 @@ async function handle(req, res) {
     return json(res, 200, { activated: true, plan: entitlement.plan, features: entitlement.features, seats: entitlement.seats });
   }
 
-  // The bare path used to fall into the same branch as the per-plugin one,
-  // where split('/').pop() handed the lookup the literal string "catalog" —
-  // so the route a storefront is told to call always answered
-  // 404 unknown_plugin "No catalog for \"catalog\"". It returns the index.
   if (route === 'GET /v1/catalog') {
-    return json(res, 200, catalogIndex());
+    // The bare route used to fall through to the per-plugin lookup, split the
+    // path, and ask for a plugin literally named "catalog" — a guaranteed 404
+    // on a route the file header advertises.
+    return json(res, 200, fullCatalog());
   }
 
   if (/^GET \/v1\/catalog\/[\w-]+$/.test(route)) {

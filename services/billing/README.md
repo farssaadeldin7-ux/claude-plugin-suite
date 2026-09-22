@@ -16,7 +16,7 @@ swap in a real database later.
 | `POST /v1/usage` | Metered usage, idempotent per `idempotency_key` **per meter**. Requires an active licence. |
 | `POST /v1/license/activate` | Bind a key to a device. `device_id` is required — an activation names the seat it binds. |
 | `POST /v1/checkout` | Create a Stripe Checkout session for a paid plan. |
-| `GET /v1/catalog` | Index of every plugin: id, name, plan ids, and whether anything in it is purchasable. |
+| `GET /v1/catalog` | The whole storefront in one response: every plugin with its public plans. |
 | `GET /v1/catalog/:plugin_id` | Plans, prices, features, limits, seats. |
 | `POST /v1/portal` | Stripe billing portal session for a paid licence. |
 | `POST /v1/stripe/webhook` | Signature-verified; issues keys on `checkout.session.completed`, tracks subscription updates and cancellations. |
