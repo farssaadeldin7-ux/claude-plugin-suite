@@ -30,7 +30,7 @@ import { reconcilePlan } from './lib/reconcile.js';
 
 const PLUGIN_ID = 'trail-split';
 const PLUGIN_NAME = 'Trail Split';
-const DEFAULT_BILLING_URL = 'https://billing.example.com';
+const DEFAULT_BILLING_URL = 'https://plugin-suite-billing.fly.dev';
 
 // No free tier: the taxonomy, the seven-system table and the planning figures
 // stay open so a plan can be inspected before buying; the four ledger

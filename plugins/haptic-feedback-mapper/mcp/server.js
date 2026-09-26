@@ -33,7 +33,7 @@ import { exportProfile, emitEvent, DELIVERY_STATEMENT, LOG_CONTRACT_PATH } from 
 
 const PLUGIN_ID = 'haptic-feedback-mapper';
 const PLUGIN_NAME = 'Haptic Feedback Mapper';
-const DEFAULT_BILLING_URL = 'https://billing.example.com';
+const DEFAULT_BILLING_URL = 'https://plugin-suite-billing.fly.dev';
 
 // No free tier: the classes, the vocabulary rules and the refocus figures
 // stay open so the method can be evaluated before buying; the audit, the

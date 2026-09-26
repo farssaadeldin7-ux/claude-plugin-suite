@@ -32,7 +32,7 @@ import { captionPack } from './lib/captions.js';
 
 const PLUGIN_ID = 'podcast-video-studio';
 const PLUGIN_NAME = 'Podcast & Video Studio';
-const DEFAULT_BILLING_URL = 'https://billing.example.com';
+const DEFAULT_BILLING_URL = 'https://plugin-suite-billing.fly.dev';
 
 // No free tier: the archetypes, the rubric and the destination specs stay
 // open so the method can be inspected before buying; the transcript scan, the

@@ -39,7 +39,7 @@ import { headroomCheck, JOBS, RESOURCES } from './lib/headroom.js';
 
 const PLUGIN_ID = 'predictive-resource-allocation';
 const PLUGIN_NAME = 'Predictive Resource Allocation';
-const DEFAULT_BILLING_URL = 'https://billing.example.com';
+const DEFAULT_BILLING_URL = 'https://plugin-suite-billing.fly.dev';
 
 // No free tier: the triage reference, domain profiles and remedy ladder stay
 // open so the method can be evaluated before buying; the arithmetic, the

@@ -40,7 +40,7 @@ import { logRun, listRuns, RUNS_FILE } from './lib/runs.js';
 
 const PLUGIN_ID = 'customer-sales-support';
 const PLUGIN_NAME = 'Customer Sales Support';
-const DEFAULT_BILLING_URL = 'https://billing.example.com';
+const DEFAULT_BILLING_URL = 'https://plugin-suite-billing.fly.dev';
 
 // No free tier: the reference tables stay open so the method can be evaluated
 // before buying; the audit, lint, screen, scorer and run history are licensed.

@@ -30,7 +30,7 @@ import { logAudit, recordResult, reviewAudits, AUDITS_FILE } from './lib/audits.
 
 const PLUGIN_ID = 'professor-mind-reader';
 const PLUGIN_NAME = 'Professor Mind-Reader';
-const DEFAULT_BILLING_URL = 'https://billing.example.com';
+const DEFAULT_BILLING_URL = 'https://plugin-suite-billing.fly.dev';
 
 // No free tier: the ladder, band tables and hidden-rubric checklist stay open
 // so a rubric can be decomposed before buying; the effort map, the scorecard

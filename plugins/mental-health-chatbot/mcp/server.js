@@ -45,7 +45,7 @@ import {
 
 const PLUGIN_ID = 'mental-health-chatbot';
 const PLUGIN_NAME = 'Mental-Health Chatbot';
-const DEFAULT_BILLING_URL = 'https://billing.example.com';
+const DEFAULT_BILLING_URL = 'https://plugin-suite-billing.fly.dev';
 
 // No free tier, but the split is not the usual one: everything a deployment
 // needs to be configured safely — the scope wording, the trigger list, the

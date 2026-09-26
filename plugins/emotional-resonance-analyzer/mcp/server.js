@@ -36,7 +36,7 @@ import { logAnalysis, getAnalysis, reviewAnalyses, ANALYSES_FILE } from './lib/a
 
 const PLUGIN_ID = 'emotional-resonance-analyzer';
 const PLUGIN_NAME = 'Emotional Resonance Analyzer';
-const DEFAULT_BILLING_URL = 'https://billing.example.com';
+const DEFAULT_BILLING_URL = 'https://plugin-suite-billing.fly.dev';
 
 // No free tier: the reference tables stay open so the method can be judged
 // before buying; the threshold checks, the pacing arithmetic, curve
