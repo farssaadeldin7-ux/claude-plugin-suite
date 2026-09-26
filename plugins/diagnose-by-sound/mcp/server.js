@@ -12,6 +12,7 @@
 
 import { McpServer, ToolError } from './mcp-lite.js';
 import { LicenseClient, registerLicenseTools } from './license-client.js';
+import { registerSkillPrompts } from './skill-prompts.js';
 import {
   TAXONOMY, SIGNATURES, matchSignatures, discriminatingQuestions,
   safetyVerdict, normaliseObservation, rejectedTerms,
@@ -435,5 +436,9 @@ server.tool('elimination_plan', {
 // ------------------------------------------------------------------ billing
 
 registerLicenseTools(server, client, { pluginName: PLUGIN_NAME });
+
+// The skills, as licensed MCP prompts — how editors without a skill concept
+// (VS Code, Cursor) get the same material as a Claude Code install.
+registerSkillPrompts(server, client);
 
 server.start();

@@ -51,6 +51,13 @@ for (const id of plugins) {
   const source = fs.readFileSync(path.join(root, 'plugins', id, 'mcp', 'server.js'), 'utf8');
   assert.ok(!source.includes(BILLING), `${id}: baking must not touch the repo source`);
 
+  // Skills ship next to mcp/, where the vendored skill-prompts.js resolves
+  // them — that is what turns them into slash commands in VS Code.
+  const stagedSkills = fs.readdirSync(path.join(stage, 'skills'), { withFileTypes: true })
+    .filter((d) => d.isDirectory() && fs.existsSync(path.join(stage, 'skills', d.name, 'SKILL.md')));
+  assert.ok(stagedSkills.length >= 1, `${id}: at least one skill ships in the extension`);
+  assert.ok(fs.existsSync(path.join(stage, 'mcp', 'skill-prompts.js')), `${id}: the prompt runtime ships`);
+
   assert.ok(!fs.existsSync(path.join(stage, 'mcp', 'test')), `${id}: dev-only tests do not ship`);
   assert.ok(fs.existsSync(path.join(stage, 'mcp', 'mcp-lite.js')), `${id}: runtime ships`);
   assert.ok(fs.existsSync(path.join(stage, 'LICENSE')), `${id}: LICENSE ships`);

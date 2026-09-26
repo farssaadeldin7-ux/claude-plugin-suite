@@ -18,6 +18,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { McpServer, ToolError } from './mcp-lite.js';
 import { LicenseClient, registerLicenseTools } from './license-client.js';
+import { registerSkillPrompts } from './skill-prompts.js';
 import { FORMS, BASELINES, CONVENTION_NOTE, UNLISTED_FORM_NOTE, formFor } from './lib/forms.js';
 import { CAUSES, OVERLAP_PRIORITY, OVERLAP_NOTE, CORRELATE_NOTE, causeFor } from './lib/causes.js';
 import {
@@ -443,5 +444,9 @@ server.tool('review_analyses', {
 // ------------------------------------------------------------------ billing
 
 registerLicenseTools(server, client, { pluginName: PLUGIN_NAME });
+
+// The skills, as licensed MCP prompts — how editors without a skill concept
+// (VS Code, Cursor) get the same material as a Claude Code install.
+registerSkillPrompts(server, client);
 
 server.start();

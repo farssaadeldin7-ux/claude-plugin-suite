@@ -86,6 +86,12 @@ export function stagePlugin(id, { billing = billingUrl } = {}) {
       .replaceAll('__VERSION__', manifest.version)
   );
 
+  // The skills ship too, served by the bundled server as licensed MCP
+  // prompts (VS Code surfaces them as slash commands). skills/ must sit
+  // next to mcp/ — that is where skill-prompts.js resolves them.
+  const skillsDir = path.join(pluginDir, 'skills');
+  if (fs.existsSync(skillsDir)) copyDir(skillsDir, path.join(stage, 'skills'));
+
   fs.copyFileSync(path.join(root, 'LICENSE'), path.join(stage, 'LICENSE'));
   fs.copyFileSync(path.join(pluginDir, 'README.md'), path.join(stage, 'README.md'));
 

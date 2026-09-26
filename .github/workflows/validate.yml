@@ -26,6 +26,7 @@ jobs:
           node packages/suite-runtime/test/mcp-lite.test.mjs
           node packages/suite-runtime/test/license-client.test.mjs
           node packages/suite-runtime/test/local-store.test.mjs
+          node packages/suite-runtime/test/skill-prompts.test.mjs
       - name: Plugin domain-logic tests
         run: |
           # Every plugin test file runs — globbed so a new test can never be
