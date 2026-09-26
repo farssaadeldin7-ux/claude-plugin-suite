@@ -1,0 +1,61 @@
+name: publish-openvsx
+
+# Publishing is deliberate, never automatic: run it from the Actions tab.
+# Needs the OVSX_PAT repository secret — an Open VSX access token from a
+# registered Eclipse Foundation account with the publisher agreement signed
+# (open-vsx.org → your avatar → Settings → Access Tokens). The namespace is
+# created on first run if it does not exist yet.
+on:
+  workflow_dispatch:
+    inputs:
+      plugins:
+        description: 'Space-separated plugin ids to publish (empty = all 14)'
+        required: false
+        default: ''
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Check publish token is configured
+        id: token
+        env:
+          OVSX_PAT: ${{ secrets.OVSX_PAT }}
+        run: |
+          if [ -z "$OVSX_PAT" ]; then
+            echo "::warning::OVSX_PAT secret is not set — skipping publish. Create an access token at open-vsx.org (Settings → Access Tokens) and add it with: gh secret set OVSX_PAT --repo ${{ github.repository }}"
+            echo "present=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Package extensions
+        if: steps.token.outputs.present == 'true'
+        run: node scripts/build-vsix.mjs --package ${{ inputs.plugins }}
+
+      - name: Ensure the namespace exists
+        if: steps.token.outputs.present == 'true'
+        env:
+          OVSX_PAT: ${{ secrets.OVSX_PAT }}
+        # create-namespace fails when it already exists; that is the normal
+        # steady state, so it must not fail the run.
+        run: npx --yes ovsx create-namespace code-studio -p "$OVSX_PAT" || true
+
+      - name: Publish to Open VSX
+        if: steps.token.outputs.present == 'true'
+        env:
+          OVSX_PAT: ${{ secrets.OVSX_PAT }}
+        run: |
+          status=0
+          for vsix in dist/vsix/*.vsix; do
+            echo "publishing $vsix"
+            # ovsx refuses a version that is already published; keep going so
+            # one already-published plugin cannot block the other thirteen.
+            npx --yes ovsx publish "$vsix" -p "$OVSX_PAT" || status=$?
+          done
+          exit $status

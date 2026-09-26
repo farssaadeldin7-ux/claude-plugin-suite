@@ -15,6 +15,7 @@
 
 import { McpServer, ToolError } from './mcp-lite.js';
 import { LicenseClient, registerLicenseTools } from './license-client.js';
+import { registerSkillPrompts } from './skill-prompts.js';
 import {
   VERB_LADDER, DEMOTION_TEST, DEMOTION_SIGNALS, PROMOTION_MOVES, levelForVerb,
 } from './lib/ladder.js';
@@ -343,5 +344,9 @@ server.tool('review_audits', {
 // ------------------------------------------------------------------ billing
 
 registerLicenseTools(server, client, { pluginName: PLUGIN_NAME });
+
+// The skills, as licensed MCP prompts — how editors without a skill concept
+// (VS Code, Cursor) get the same material as a Claude Code install.
+registerSkillPrompts(server, client);
 
 server.start();

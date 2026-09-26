@@ -27,6 +27,7 @@ export class McpServer {
     this.info = { name, version };
     this.instructions = instructions;
     this.tools = new Map();
+    this.prompts = new Map();
     this.buffer = '';
     this.skippingOversizedLine = false;
     this.pending = 0;
@@ -45,6 +46,19 @@ export class McpServer {
       inputSchema: spec.inputSchema || { type: 'object', properties: {} },
       handler: spec.handler,
     });
+    return this;
+  }
+
+  /**
+   * Register a prompt (MCP prompts/list + prompts/get). Clients like VS Code
+   * surface these as slash commands, which is how a plugin's skills reach
+   * editors that have no skill concept of their own.
+   * @param {string} name
+   * @param {{description: string, handler: Function}} spec
+   */
+  prompt(name, spec) {
+    if (!spec?.handler) throw new Error(`Prompt "${name}" has no handler`);
+    this.prompts.set(name, { name, description: spec.description, handler: spec.handler });
     return this;
   }
 
@@ -150,7 +164,12 @@ export class McpServer {
       case 'initialize':
         return {
           protocolVersion: PROTOCOL_VERSION,
-          capabilities: { tools: { listChanged: false } },
+          capabilities: {
+            tools: { listChanged: false },
+            // Advertised only when something is registered: an empty prompts
+            // capability would make clients issue prompts/list for nothing.
+            ...(this.prompts.size > 0 ? { prompts: { listChanged: false } } : {}),
+          },
           serverInfo: this.info,
           ...(this.instructions ? { instructions: this.instructions } : {}),
         };
@@ -198,6 +217,26 @@ export class McpServer {
             { isError: true }
           );
         }
+      }
+
+      case 'prompts/list':
+        return {
+          prompts: [...this.prompts.values()].map(({ name, description }) => ({ name, description })),
+        };
+
+      case 'prompts/get': {
+        const prompt = this.prompts.get(message.params?.name);
+        if (!prompt) {
+          const err = new Error(`Unknown prompt: ${message.params?.name}`);
+          err.code = -32602;
+          throw err;
+        }
+        // Unlike tools/call, a prompt failure is a protocol error, not an
+        // in-band result: prompts/get has no isError channel, and a client
+        // rendering a licence refusal as if it were the skill's content
+        // would be worse than a visible error. The thrown error's own code
+        // and message (e.g. a licence gate's) travel as-is.
+        return await prompt.handler(message.params?.arguments ?? {});
       }
 
       default: {

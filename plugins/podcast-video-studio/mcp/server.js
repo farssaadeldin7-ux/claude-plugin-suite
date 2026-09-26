@@ -16,6 +16,7 @@
 import fs from 'node:fs';
 import { McpServer, ToolError } from './mcp-lite.js';
 import { LicenseClient, registerLicenseTools } from './license-client.js';
+import { registerSkillPrompts } from './skill-prompts.js';
 import { ARCHETYPES, COMBINATIONS_NOTE, archetypeFor, scanCandidates } from './lib/archetypes.js';
 import {
   AXES, DISQUALIFIERS, DISQUALIFIER_NOTE, THRESHOLDS, VOLUME_NOTE, WORKED_EXAMPLES,
@@ -421,5 +422,9 @@ server.tool('caption_pack', {
 // ------------------------------------------------------------------ billing
 
 registerLicenseTools(server, client, { pluginName: PLUGIN_NAME });
+
+// The skills, as licensed MCP prompts — how editors without a skill concept
+// (VS Code, Cursor) get the same material as a Claude Code install.
+registerSkillPrompts(server, client);
 
 server.start();

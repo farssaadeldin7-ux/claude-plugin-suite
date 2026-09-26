@@ -26,6 +26,7 @@ jobs:
           node packages/suite-runtime/test/mcp-lite.test.mjs
           node packages/suite-runtime/test/license-client.test.mjs
           node packages/suite-runtime/test/local-store.test.mjs
+          node packages/suite-runtime/test/skill-prompts.test.mjs
       - name: Plugin domain-logic tests
         run: |
           # Every plugin test file runs — globbed so a new test can never be
@@ -49,7 +50,9 @@ jobs:
           node test/sbom.test.mjs
           node scripts/sbom.mjs --check
       - name: Release tooling tests
-        run: node test/bake-billing-url.test.mjs
+        run: |
+          node test/bake-billing-url.test.mjs
+          node test/build-vsix.test.mjs
       - name: Check regression-test coverage of tracked defect fixes
         run: |
           node test/check-regressions.test.mjs
