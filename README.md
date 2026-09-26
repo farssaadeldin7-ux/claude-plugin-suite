@@ -71,10 +71,34 @@ docs/                             architecture, audiences, licensing
 node scripts/validate.mjs        # structure, manifests, frontmatter, dead references
 node scripts/vendor-runtime.mjs  # after editing packages/suite-runtime
 node scripts/build.mjs           # .plugin archives into dist/
+node scripts/build-vsix.mjs      # VS Code extensions staged into dist/vsix/
 ```
 
-CI runs all three on every push. See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for how
+CI runs all of these on every push. See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for how
 to add a plugin, and [`docs/LICENSING.md`](docs/LICENSING.md) for the free/paid split.
+
+### Publishing to Open VSX
+
+Each plugin also ships as a VS Code extension: a thin `extension.cjs` that
+registers the plugin's MCP tool server through VS Code's MCP server definition
+provider API (VS Code 1.102+), with the whole zero-dependency `mcp/` directory
+bundled inside the `.vsix`. Skills are a Claude Code concept and do not ship in
+the extension.
+
+One-time setup, in this order:
+
+1. Create an [Eclipse Foundation account](https://accounts.eclipse.org/) and
+   log in to [open-vsx.org](https://open-vsx.org) with it.
+2. Sign the Publisher Agreement (open-vsx.org → your avatar → Settings →
+   the agreement prompt).
+3. Create an access token (Settings → Access Tokens) and store it:
+   `gh secret set OVSX_PAT --repo farssaadeldin7-ux/claude-plugin-suite`
+
+Then publish from the Actions tab: run the **publish-openvsx** workflow
+(optionally naming specific plugin ids). It packages every extension with
+`vsce`, creates the `code-studio` namespace if needed, and uploads each
+`.vsix` with `ovsx`, skipping versions that are already published. To build
+locally instead: `node scripts/build-vsix.mjs --package`.
 
 ## Status
 
