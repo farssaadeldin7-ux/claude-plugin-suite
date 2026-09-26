@@ -20,7 +20,7 @@ import { logCall, recordResult, reviewCalls, bandIsValid, BANDS, CALLS_FILE } fr
 
 const PLUGIN_ID = 'ghost-post-preview';
 const PLUGIN_NAME = 'Ghost Post Preview';
-const DEFAULT_BILLING_URL = 'https://billing.example.com';
+const DEFAULT_BILLING_URL = 'https://plugin-suite-billing.fly.dev';
 
 // No free tier: the fold test and platform data stay open so a draft can be
 // inspected before buying; the lint pass and the prediction log are licensed.

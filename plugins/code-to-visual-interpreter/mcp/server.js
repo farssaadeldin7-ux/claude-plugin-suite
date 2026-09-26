@@ -36,7 +36,7 @@ import path from 'node:path';
 
 const PLUGIN_ID = 'code-to-visual-interpreter';
 const PLUGIN_NAME = 'Code-to-Visual Interpreter';
-const DEFAULT_BILLING_URL = 'https://billing.example.com';
+const DEFAULT_BILLING_URL = 'https://plugin-suite-billing.fly.dev';
 
 // No free tier: the taxonomy, toolchain notes and edge-condition table stay
 // open so the method can be evaluated before buying; the compute tools —

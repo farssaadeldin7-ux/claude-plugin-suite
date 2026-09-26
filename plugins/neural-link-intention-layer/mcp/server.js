@@ -36,7 +36,7 @@ import { recordBuild, recordFollowup, reviewBuilds, BUILDS_FILE } from './lib/bu
 
 const PLUGIN_ID = 'neural-link-intention-layer';
 const PLUGIN_NAME = 'Neural-Link Intention Layer';
-const DEFAULT_BILLING_URL = 'https://billing.example.com';
+const DEFAULT_BILLING_URL = 'https://plugin-suite-billing.fly.dev';
 
 // No free tier: the instrumentation guide, the automation catalogue and the
 // method's numbers stay open so the approach can be evaluated before buying;

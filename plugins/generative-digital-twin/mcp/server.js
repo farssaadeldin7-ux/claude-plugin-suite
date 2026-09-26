@@ -33,7 +33,7 @@ import { TASK_TYPES, GATE_PASS_MEAN, compileBrief, apprenticeGate } from './lib/
 
 const PLUGIN_ID = 'generative-digital-twin';
 const PLUGIN_NAME = 'Generative Digital Twin';
-const DEFAULT_BILLING_URL = 'https://billing.example.com';
+const DEFAULT_BILLING_URL = 'https://plugin-suite-billing.fly.dev';
 
 // No free tier: the taxonomy, curation rules and governance reference stay
 // open so the method can be evaluated before buying; the corpus check, the

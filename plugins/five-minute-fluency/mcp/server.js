@@ -28,7 +28,7 @@ import { logSheet, recordSession, reviewSheets, SHEETS_FILE } from './lib/sheets
 
 const PLUGIN_ID = 'five-minute-fluency';
 const PLUGIN_NAME = '5-Minute Fluency';
-const DEFAULT_BILLING_URL = 'https://billing.example.com';
+const DEFAULT_BILLING_URL = 'https://plugin-suite-billing.fly.dev';
 
 // No free tier: the symptom map, genre axes and sheet format stay open so the
 // method can be evaluated before buying; the scoring, lint and sheet log are

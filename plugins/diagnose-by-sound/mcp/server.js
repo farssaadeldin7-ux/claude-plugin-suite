@@ -24,7 +24,7 @@ import {
 
 const PLUGIN_ID = 'diagnose-by-sound';
 const PLUGIN_NAME = 'Diagnose by Sound';
-const DEFAULT_BILLING_URL = 'https://billing.example.com';
+const DEFAULT_BILLING_URL = 'https://plugin-suite-billing.fly.dev';
 
 // No free tier for this plugin: diagnose, repair_plan and history all
 // require a paid licence. The vocabulary and signature-browsing tools stay
