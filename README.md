@@ -82,8 +82,11 @@ to add a plugin, and [`docs/LICENSING.md`](docs/LICENSING.md) for the free/paid 
 Each plugin also ships as a VS Code extension: a thin `extension.cjs` that
 registers the plugin's MCP tool server through VS Code's MCP server definition
 provider API (VS Code 1.102+), with the whole zero-dependency `mcp/` directory
-bundled inside the `.vsix`. Skills are a Claude Code concept and do not ship in
-the extension.
+bundled inside the `.vsix`. The skills ship too: the bundled server publishes
+each one as an MCP prompt, which VS Code surfaces as a slash command
+(`/mcp.<plugin>.<skill>`). Listing is open; the skill body itself requires an
+active paid licence, same as the gated tools, since the `.vsix` is a public
+download.
 
 One-time setup, in this order:
 

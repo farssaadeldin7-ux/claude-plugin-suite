@@ -15,6 +15,7 @@
 
 import { McpServer, ToolError } from './mcp-lite.js';
 import { LicenseClient, registerLicenseTools } from './license-client.js';
+import { registerSkillPrompts } from './skill-prompts.js';
 import { DIMENSIONS, EXTRACTION_RULES, WEIGHTING, BRIEF_DRIVEN, mediumFor } from './lib/dimensions.js';
 import {
   SIZE_BANDS, INCLUSION_RULES, EXCLUSION_RULES, BRAND_GUIDELINES_TEST,
@@ -485,5 +486,9 @@ server.tool('apprentice_check', {
 // ------------------------------------------------------------------ billing
 
 registerLicenseTools(server, client, { pluginName: PLUGIN_NAME });
+
+// The skills, as licensed MCP prompts — how editors without a skill concept
+// (VS Code, Cursor) get the same material as a Claude Code install.
+registerSkillPrompts(server, client);
 
 server.start();
