@@ -49,7 +49,9 @@ jobs:
           node test/sbom.test.mjs
           node scripts/sbom.mjs --check
       - name: Release tooling tests
-        run: node test/bake-billing-url.test.mjs
+        run: |
+          node test/bake-billing-url.test.mjs
+          node test/build-vsix.test.mjs
       - name: Check regression-test coverage of tracked defect fixes
         run: |
           node test/check-regressions.test.mjs
