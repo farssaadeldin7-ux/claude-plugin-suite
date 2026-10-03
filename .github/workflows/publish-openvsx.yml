@@ -1,10 +1,20 @@
 name: publish-openvsx
 
 # Publishing is deliberate, never automatic: run it from the Actions tab.
-# Needs the OVSX_PAT repository secret — an Open VSX access token from a
-# registered Eclipse Foundation account with the publisher agreement signed
-# (open-vsx.org → your avatar → Settings → Access Tokens). The namespace is
-# created on first run if it does not exist yet.
+#
+# Two authentication modes, chosen automatically:
+#
+# 1. OVSX_PAT secret set → token publishing. Needed exactly once per
+#    extension: Open VSX registers a trusted publisher per extension and
+#    only for an extension that already has a published version, so the
+#    first version must arrive with a token. The namespace is also created
+#    in this mode. Delete the secret afterwards.
+# 2. No OVSX_PAT → trusted publishing. The job authenticates with a
+#    short-lived GitHub OIDC token (id-token: write); nothing stored,
+#    nothing to leak or rotate. Requires each extension's trusted publisher
+#    to be registered at open-vsx.org (Settings → Trusted Publishers:
+#    owner farssaadeldin7-ux, repo claude-plugin-suite, workflow
+#    publish-openvsx.yml).
 on:
   workflow_dispatch:
     inputs:
@@ -12,6 +22,10 @@ on:
         description: 'Space-separated plugin ids to publish (empty = all 14)'
         required: false
         default: ''
+
+permissions:
+  contents: read
+  id-token: write
 
 jobs:
   publish:
@@ -22,40 +36,47 @@ jobs:
         with:
           node-version: 20
 
-      - name: Check publish token is configured
-        id: token
+      - name: Choose authentication mode
+        id: auth
         env:
           OVSX_PAT: ${{ secrets.OVSX_PAT }}
         run: |
-          if [ -z "$OVSX_PAT" ]; then
-            echo "::warning::OVSX_PAT secret is not set — skipping publish. Create an access token at open-vsx.org (Settings → Access Tokens) and add it with: gh secret set OVSX_PAT --repo ${{ github.repository }}"
-            echo "present=false" >> "$GITHUB_OUTPUT"
+          if [ -n "$OVSX_PAT" ]; then
+            echo "mode=token" >> "$GITHUB_OUTPUT"
+            echo "Using token publishing (OVSX_PAT is set — first-publish / namespace-creation mode)."
           else
-            echo "present=true" >> "$GITHUB_OUTPUT"
+            echo "mode=trusted" >> "$GITHUB_OUTPUT"
+            echo "Using trusted publishing (OIDC). Each extension must have its trusted publisher registered on open-vsx.org."
           fi
 
       - name: Package extensions
-        if: steps.token.outputs.present == 'true'
         run: node scripts/build-vsix.mjs --package ${{ inputs.plugins }}
 
       - name: Ensure the namespace exists
-        if: steps.token.outputs.present == 'true'
+        if: steps.auth.outputs.mode == 'token'
         env:
           OVSX_PAT: ${{ secrets.OVSX_PAT }}
         # create-namespace fails when it already exists; that is the normal
-        # steady state, so it must not fail the run.
+        # steady state, so it must not fail the run. Namespace creation is
+        # token-only — trusted publishing presumes the namespace exists.
         run: npx --yes ovsx create-namespace code-studio -p "$OVSX_PAT" || true
 
       - name: Publish to Open VSX
-        if: steps.token.outputs.present == 'true'
         env:
           OVSX_PAT: ${{ secrets.OVSX_PAT }}
+          AUTH_MODE: ${{ steps.auth.outputs.mode }}
         run: |
           status=0
           for vsix in dist/vsix/*.vsix; do
-            echo "publishing $vsix"
-            # ovsx refuses a version that is already published; keep going so
-            # one already-published plugin cannot block the other thirteen.
-            npx --yes ovsx publish "$vsix" -p "$OVSX_PAT" || status=$?
+            echo "publishing $vsix ($AUTH_MODE)"
+            # --skip-duplicate: an already-published version is the normal
+            # steady state on a re-run, not a failure; any other error still
+            # fails the run, but only after every extension has been tried,
+            # so one bad extension cannot block the other thirteen.
+            if [ "$AUTH_MODE" = "token" ]; then
+              npx --yes ovsx publish "$vsix" -p "$OVSX_PAT" --skip-duplicate || status=$?
+            else
+              npx --yes ovsx publish "$vsix" --trusted-publishing --skip-duplicate || status=$?
+            fi
           done
           exit $status
