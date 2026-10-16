@@ -1,6 +1,6 @@
 {
   "name": "haptic-feedback-mapper",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Eliminates context-switching: quantifies the cognitive load of checking a screen, maps status checks to a small haptic vocabulary, and builds the Deep-Work Protection case in billable hours.",
   "author": {
     "name": "Fars Saadeldin"

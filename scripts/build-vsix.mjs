@@ -10,8 +10,8 @@
  * What ships: a thin extension.cjs that registers the plugin's MCP tool
  * server with VS Code's MCP server definition provider API (VS Code 1.102+),
  * plus the plugin's whole mcp/ directory (zero npm dependencies, so bundling
- * the files is the entire install). Skills are a Claude Code concept and are
- * not part of the extension.
+ * the files is the entire install). Skills ship too, served by the bundled
+ * server as licensed MCP prompts.
  *
  * The staged server gets the production billing URL baked in, same as the
  * .plugin archives (override with BILLING_URL=... for a test build).
@@ -28,6 +28,7 @@ const outRoot = path.join(root, 'dist', 'vsix');
 
 export const PUBLISHER = 'code-studio';
 export const ENGINES_VSCODE = '^1.102.0';
+export const SITE_URL = 'https://www.codestudioplugin.com';
 const DEFAULT_BILLING_URL = 'https://billing.codestudioplugin.com';
 
 const args = process.argv.slice(2);
@@ -93,7 +94,18 @@ export function stagePlugin(id, { billing = billingUrl } = {}) {
   if (fs.existsSync(skillsDir)) copyDir(skillsDir, path.join(stage, 'skills'));
 
   fs.copyFileSync(path.join(root, 'LICENSE'), path.join(stage, 'LICENSE'));
-  fs.copyFileSync(path.join(pluginDir, 'README.md'), path.join(stage, 'README.md'));
+
+  // The README is the extension's listing page on open-vsx.org — the one
+  // thing every visitor reads. A banner on top routes them to the site,
+  // where the catalogue and checkout live; the repo copy stays unchanged.
+  const readme = fs.readFileSync(path.join(pluginDir, 'README.md'), 'utf8');
+  const banner = [
+    `> Part of the fourteen-plugin **[Code Studio](${SITE_URL})** suite.`,
+    `> Licences and pricing: **[codestudioplugin.com/pricing](${SITE_URL}/pricing)**`,
+    '',
+    '',
+  ].join('\n');
+  fs.writeFileSync(path.join(stage, 'README.md'), banner + readme);
 
   const pkg = {
     name: id,
@@ -114,6 +126,9 @@ export function stagePlugin(id, { billing = billingUrl } = {}) {
       ],
     },
     repository: { type: 'git', url: 'https://github.com/farssaadeldin7-ux/claude-plugin-suite' },
+    // Rendered as the listing's homepage link on open-vsx.org.
+    homepage: SITE_URL,
+    bugs: { url: 'https://github.com/farssaadeldin7-ux/claude-plugin-suite/issues' },
   };
   fs.writeFileSync(path.join(stage, 'package.json'), `${JSON.stringify(pkg, null, 2)}\n`);
   return { stage, version: manifest.version, displayName };
