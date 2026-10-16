@@ -105,7 +105,7 @@ locally instead: `node scripts/build-vsix.mjs --package`.
 
 ## Status
 
-Version 0.1.2. All fourteen plugins ship working MCP servers built on the shared
+Version 0.1.3. All fourteen plugins ship working MCP servers built on the shared
 runtime, each gating its licensed tools behind the billing service and keeping open
 tools for evaluation before buying.
 

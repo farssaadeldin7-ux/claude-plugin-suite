@@ -1,6 +1,6 @@
 {
   "name": "generative-digital-twin",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Build a governed style profile from your own past work so a generative apprentice produces drafts in your voice, not a generic one.",
   "author": {
     "name": "Fars Saadeldin"

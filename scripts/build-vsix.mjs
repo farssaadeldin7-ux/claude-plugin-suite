@@ -93,6 +93,10 @@ export function stagePlugin(id, { billing = billingUrl } = {}) {
   const skillsDir = path.join(pluginDir, 'skills');
   if (fs.existsSync(skillsDir)) copyDir(skillsDir, path.join(stage, 'skills'));
 
+  // The committed icon (scripts/make-icons.mjs) — without one the listing
+  // shows a blank tile.
+  fs.copyFileSync(path.join(root, 'assets', 'icons', `${id}.png`), path.join(stage, 'icon.png'));
+
   fs.copyFileSync(path.join(root, 'LICENSE'), path.join(stage, 'LICENSE'));
 
   // The README is the extension's listing page on open-vsx.org — the one
@@ -116,6 +120,7 @@ export function stagePlugin(id, { billing = billingUrl } = {}) {
     keywords: manifest.keywords,
     categories: ['AI', 'Chat', 'Other'],
     license: 'SEE LICENSE IN LICENSE',
+    icon: 'icon.png',
     type: 'module',
     main: './extension.cjs',
     engines: { vscode: ENGINES_VSCODE },
@@ -149,7 +154,9 @@ if (isMain) {
     const { stage, version } = stagePlugin(id);
     if (doPackage) {
       const vsix = path.join(outRoot, `${id}-${version}.vsix`);
-      execFileSync('npx', ['--yes', '@vscode/vsce', 'package', '--out', vsix], {
+      // Pinned: this job publishes with credentials, so "whatever is
+      // latest" is a supply-chain hole. Bump deliberately.
+      execFileSync('npx', ['--yes', '@vscode/vsce@4.0.0', 'package', '--out', vsix], {
         cwd: stage, stdio: 'inherit',
       });
       console.log(`${id.padEnd(34)} ${version}  ${(fs.statSync(vsix).size / 1024).toFixed(1)} kB`);

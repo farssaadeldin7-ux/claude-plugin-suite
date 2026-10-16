@@ -9,7 +9,9 @@
 # Matches the node-version CI actually runs services/billing/test/e2e.mjs
 # under (.github/workflows/validate.yml) — the deployed image should never
 # be a Node major CI has never exercised.
-FROM node:20-alpine
+# Pinned by digest: a floating tag can change under you between builds.
+# This is node 20-alpine as of 2026-04; update tag and digest together.
+FROM node:20-alpine@sha256:fb4cd12c85ee03686f6af5362a0b0d56d50c58a04632e6c0fb8363f609372293
 
 WORKDIR /srv/billing
 COPY package.json server.js catalog.js ./

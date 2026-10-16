@@ -1,6 +1,6 @@
 {
   "name": "code-to-visual-interpreter",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Translate between generative code and the geometry it produces, keeping output assets lean instead of bloated.",
   "author": {
     "name": "Fars Saadeldin"

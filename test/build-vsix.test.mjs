@@ -76,6 +76,13 @@ for (const id of plugins) {
   assert.ok(stagedReadme.includes(`${SITE_URL}/pricing`), `${id}: banner links to pricing`);
   const sourceReadme = fs.readFileSync(path.join(root, 'plugins', id, 'README.md'), 'utf8');
   assert.ok(!sourceReadme.includes(SITE_URL), `${id}: banner must not touch the repo README`);
+
+  // The committed icon ships, and the manifest points at it — without
+  // this the registry shows a blank tile.
+  assert.equal(pkg.icon, 'icon.png', `${id}: manifest declares the icon`);
+  const icon = fs.readFileSync(path.join(stage, 'icon.png'));
+  assert.ok(icon.length > 1000 && icon.subarray(1, 4).toString() === 'PNG',
+    `${id}: staged icon.png is a real PNG`);
 }
 
 // Extension names must be valid vsce names: lowercase, no spaces.
