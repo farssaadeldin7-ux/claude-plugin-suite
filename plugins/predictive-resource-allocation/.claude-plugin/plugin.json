@@ -1,6 +1,6 @@
 {
   "name": "predictive-resource-allocation",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Predict where a render, simulation or training job will bottleneck, and what to change first.",
   "author": {
     "name": "Fars Saadeldin"
