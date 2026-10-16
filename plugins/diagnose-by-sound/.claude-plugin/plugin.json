@@ -1,6 +1,6 @@
 {
   "name": "diagnose-by-sound",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Turn a described vehicle noise into a ranked, testable differential diagnosis with a safety verdict and a confirmation plan.",
   "author": {
     "name": "Fars Saadeldin"

@@ -44,6 +44,10 @@ for (const id of plugins) {
     `${id}: the entry registers the same provider id the manifest contributes`);
   assert.ok(entry.includes(`'${displayName.replace(/'/g, "\\'")}'`), `${id}: server label is the display name`);
   assert.ok(!entry.includes('__PLUGIN_'), `${id}: no template token survives`);
+  // A customer without Node.js must not hit "spawn node ENOENT": the entry
+  // falls back to the editor's own bundled runtime.
+  assert.ok(entry.includes('ELECTRON_RUN_AS_NODE'),
+    `${id}: entry falls back to the editor's bundled Node runtime`);
 
   const staged = fs.readFileSync(path.join(stage, 'mcp', 'server.js'), 'utf8');
   assert.ok(staged.includes(`const DEFAULT_BILLING_URL = '${BILLING}';`),
