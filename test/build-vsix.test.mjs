@@ -12,7 +12,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { stagePlugin, PUBLISHER, ENGINES_VSCODE } from '../scripts/build-vsix.mjs';
+import { stagePlugin, PUBLISHER, ENGINES_VSCODE, SITE_URL } from '../scripts/build-vsix.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const plugins = fs.readdirSync(path.join(root, 'plugins'), { withFileTypes: true })
@@ -61,7 +61,17 @@ for (const id of plugins) {
   assert.ok(!fs.existsSync(path.join(stage, 'mcp', 'test')), `${id}: dev-only tests do not ship`);
   assert.ok(fs.existsSync(path.join(stage, 'mcp', 'mcp-lite.js')), `${id}: runtime ships`);
   assert.ok(fs.existsSync(path.join(stage, 'LICENSE')), `${id}: LICENSE ships`);
-  assert.ok(fs.existsSync(path.join(stage, 'README.md')), `${id}: README ships`);
+
+  // The listing on open-vsx.org must route visitors to the site: homepage
+  // link in the sidebar, banner on top of the rendered README. The repo's
+  // own README stays banner-free.
+  assert.equal(pkg.homepage, SITE_URL, `${id}: homepage points at the site`);
+  const stagedReadme = fs.readFileSync(path.join(stage, 'README.md'), 'utf8');
+  assert.ok(stagedReadme.startsWith('> Part of the fourteen-plugin'),
+    `${id}: staged README opens with the site banner`);
+  assert.ok(stagedReadme.includes(`${SITE_URL}/pricing`), `${id}: banner links to pricing`);
+  const sourceReadme = fs.readFileSync(path.join(root, 'plugins', id, 'README.md'), 'utf8');
+  assert.ok(!sourceReadme.includes(SITE_URL), `${id}: banner must not touch the repo README`);
 }
 
 // Extension names must be valid vsce names: lowercase, no spaces.

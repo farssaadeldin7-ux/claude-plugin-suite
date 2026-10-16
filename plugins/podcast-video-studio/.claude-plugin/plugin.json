@@ -1,6 +1,6 @@
 {
   "name": "podcast-video-studio",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Turn a long recording into a scored cut list of clips that stand alone, with destinations, titles and hooks matched to each segment.",
   "author": {
     "name": "Fars Saadeldin"
