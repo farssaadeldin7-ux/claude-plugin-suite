@@ -4,6 +4,13 @@ Fourteen domain-expert plugins for Claude Code and Cowork. Each one encodes how 
 specialist in that field actually works — the order they do things in, the question that
 splits the field fastest, and the point at which they say they do not know.
 
+Browse the full catalogue with live pricing at
+**[codestudioplugin.com](https://www.codestudioplugin.com)** —
+plans for every plugin are listed on the
+[pricing page](https://www.codestudioplugin.com/pricing). Each plugin's
+tool server includes free tools for evaluating it before buying; a paid
+licence unlocks the rest.
+
 Installable as a marketplace:
 
 ```
