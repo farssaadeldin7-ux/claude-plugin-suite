@@ -35,11 +35,15 @@ import { TASK_TYPES, GATE_PASS_MEAN, compileBrief, apprenticeGate } from './lib/
 const PLUGIN_ID = 'generative-digital-twin';
 const PLUGIN_NAME = 'Generative Digital Twin';
 const DEFAULT_BILLING_URL = 'https://plugin-suite-billing.fly.dev';
+// Which distribution channel this archive was built for. scripts/build-vsix.mjs
+// rewrites this to 'open-vsx' in the staged copy only; the repo source and every
+// other packaging (marketplace install, git clone) keep the default.
+const INSTALL_SOURCE = 'github';
 
 // No free tier: the taxonomy, curation rules and governance reference stay
 // open so the method can be evaluated before buying; the corpus check, the
 // scoring arithmetic, the drift audit and the profile store are licensed.
-const client = new LicenseClient({ pluginId: PLUGIN_ID, defaultBillingUrl: DEFAULT_BILLING_URL });
+const client = new LicenseClient({ pluginId: PLUGIN_ID, defaultBillingUrl: DEFAULT_BILLING_URL, installSource: INSTALL_SOURCE });
 
 const server = new McpServer({
   name: PLUGIN_ID,

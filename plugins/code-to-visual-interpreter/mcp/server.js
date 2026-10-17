@@ -38,12 +38,16 @@ import path from 'node:path';
 const PLUGIN_ID = 'code-to-visual-interpreter';
 const PLUGIN_NAME = 'Code-to-Visual Interpreter';
 const DEFAULT_BILLING_URL = 'https://plugin-suite-billing.fly.dev';
+// Which distribution channel this archive was built for. scripts/build-vsix.mjs
+// rewrites this to 'open-vsx' in the staged copy only; the repo source and every
+// other packaging (marketplace install, git clone) keep the default.
+const INSTALL_SOURCE = 'github';
 
 // No free tier: the taxonomy, toolchain notes and edge-condition table stay
 // open so the method can be evaluated before buying; the compute tools —
 // structure matching, budget arithmetic, export sizing, source scanning —
 // are licensed under the single 'tools' feature.
-const client = new LicenseClient({ pluginId: PLUGIN_ID, defaultBillingUrl: DEFAULT_BILLING_URL });
+const client = new LicenseClient({ pluginId: PLUGIN_ID, defaultBillingUrl: DEFAULT_BILLING_URL, installSource: INSTALL_SOURCE });
 
 const server = new McpServer({
   name: PLUGIN_ID,

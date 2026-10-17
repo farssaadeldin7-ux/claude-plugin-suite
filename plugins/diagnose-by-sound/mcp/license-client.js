@@ -56,14 +56,19 @@ const envValue = (name) => {
 export class LicenseClient {
   /**
    * @param {{pluginId: string, defaultBillingUrl: string, envPrefix?: string,
-   *          freeTier?: {plan?: string, features?: string[], limits?: object}}} options
+   *          freeTier?: {plan?: string, features?: string[], limits?: object},
+   *          installSource?: string}} options
    */
-  constructor({ pluginId, defaultBillingUrl, envPrefix, freeTier }) {
+  constructor({ pluginId, defaultBillingUrl, envPrefix, freeTier, installSource }) {
     this.pluginId = pluginId;
     this.envPrefix = envPrefix || pluginId.replace(/-/g, '_').toUpperCase();
     this.billingUrl = (envValue('PLUGIN_SUITE_BILLING_URL') || defaultBillingUrl).replace(/\/$/, '');
     this.configPath = path.join(configDir(), `${pluginId}.json`);
     this.freeTier = { plan: 'free', features: [], limits: {}, ...freeTier };
+    // Which distribution channel this install came from (e.g. "github",
+    // "open-vsx"), baked in at build time per scripts/build-vsix.mjs — not
+    // something a caller or the model ever supplies per-call.
+    this.installSource = installSource || null;
     this.cache = null;
   }
 
@@ -353,7 +358,7 @@ export class LicenseClient {
   async startCheckout(plan, email) {
     const { ok, data } = await this.#request('POST', '/v1/checkout', {
       auth: false,
-      body: { plugin_id: this.pluginId, plan, email: email || undefined },
+      body: { plugin_id: this.pluginId, plan, email: email || undefined, source: this.installSource || undefined },
     });
     if (!ok) {
       const { code, message, detail } = safeServerError(data, 'checkout_failed', 'Could not start checkout.');

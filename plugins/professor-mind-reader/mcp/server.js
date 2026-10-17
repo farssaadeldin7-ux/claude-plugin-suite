@@ -31,11 +31,15 @@ import { logAudit, recordResult, reviewAudits, AUDITS_FILE } from './lib/audits.
 const PLUGIN_ID = 'professor-mind-reader';
 const PLUGIN_NAME = 'Professor Mind-Reader';
 const DEFAULT_BILLING_URL = 'https://plugin-suite-billing.fly.dev';
+// Which distribution channel this archive was built for. scripts/build-vsix.mjs
+// rewrites this to 'open-vsx' in the staged copy only; the repo source and every
+// other packaging (marketplace install, git clone) keep the default.
+const INSTALL_SOURCE = 'github';
 
 // No free tier: the ladder, band tables and hidden-rubric checklist stay open
 // so a rubric can be decomposed before buying; the effort map, the scorecard
 // and the audit log are licensed.
-const client = new LicenseClient({ pluginId: PLUGIN_ID, defaultBillingUrl: DEFAULT_BILLING_URL });
+const client = new LicenseClient({ pluginId: PLUGIN_ID, defaultBillingUrl: DEFAULT_BILLING_URL, installSource: INSTALL_SOURCE });
 
 const server = new McpServer({
   name: PLUGIN_ID,

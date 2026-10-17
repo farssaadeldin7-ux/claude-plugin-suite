@@ -55,6 +55,13 @@ for (const id of plugins) {
   const source = fs.readFileSync(path.join(root, 'plugins', id, 'mcp', 'server.js'), 'utf8');
   assert.ok(!source.includes(BILLING), `${id}: baking must not touch the repo source`);
 
+  // A purchase started from the packaged extension must be attributable to
+  // this channel, not silently merged into the repo's default install path.
+  assert.ok(staged.includes("const INSTALL_SOURCE = 'open-vsx';"),
+    `${id}: staged server is tagged with the open-vsx install source`);
+  assert.ok(source.includes("const INSTALL_SOURCE = 'github';"),
+    `${id}: repo source keeps the default install source untouched`);
+
   // Skills ship next to mcp/, where the vendored skill-prompts.js resolves
   // them — that is what turns them into slash commands in VS Code.
   const stagedSkills = fs.readdirSync(path.join(stage, 'skills'), { withFileTypes: true })

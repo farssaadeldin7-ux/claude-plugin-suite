@@ -32,7 +32,7 @@ export function currentPeriod(now = Date.now()) {
  * Store.putLicenseAndClaim) so the issuance and the claim can never come
  * apart on a failed save.
  */
-export function issueLicense(store, { pluginId, planId, email, stripe = null, checkoutSessionId = null, eventId = null, now = Date.now() }) {
+export function issueLicense(store, { pluginId, planId, email, stripe = null, checkoutSessionId = null, eventId = null, source = null, now = Date.now() }) {
   const entry = pluginFor(pluginId);
   const planDef = planFor(pluginId, planId);
   if (!entry || !planDef) return null;
@@ -51,6 +51,7 @@ export function issueLicense(store, { pluginId, planId, email, stripe = null, ch
     cancel_at_period_end: false,
     stripe: stripe,
     checkout_session_id: checkoutSessionId,
+    source: source ?? null,
     created_at: new Date(now).toISOString(),
   };
   return eventId ? store.putLicenseAndClaim(license, eventId) : store.putLicense(license);

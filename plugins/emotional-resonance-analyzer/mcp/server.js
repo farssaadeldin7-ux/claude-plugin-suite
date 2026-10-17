@@ -37,11 +37,15 @@ import { logAnalysis, getAnalysis, reviewAnalyses, ANALYSES_FILE } from './lib/a
 const PLUGIN_ID = 'emotional-resonance-analyzer';
 const PLUGIN_NAME = 'Emotional Resonance Analyzer';
 const DEFAULT_BILLING_URL = 'https://plugin-suite-billing.fly.dev';
+// Which distribution channel this archive was built for. scripts/build-vsix.mjs
+// rewrites this to 'open-vsx' in the staged copy only; the repo source and every
+// other packaging (marketplace install, git clone) keep the default.
+const INSTALL_SOURCE = 'github';
 
 // No free tier: the reference tables stay open so the method can be judged
 // before buying; the threshold checks, the pacing arithmetic, curve
 // reconciliation and the analysis log sit behind the single 'tools' feature.
-const client = new LicenseClient({ pluginId: PLUGIN_ID, defaultBillingUrl: DEFAULT_BILLING_URL });
+const client = new LicenseClient({ pluginId: PLUGIN_ID, defaultBillingUrl: DEFAULT_BILLING_URL, installSource: INSTALL_SOURCE });
 
 const server = new McpServer({
   name: PLUGIN_ID,
