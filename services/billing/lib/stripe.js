@@ -59,6 +59,10 @@ async function stripeRequest(method, endpoint, params = null) {
 export function createCheckoutSession({ priceId, pluginId, planId, email, source, publicUrl }) {
   return stripeRequest('POST', '/v1/checkout/sessions', {
     mode: 'subscription',
+    // The product is sold in English everywhere (site, listings, plugins),
+    // so the checkout page matches instead of following the buyer's
+    // browser language (Stripe's default).
+    locale: 'en',
     line_items: { 0: { price: priceId, quantity: 1 } },
     success_url: `${publicUrl}/success?session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${publicUrl}/cancelled`,
