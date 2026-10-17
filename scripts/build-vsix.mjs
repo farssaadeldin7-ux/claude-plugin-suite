@@ -66,12 +66,16 @@ export function stagePlugin(id, { billing = billingUrl } = {}) {
   fs.rmSync(stage, { recursive: true, force: true });
   fs.mkdirSync(stage, { recursive: true });
 
-  // The bundled server, minus dev-only tests, with the billing URL baked.
+  // The bundled server, minus dev-only tests, with the billing URL baked
+  // and INSTALL_SOURCE set to this channel — so a purchase started from the
+  // packaged extension is attributed to Open VSX, not the repo's default.
   // Replacer function, not string: see bake-billing-url.mjs for why.
   copyDir(path.join(pluginDir, 'mcp'), path.join(stage, 'mcp'), { exclude: ['test'] });
   fs.writeFileSync(
     path.join(stage, 'mcp', 'server.js'),
-    serverSource.replace(/const DEFAULT_BILLING_URL = '[^']*';/, () => `const DEFAULT_BILLING_URL = '${billing}';`)
+    serverSource
+      .replace(/const DEFAULT_BILLING_URL = '[^']*';/, () => `const DEFAULT_BILLING_URL = '${billing}';`)
+      .replace(/const INSTALL_SOURCE = '[^']*';/, () => `const INSTALL_SOURCE = 'open-vsx';`)
   );
 
   // Extension entry. It is CommonJS (.cjs) while the staged package.json

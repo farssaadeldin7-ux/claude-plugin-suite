@@ -128,6 +128,11 @@ const looksLikeEmail = (email) => typeof email === 'string' && email.length <= 2
 // The client derives this as a 32-char hex hash; a bound, safe-charset check
 // stops a caller from storing arbitrary blobs against a licence's seat list.
 const isSafeDeviceId = (id) => typeof id === 'string' && id.length > 0 && id.length <= 128 && /^[A-Za-z0-9_-]+$/.test(id);
+// Attribution tag for where a checkout started (e.g. "github", "open-vsx").
+// A fixed, bound charset: this value is stored on the issued licence and
+// sent to Stripe as metadata, so it must never become a place to stash an
+// arbitrary blob.
+const looksLikeSource = (s) => typeof s === 'string' && s.length > 0 && s.length <= 64 && /^[A-Za-z0-9_-]+$/.test(s);
 const MAX_USAGE_QUANTITY = 100_000;
 // Every distinct meter becomes a permanent key on the licence, and every
 // distinct idempotency_key a permanent entry in the event ledger — neither
@@ -294,17 +299,20 @@ async function handle(req, res) {
 
   if (route === 'POST /v1/checkout') {
     const body = await readJsonBody(req);
-    const { plugin_id: pluginId, plan: planId, email } = body;
+    const { plugin_id: pluginId, plan: planId, email, source } = body;
     const planDef = planFor(pluginId, planId);
     if (!planDef) return fail(res, 404, 'unknown_plan', `No plan "${planId}" for "${pluginId}".`);
     if (!planDef.price) return fail(res, 400, 'invalid_request', 'This plan is not purchasable.');
     if (email !== undefined && !looksLikeEmail(email)) {
       return fail(res, 400, 'invalid_request', 'email is not a valid email address.');
     }
+    if (source !== undefined && !looksLikeSource(source)) {
+      return fail(res, 400, 'invalid_request', 'source is not a valid attribution tag.');
+    }
     const priceId = process.env[planDef.stripe_price_env];
     if (!priceId) return fail(res, 503, 'plan_not_configured', `The Stripe price for "${planId}" is not configured yet.`);
     try {
-      const session = await createCheckoutSession({ priceId, pluginId, planId, email, publicUrl: PUBLIC_URL });
+      const session = await createCheckoutSession({ priceId, pluginId, planId, email, source, publicUrl: PUBLIC_URL });
       return json(res, 200, { checkout_url: session.url });
     } catch (err) {
       return fail(res, 502, err.code ?? 'stripe_error', err.message);
@@ -383,7 +391,7 @@ function handleStripeEvent(event) {
   const object = event.data?.object ?? {};
   switch (event.type) {
     case 'checkout.session.completed': {
-      const { plugin_id: pluginId, plan: planId } = object.metadata ?? {};
+      const { plugin_id: pluginId, plan: planId, source } = object.metadata ?? {};
       if (!planFor(pluginId, planId)) {
         console.error('[billing] checkout.session.completed named no sellable plan', event.id, object.id, { pluginId, planId });
         return;
@@ -408,6 +416,7 @@ function handleStripeEvent(event) {
         stripe: { customer_id: object.customer, subscription_id: object.subscription },
         checkoutSessionId: object.id,
         eventId: event.id,
+        source: source ?? null,
       });
       // issueLicense claimed event.id itself, atomically with the licence
       // write — tell the caller so it doesn't claim it again separately.

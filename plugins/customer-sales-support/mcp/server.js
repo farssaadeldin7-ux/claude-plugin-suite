@@ -41,10 +41,14 @@ import { logRun, listRuns, RUNS_FILE } from './lib/runs.js';
 const PLUGIN_ID = 'customer-sales-support';
 const PLUGIN_NAME = 'Customer Sales Support';
 const DEFAULT_BILLING_URL = 'https://plugin-suite-billing.fly.dev';
+// Which distribution channel this archive was built for. scripts/build-vsix.mjs
+// rewrites this to 'open-vsx' in the staged copy only; the repo source and every
+// other packaging (marketplace install, git clone) keep the default.
+const INSTALL_SOURCE = 'github';
 
 // No free tier: the reference tables stay open so the method can be evaluated
 // before buying; the audit, lint, screen, scorer and run history are licensed.
-const client = new LicenseClient({ pluginId: PLUGIN_ID, defaultBillingUrl: DEFAULT_BILLING_URL });
+const client = new LicenseClient({ pluginId: PLUGIN_ID, defaultBillingUrl: DEFAULT_BILLING_URL, installSource: INSTALL_SOURCE });
 
 const server = new McpServer({
   name: PLUGIN_ID,

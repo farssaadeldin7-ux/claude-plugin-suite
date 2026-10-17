@@ -33,11 +33,15 @@ import { captionPack } from './lib/captions.js';
 const PLUGIN_ID = 'podcast-video-studio';
 const PLUGIN_NAME = 'Podcast & Video Studio';
 const DEFAULT_BILLING_URL = 'https://plugin-suite-billing.fly.dev';
+// Which distribution channel this archive was built for. scripts/build-vsix.mjs
+// rewrites this to 'open-vsx' in the staged copy only; the repo source and every
+// other packaging (marketplace install, git clone) keep the default.
+const INSTALL_SOURCE = 'github';
 
 // No free tier: the archetypes, the rubric and the destination specs stay
 // open so the method can be inspected before buying; the transcript scan, the
 // threshold arithmetic and the clip log are licensed.
-const client = new LicenseClient({ pluginId: PLUGIN_ID, defaultBillingUrl: DEFAULT_BILLING_URL });
+const client = new LicenseClient({ pluginId: PLUGIN_ID, defaultBillingUrl: DEFAULT_BILLING_URL, installSource: INSTALL_SOURCE });
 
 const server = new McpServer({
   name: PLUGIN_ID,

@@ -31,11 +31,15 @@ import { reconcilePlan } from './lib/reconcile.js';
 const PLUGIN_ID = 'trail-split';
 const PLUGIN_NAME = 'Trail Split';
 const DEFAULT_BILLING_URL = 'https://plugin-suite-billing.fly.dev';
+// Which distribution channel this archive was built for. scripts/build-vsix.mjs
+// rewrites this to 'open-vsx' in the staged copy only; the repo source and every
+// other packaging (marketplace install, git clone) keep the default.
+const INSTALL_SOURCE = 'github';
 
 // No free tier: the taxonomy, the seven-system table and the planning figures
 // stay open so a plan can be inspected before buying; the four ledger
 // computations are licensed under the single 'tools' feature.
-const client = new LicenseClient({ pluginId: PLUGIN_ID, defaultBillingUrl: DEFAULT_BILLING_URL });
+const client = new LicenseClient({ pluginId: PLUGIN_ID, defaultBillingUrl: DEFAULT_BILLING_URL, installSource: INSTALL_SOURCE });
 
 const server = new McpServer({
   name: PLUGIN_ID,

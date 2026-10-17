@@ -503,6 +503,21 @@ try {
     ok('two different event ids for the same checkout session issue exactly one licence');
   }
 
+  // ---- a checkout's source attribution survives onto the issued licence ----
+  {
+    const sourcedSession = {
+      id: 'cs_sourced_1', customer: 'cus_sourced_1', subscription: 'sub_sourced_1',
+      customer_details: { email: 'sourced@example.com' },
+      metadata: { plugin_id: 'diagnose-by-sound', plan: 'pro', source: 'open-vsx' },
+    };
+    const sourced = completeCheckout('evt_sourced_1', sourcedSession);
+    assert.equal((await api('POST', '/v1/stripe/webhook', { raw: sourced.payload, headers: sourced.headers })).status, 200);
+    const stored = JSON.parse(fs.readFileSync(path.join(tmpDir, 'store.json'), 'utf8'));
+    const issued = Object.values(stored.licenses).find((l) => l.checkout_session_id === 'cs_sourced_1');
+    assert.equal(issued.source, 'open-vsx');
+    ok("a checkout session's source metadata is recorded on the licence it issues");
+  }
+
   // ---- a session without payment must not become a licence -----------------
   // Regression test: checkout.session.completed can fire before payment has
   // actually landed (delayed-notification payment methods); issuing here
@@ -538,6 +553,13 @@ try {
   const key = /PS-DBS(?:-[A-Z2-9]+){4}/.exec(success.data)?.[0];
   assert.ok(key, 'success page shows the issued key');
   ok('the success page shows the new pro licence key');
+
+  {
+    const stored = JSON.parse(fs.readFileSync(path.join(tmpDir, 'store.json'), 'utf8'));
+    const issued = Object.values(stored.licenses).find((l) => l.checkout_session_id === 'cs_dbs_1');
+    assert.equal(issued.source, null, 'a checkout session with no source metadata must not crash issueLicense, and must record null rather than undefined');
+  }
+  ok('a licence issued from a checkout with no source metadata records null, not a crash or undefined');
 
   // ---- a page carrying a licence key is never cached, sniffed, or scripted -
   // Regression test: the page holding a live key had no cache-control (a
@@ -786,6 +808,28 @@ try {
 
   assert.equal((await api('POST', '/v1/checkout', { body: { plugin_id: 'diagnose-by-sound', plan: 'enterprise' } })).status, 404);
   ok('unknown plan is refused');
+
+  // ---- an optional source tag is forwarded to Stripe as metadata ---------
+  const sourcedCheckout = await api('POST', '/v1/checkout', {
+    body: { plugin_id: 'diagnose-by-sound', plan: 'pro', source: 'open-vsx' },
+  });
+  assert.equal(sourcedCheckout.status, 200);
+  const sourcedStripeCall = stripeCalls.filter((c) => c.path === '/v1/checkout/sessions').at(-1);
+  assert.match(sourcedStripeCall.body, /metadata%5Bsource%5D=open-vsx/);
+  assert.match(sourcedStripeCall.body, /subscription_data%5Bmetadata%5D%5Bsource%5D=open-vsx/);
+  ok('an optional source tag on checkout is forwarded to Stripe as session and subscription metadata');
+
+  const unsourcedCheckout = await api('POST', '/v1/checkout', { body: { plugin_id: 'diagnose-by-sound', plan: 'pro' } });
+  assert.equal(unsourcedCheckout.status, 200);
+  const unsourcedStripeCall = stripeCalls.filter((c) => c.path === '/v1/checkout/sessions').at(-1);
+  assert.doesNotMatch(unsourcedStripeCall.body, /source/, 'an omitted source must not reach Stripe as a literal "undefined" or "null"');
+  ok('checkout without a source omits it entirely, rather than sending a placeholder value');
+
+  const badSourceCheckout = await api('POST', '/v1/checkout', {
+    body: { plugin_id: 'diagnose-by-sound', plan: 'pro', source: 'not a safe tag!' },
+  });
+  assert.equal(badSourceCheckout.status, 400);
+  ok('a malformed source tag is refused before it reaches Stripe');
 
   // ---- email is validated before it reaches Stripe --------------------------
   // Regression test: email went to Stripe's customer_email straight off an

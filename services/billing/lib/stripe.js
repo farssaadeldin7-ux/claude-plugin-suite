@@ -56,15 +56,15 @@ async function stripeRequest(method, endpoint, params = null) {
   return data;
 }
 
-export function createCheckoutSession({ priceId, pluginId, planId, email, publicUrl }) {
+export function createCheckoutSession({ priceId, pluginId, planId, email, source, publicUrl }) {
   return stripeRequest('POST', '/v1/checkout/sessions', {
     mode: 'subscription',
     line_items: { 0: { price: priceId, quantity: 1 } },
     success_url: `${publicUrl}/success?session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${publicUrl}/cancelled`,
     customer_email: email,
-    metadata: { plugin_id: pluginId, plan: planId },
-    subscription_data: { metadata: { plugin_id: pluginId, plan: planId } },
+    metadata: { plugin_id: pluginId, plan: planId, source },
+    subscription_data: { metadata: { plugin_id: pluginId, plan: planId, source } },
   });
 }
 

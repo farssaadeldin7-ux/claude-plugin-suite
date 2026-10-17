@@ -38,11 +38,15 @@ import { recordBuild, recordFollowup, reviewBuilds, BUILDS_FILE } from './lib/bu
 const PLUGIN_ID = 'neural-link-intention-layer';
 const PLUGIN_NAME = 'Neural-Link Intention Layer';
 const DEFAULT_BILLING_URL = 'https://plugin-suite-billing.fly.dev';
+// Which distribution channel this archive was built for. scripts/build-vsix.mjs
+// rewrites this to 'open-vsx' in the staged copy only; the repo source and every
+// other packaging (marketplace install, git clone) keep the default.
+const INSTALL_SOURCE = 'github';
 
 // No free tier: the instrumentation guide, the automation catalogue and the
 // method's numbers stay open so the approach can be evaluated before buying;
 // the analysis, scoring and build-log tools are licensed.
-const client = new LicenseClient({ pluginId: PLUGIN_ID, defaultBillingUrl: DEFAULT_BILLING_URL });
+const client = new LicenseClient({ pluginId: PLUGIN_ID, defaultBillingUrl: DEFAULT_BILLING_URL, installSource: INSTALL_SOURCE });
 
 const server = new McpServer({
   name: PLUGIN_ID,

@@ -46,6 +46,10 @@ import {
 const PLUGIN_ID = 'mental-health-chatbot';
 const PLUGIN_NAME = 'Mental-Health Chatbot';
 const DEFAULT_BILLING_URL = 'https://plugin-suite-billing.fly.dev';
+// Which distribution channel this archive was built for. scripts/build-vsix.mjs
+// rewrites this to 'open-vsx' in the staged copy only; the repo source and every
+// other packaging (marketplace install, git clone) keep the default.
+const INSTALL_SOURCE = 'github';
 
 // No free tier, but the split is not the usual one: everything a deployment
 // needs to be configured safely — the scope wording, the trigger list, the
@@ -53,7 +57,7 @@ const DEFAULT_BILLING_URL = 'https://plugin-suite-billing.fly.dev';
 // because neither safety nor setup sits behind a paywall. The licence gates
 // the operator's measurement workflow: the red-team specification, the gate
 // arithmetic, the run record, the summary template and the session audit log.
-const client = new LicenseClient({ pluginId: PLUGIN_ID, defaultBillingUrl: DEFAULT_BILLING_URL });
+const client = new LicenseClient({ pluginId: PLUGIN_ID, defaultBillingUrl: DEFAULT_BILLING_URL, installSource: INSTALL_SOURCE });
 
 const server = new McpServer({
   name: PLUGIN_ID,

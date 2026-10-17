@@ -50,8 +50,8 @@ const mockBilling = http.createServer((req, res) => {
 await new Promise((resolve) => mockBilling.listen(0, resolve));
 const mockPort = mockBilling.address().port;
 
-function makeClient({ billingUrl = `http://127.0.0.1:${mockPort}`, licenseKey } = {}) {
-  const client = new LicenseClient({ pluginId: 'test-plugin', defaultBillingUrl: billingUrl });
+function makeClient({ billingUrl = `http://127.0.0.1:${mockPort}`, licenseKey, installSource } = {}) {
+  const client = new LicenseClient({ pluginId: 'test-plugin', defaultBillingUrl: billingUrl, installSource });
   if (licenseKey) client.saveLicenseKey(licenseKey);
   return client;
 }
@@ -185,6 +185,29 @@ try {
     assert.equal(fs.statSync(configDir).mode & 0o777, 0o700, 'the config directory must be tightened even though it already existed');
   }
   ok('the config directory is chmod 0700 even when it already existed with looser permissions');
+
+  // ---- startCheckout forwards the build-baked install source -------------
+  // A plugin's distribution channel (e.g. "open-vsx", baked in by
+  // scripts/build-vsix.mjs) must reach the billing service so purchases can
+  // be attributed to where the install came from — but only when one was
+  // actually baked in; a plain repo/marketplace install has none.
+  {
+    let seenBody;
+    mockBehavior = (req, rawBody) => { seenBody = JSON.parse(rawBody); return { status: 200, body: { checkout_url: 'https://stripe.example/c/1' } }; };
+    const client = makeClient({ installSource: 'open-vsx' });
+    await client.startCheckout('pro', 'buyer@example.com');
+    assert.equal(seenBody.source, 'open-vsx');
+  }
+  ok("startCheckout sends the client's baked installSource as the checkout's source");
+
+  {
+    let seenBody;
+    mockBehavior = (req, rawBody) => { seenBody = JSON.parse(rawBody); return { status: 200, body: { checkout_url: 'https://stripe.example/c/1' } }; };
+    const client = makeClient();
+    await client.startCheckout('pro', 'buyer@example.com');
+    assert.equal('source' in seenBody, false, 'an unset installSource must be omitted, not sent as null or ""');
+  }
+  ok('startCheckout omits source entirely when no installSource was baked in');
 
   console.log(`\n${passed} license-client checks passed`);
 } catch (err) {
