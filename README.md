@@ -9,7 +9,10 @@ Browse the full catalogue with live pricing at
 plans for every plugin are listed on the
 [pricing page](https://www.codestudioplugin.com/pricing). Each plugin's
 tool server includes free tools for evaluating it before buying; a paid
-licence unlocks the rest.
+licence unlocks the rest. Every plugin is also published to
+[Open VSX](https://open-vsx.org/namespace/code-studio) as a VS Code
+extension — in Cursor, Windsurf, VSCodium or Gitpod, search *code-studio*
+in the Extensions panel and install.
 
 Installable as a marketplace:
 
