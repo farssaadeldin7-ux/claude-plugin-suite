@@ -113,6 +113,12 @@ Then publish from the Actions tab: run the **publish-openvsx** workflow
 `.vsix` with `ovsx`, skipping versions that are already published. To build
 locally instead: `node scripts/build-vsix.mjs --package`.
 
+The same extensions publish to Microsoft's VS Code Marketplace with the
+**publish-vsmarketplace** workflow. That marketplace has no trusted
+publishing, so it needs a Personal Access Token stored as the `VSCE_PAT`
+repository secret — the one-time setup is described at the top of
+`.github/workflows/publish-vsmarketplace.yml`.
+
 ## Status
 
 Version 0.1.3. All fourteen plugins ship working MCP servers built on the shared
