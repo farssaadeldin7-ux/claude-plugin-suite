@@ -1,0 +1,75 @@
+name: publish-mcp-registry
+
+# Publishes the fourteen plugins to the official MCP Registry
+# (registry.modelcontextprotocol.io). Publishing is deliberate, never
+# automatic: run it from the Actions tab.
+#
+# How it works, end to end, with no stored secrets:
+# 1. build-mcpb.mjs packages each plugin as an .mcpb bundle and writes a
+#    server.json listing pinned to the bundle's SHA-256.
+# 2. The bundles are uploaded to this repository's mcpb-v<version> GitHub
+#    release — that is where the listings' download URLs point.
+# 3. mcp-publisher (pinned and checksum-verified: it submits listings under
+#    this account's namespace) authenticates with the job's GitHub OIDC
+#    token, which proves control of the io.github.farssaadeldin7-ux
+#    namespace, and publishes each listing.
+on:
+  workflow_dispatch:
+    inputs:
+      plugins:
+        description: 'Space-separated plugin ids to publish (empty = all 14)'
+        required: false
+        default: ''
+
+permissions:
+  contents: write # create the release and upload the bundles
+  id-token: write # OIDC login to the registry
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Package MCPB bundles
+        run: node scripts/build-mcpb.mjs --package ${{ inputs.plugins }}
+
+      - name: Upload bundles to the GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version=$(node -p "JSON.parse(require('fs').readFileSync('plugins/trail-split/.claude-plugin/plugin.json','utf8')).version")
+          tag="mcpb-v$version"
+          if ! gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release create "$tag" --repo "$GITHUB_REPOSITORY" \
+              --title "MCPB bundles v$version" \
+              --notes "MCPB bundles for the official MCP Registry. Install via an MCPB-aware host, or browse the suite at https://www.codestudioplugin.com."
+          fi
+          # --clobber: re-running replaces the assets instead of failing.
+          gh release upload "$tag" --repo "$GITHUB_REPOSITORY" --clobber dist/mcpb/*.mcpb
+
+      - name: Install mcp-publisher (pinned, checksum-verified)
+        run: |
+          curl -fsSL -o mcp-publisher.tar.gz \
+            https://github.com/modelcontextprotocol/registry/releases/download/v1.8.1/mcp-publisher_linux_amd64.tar.gz
+          echo "a06c9096dcb9727c13555b6be26c7effa707b01f06a4c561ba7a3635443cf2cc  mcp-publisher.tar.gz" | sha256sum -c -
+          tar -xzf mcp-publisher.tar.gz mcp-publisher
+
+      - name: Log in to the registry with GitHub OIDC
+        run: ./mcp-publisher login github-oidc
+
+      - name: Publish the listings
+        run: |
+          status=0
+          for f in dist/mcpb/*.server.json; do
+            echo "publishing $f"
+            # One listing failing must not block the other thirteen; any
+            # failure still fails the run at the end.
+            cp "$f" server.json
+            ./mcp-publisher publish || status=$?
+          done
+          rm -f server.json
+          exit $status
