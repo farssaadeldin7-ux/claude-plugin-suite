@@ -1,0 +1,66 @@
+name: publish-vsmarketplace
+
+# Publishes the fourteen extensions to Microsoft's Visual Studio Code
+# Marketplace. Publishing is deliberate, never automatic: run it from the
+# Actions tab.
+#
+# Unlike Open VSX, the VS Code Marketplace has no trusted-publishing (OIDC)
+# path — it authenticates with a Personal Access Token. One-time setup:
+#
+# 1. Create a publisher named code-studio at
+#    https://marketplace.visualstudio.com/manage (sign in with a Microsoft
+#    account; the publisher id must match the extensions' "publisher"
+#    field, which build-vsix.mjs sets to code-studio).
+# 2. In Azure DevOps (https://dev.azure.com), create a Personal Access
+#    Token: Organization "All accessible organizations", scope
+#    Marketplace → Manage. These tokens expire (90 days typical) — rotate
+#    by storing a fresh one the same way.
+# 3. Store it: gh secret set VSCE_PAT --repo farssaadeldin7-ux/claude-plugin-suite
+on:
+  workflow_dispatch:
+    inputs:
+      plugins:
+        description: 'Space-separated plugin ids to publish (empty = all 14)'
+        required: false
+        default: ''
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Require the marketplace token
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+        run: |
+          if [ -z "$VSCE_PAT" ]; then
+            echo "::error::VSCE_PAT is not set — see the comment at the top of this workflow for the one-time setup."
+            exit 1
+          fi
+
+      - name: Package extensions
+        run: node scripts/build-vsix.mjs --package ${{ inputs.plugins }}
+
+      - name: Publish to the VS Code Marketplace
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+        run: |
+          status=0
+          for vsix in dist/vsix/*.vsix; do
+            echo "publishing $vsix"
+            # --skip-duplicate: an already-published version is the normal
+            # steady state on a re-run, not a failure; any other error still
+            # fails the run, but only after every extension has been tried,
+            # so one bad extension cannot block the other thirteen.
+            # vsce is pinned: this job holds the publishing credential, so
+            # "whatever is latest" is a supply-chain hole. Bump deliberately.
+            npx --yes @vscode/vsce@4.0.0 publish --packagePath "$vsix" -p "$VSCE_PAT" --skip-duplicate || status=$?
+          done
+          exit $status
