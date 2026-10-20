@@ -1,0 +1,8 @@
+# Smithery (smithery.ai) local-server config. Listing happens on the
+# Smithery site: add the GitHub repository with this plugin's directory as
+# the base directory, and Smithery reads this file to know how to run it.
+startCommand:
+  type: stdio
+  configSchema: {}
+  commandFunction: |-
+    () => ({ command: 'node', args: ['mcp/server.js'] })
