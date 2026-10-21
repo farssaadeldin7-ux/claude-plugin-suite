@@ -113,7 +113,10 @@ Then publish from the Actions tab: run the **publish-openvsx** workflow
 `.vsix` with `ovsx`, skipping versions that are already published. To build
 locally instead: `node scripts/build-vsix.mjs --package`.
 
-The plugins also publish to the official MCP Registry with the
+The plugins also publish to npm as `@farseman/<id>` packages with the
+**publish-npm** workflow (runnable as `npx @farseman/<id>`; needs the
+`NPM_TOKEN` repository secret described at the top of
+`.github/workflows/publish-npm.yml`), and to the official MCP Registry with the
 **publish-mcp-registry** workflow: `scripts/build-mcpb.mjs` packages each
 one as an .mcpb bundle attached to a GitHub release, and the workflow
 submits each listing under the `io.github.farssaadeldin7-ux` namespace,
