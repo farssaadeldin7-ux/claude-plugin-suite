@@ -1,0 +1,67 @@
+name: publish-npm
+
+# Publishes the fourteen plugins to npm as @farseman/<id> packages.
+# Publishing is deliberate, never automatic: run it from the Actions tab.
+#
+# Authenticates with an npm automation token stored as the NPM_TOKEN
+# repository secret. One-time setup: on npmjs.com (logged in as farseman),
+# Access Tokens → Generate New Token → Granular, packages and scopes:
+# read/write on the @farseman scope — then
+#   gh secret set NPM_TOKEN --repo farssaadeldin7-ux/claude-plugin-suite
+#
+# Each publish also carries npm provenance (the id-token permission), which
+# cryptographically links the package to this repository and workflow run.
+on:
+  workflow_dispatch:
+    inputs:
+      plugins:
+        description: 'Space-separated plugin ids to publish (empty = all 14)'
+        required: false
+        default: ''
+
+permissions:
+  contents: read
+  id-token: write # npm provenance
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: https://registry.npmjs.org
+
+      - name: Require the npm token
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          if [ -z "$NODE_AUTH_TOKEN" ]; then
+            echo "::error::NPM_TOKEN is not set — see the comment at the top of this workflow for the one-time setup."
+            exit 1
+          fi
+
+      - name: Stage packages
+        run: node scripts/build-npm.mjs ${{ inputs.plugins }}
+
+      - name: Publish to npm
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          status=0
+          for dir in dist/npm/*/; do
+            name=$(node -p "JSON.parse(require('fs').readFileSync('$dir/package.json','utf8')).name")
+            version=$(node -p "JSON.parse(require('fs').readFileSync('$dir/package.json','utf8')).version")
+            # An already-published version is the normal steady state on a
+            # re-run, not a failure; any other error still fails the run,
+            # but only after every package has been tried, so one bad
+            # package cannot block the other thirteen.
+            if npm view "$name@$version" version >/dev/null 2>&1; then
+              echo "$name@$version is already published — skipping"
+              continue
+            fi
+            echo "publishing $name@$version"
+            (cd "$dir" && npm publish --access public --provenance) || status=$?
+          done
+          exit $status

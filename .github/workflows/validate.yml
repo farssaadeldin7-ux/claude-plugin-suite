@@ -54,6 +54,7 @@ jobs:
           node test/bake-billing-url.test.mjs
           node test/build-vsix.test.mjs
           node test/build-mcpb.test.mjs
+          node test/build-npm.test.mjs
       - name: Check regression-test coverage of tracked defect fixes
         run: |
           node test/check-regressions.test.mjs
