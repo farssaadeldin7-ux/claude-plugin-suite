@@ -23,15 +23,18 @@ Installable as a marketplace:
 
 ## The plugins
 
+New here? Start with the first two: [`customer-sales-support`](plugins/customer-sales-support)
+and [`trail-split`](plugins/trail-split) — the clearest buyer and the lowest-priced entry.
+
 | Plugin | For | The judgement it encodes |
 | --- | --- | --- |
+| [`customer-sales-support`](plugins/customer-sales-support) | SaaS founders | An AI support agent is only as good as the docs; "I don't know — here's a person" is a first-class answer |
+| [`trail-split`](plugins/trail-split) | Expedition leaders | Every critical system has a named owner and a stated backup, or the plan is not finished |
 | [`diagnose-by-sound`](plugins/diagnose-by-sound) | Workshop service advisers | Characterise the noise before naming a cause; report calibrated confidence, not a guess |
 | [`ghost-post-preview`](plugins/ghost-post-preview) | Social managers | Name the most likely reason a post underperforms; never fabricate an engagement number |
 | [`professor-mind-reader`](plugins/professor-mind-reader) | University students | Answer at the level the rubric verb demands; find the sentence that satisfies each criterion |
 | [`five-minute-fluency`](plugins/five-minute-fluency) | Competitive players | Three changes maximum, ranked by rating gain per unit of practice |
-| [`trail-split`](plugins/trail-split) | Expedition leaders | Every critical system has a named owner and a stated backup, or the plan is not finished |
 | [`podcast-video-studio`](plugins/podcast-video-studio) | Content agencies | A clip that needs context is disqualified however good it was in the room |
-| [`customer-sales-support`](plugins/customer-sales-support) | SaaS founders | An AI support agent is only as good as the docs; "I don't know — here's a person" is a first-class answer |
 | [`haptic-feedback-mapper`](plugins/haptic-feedback-mapper) | Creative studios | A haptic that fires for something ignorable is worse than the screen it replaced |
 | [`mental-health-chatbot`](plugins/mental-health-chatbot) | Telehealth platforms | Support, not crisis intervention — escalation is always on and never a severity judgement |
 | [`neural-link-intention-layer`](plugins/neural-link-intention-layer) | UI/UX designers | Eliminate, then batch, then automate — in that order |
