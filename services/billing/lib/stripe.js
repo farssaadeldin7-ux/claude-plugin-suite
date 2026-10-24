@@ -63,6 +63,10 @@ export function createCheckoutSession({ priceId, pluginId, planId, email, source
     // so the checkout page matches instead of following the buyer's
     // browser language (Stripe's default).
     locale: 'en',
+    // Checkout shows an "Add promotion code" field, for founding-customer
+    // style codes created in Stripe. Codes are optional; a checkout
+    // without one is unchanged.
+    allow_promotion_codes: true,
     line_items: { 0: { price: priceId, quantity: 1 } },
     success_url: `${publicUrl}/success?session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${publicUrl}/cancelled`,
