@@ -120,3 +120,15 @@ Pricing is defined in the suite catalog: pro $5/month (2 seats) and team $15/mon
 (10 seats). A licence gates the four ledger computations — `size_consumables`,
 `weight_ledger`, `settle_costs` and `reconcile_plan`. The skill content and the three
 reference-table tools stay open, so the method can be evaluated before buying.
+
+## Privacy and support
+
+The bundled tool server contacts the Code Studio billing service at
+https://billing.codestudioplugin.com for licence checks and checkout. What
+crosses the wire: a licence key, a plugin id, a hashed device identifier, a
+device label (your machine's hostname) and usage counts — never your
+prompts, files or tool inputs. Full policy:
+https://www.codestudioplugin.com/privacy.html
+
+Support: open an issue at
+https://github.com/farssaadeldin7-ux/claude-plugin-suite/issues

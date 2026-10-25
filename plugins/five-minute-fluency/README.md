@@ -134,3 +134,15 @@ The sheet log — games, diagnoses, success checks, results — is written only 
 `~/.config/plugin-suite/five-minute-fluency-sheets.json` on the machine that created it.
 The billing service sees a licence key, a plugin id, a hashed device identifier and a
 device label (your machine's hostname). It never sees a sheet.
+
+## Privacy and support
+
+The bundled tool server contacts the Code Studio billing service at
+https://billing.codestudioplugin.com for licence checks and checkout. What
+crosses the wire: a licence key, a plugin id, a hashed device identifier, a
+device label (your machine's hostname) and usage counts — never your
+prompts, files or tool inputs. Full policy:
+https://www.codestudioplugin.com/privacy.html
+
+Support: open an issue at
+https://github.com/farssaadeldin7-ux/claude-plugin-suite/issues

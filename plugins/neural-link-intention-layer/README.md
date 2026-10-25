@@ -124,3 +124,15 @@ Pricing is defined in the suite catalog: pro $100/month (2 seats) and team $300/
 (10 seats). The licence gates the analysis tools — `analyse_log`, `fit_predictor`,
 `score_candidate` and the local build log. The skill content and the reference tools
 (`instrumentation_guide`, `automation_catalogue`, `method_reference`) stay open.
+
+## Privacy and support
+
+The bundled tool server contacts the Code Studio billing service at
+https://billing.codestudioplugin.com for licence checks and checkout. What
+crosses the wire: a licence key, a plugin id, a hashed device identifier, a
+device label (your machine's hostname) and usage counts — never your
+prompts, files or tool inputs. Full policy:
+https://www.codestudioplugin.com/privacy.html
+
+Support: open an issue at
+https://github.com/farssaadeldin7-ux/claude-plugin-suite/issues

@@ -97,3 +97,15 @@ It also cannot judge whether your claims are true, cannot see your follower comp
 ## The skill you bring
 
 **Predictive Analytics.** The commercial skill this plugin pairs with. Businesses buy certainty about social spend, and the honest route to it is calibration, not fabricated forecasts: keep a baseline, log every call with the prediction log, and let the record against actual results become the model. The plugin refuses invented engagement numbers precisely so the analytics built on top of it are real.
+
+## Privacy and support
+
+The bundled tool server contacts the Code Studio billing service at
+https://billing.codestudioplugin.com for licence checks and checkout. What
+crosses the wire: a licence key, a plugin id, a hashed device identifier, a
+device label (your machine's hostname) and usage counts — never your
+prompts, files or tool inputs. Full policy:
+https://www.codestudioplugin.com/privacy.html
+
+Support: open an issue at
+https://github.com/farssaadeldin7-ux/claude-plugin-suite/issues

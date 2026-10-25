@@ -1,16 +1,28 @@
 {
   "name": "ghost-post-preview",
   "version": "0.1.3",
-  "description": "Read a draft post the way its audience and its ranking system will: fold test, hook audit, platform mechanics and a stated-assumption persona read, ending in the single most likely reason it underperforms — never a fabricated engagement number.",
+  "description": "Read a draft post the way its audience and its ranking system will: fold test, hook audit, platform mechanics and a stated-assumption persona read, ending in the single most likely reason it underperforms \u2014 never a fabricated engagement number.",
   "author": {
     "name": "Fars Saadeldin"
   },
-  "license": "UNLICENSED",
+  "license": "SEE LICENSE IN LICENSE",
+  "homepage": "https://www.codestudioplugin.com",
+  "repository": "https://github.com/farssaadeldin7-ux/claude-plugin-suite",
   "keywords": [
     "social-media",
     "content",
     "marketing",
     "engagement",
     "copywriting"
-  ]
+  ],
+  "userConfig": {
+    "license_key": {
+      "type": "string",
+      "title": "Ghost Post Preview licence key",
+      "description": "Paid-tier licence key from codestudioplugin.com. Leave empty to use the free tools.",
+      "sensitive": true,
+      "required": false,
+      "default": ""
+    }
+  }
 }
