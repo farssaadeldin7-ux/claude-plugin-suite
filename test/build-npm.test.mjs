@@ -53,7 +53,7 @@ for (const id of plugins) {
     `${id}: staged README opens with the site banner`);
   assert.ok(stagedReadme.includes(`${SITE_URL}/pricing`), `${id}: banner links to pricing`);
   const sourceReadme = fs.readFileSync(path.join(root, 'plugins', id, 'README.md'), 'utf8');
-  assert.ok(!sourceReadme.includes(SITE_URL), `${id}: banner must not touch the repo README`);
+  assert.ok(!sourceReadme.includes('Part of the fourteen-plugin'), `${id}: banner must not touch the repo README`);
 }
 
 console.log(`ok - ${plugins.length} plugins stage as publishable npm packages`);

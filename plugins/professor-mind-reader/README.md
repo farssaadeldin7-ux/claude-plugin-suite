@@ -121,3 +121,15 @@ Pricing is defined in the suite catalog: pro $19/month (2 seats) and team $25/mo
 (10 seats). Both plans include the same tools; the licence gates `effort_map`,
 `audit_scorecard` and the audit history. Skill content and the knowledge-base tools
 stay open.
+
+## Privacy and support
+
+The bundled tool server contacts the Code Studio billing service at
+https://billing.codestudioplugin.com for licence checks and checkout. What
+crosses the wire: a licence key, a plugin id, a hashed device identifier, a
+device label (your machine's hostname) and usage counts — never your
+prompts, files or tool inputs. Full policy:
+https://www.codestudioplugin.com/privacy.html
+
+Support: open an issue at
+https://github.com/farssaadeldin7-ux/claude-plugin-suite/issues

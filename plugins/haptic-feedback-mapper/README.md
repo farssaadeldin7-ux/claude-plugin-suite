@@ -183,3 +183,15 @@ against the billable hours it recovers for the studios it serves. Both plans inc
 same tools — the licence gates `load_math`,
 `mapping_audit`, `vocabulary_check`, `export_profile`, `emit_event`, `log_session` and
 `review_sessions`; the skill content and the reference tools stay open.
+
+## Privacy and support
+
+The bundled tool server contacts the Code Studio billing service at
+https://billing.codestudioplugin.com for licence checks and checkout. What
+crosses the wire: a licence key, a plugin id, a hashed device identifier, a
+device label (your machine's hostname) and usage counts — never your
+prompts, files or tool inputs. Full policy:
+https://www.codestudioplugin.com/privacy.html
+
+Support: open an issue at
+https://github.com/farssaadeldin7-ux/claude-plugin-suite/issues

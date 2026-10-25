@@ -82,7 +82,7 @@ for (const id of plugins) {
     `${id}: staged README opens with the site banner`);
   assert.ok(stagedReadme.includes(`${SITE_URL}/pricing`), `${id}: banner links to pricing`);
   const sourceReadme = fs.readFileSync(path.join(root, 'plugins', id, 'README.md'), 'utf8');
-  assert.ok(!sourceReadme.includes(SITE_URL), `${id}: banner must not touch the repo README`);
+  assert.ok(!sourceReadme.includes('Part of the fourteen-plugin'), `${id}: banner must not touch the repo README`);
 
   // The committed icon ships, and the manifest points at it — without
   // this the registry shows a blank tile.

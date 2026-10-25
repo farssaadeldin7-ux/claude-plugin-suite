@@ -149,3 +149,15 @@ pro $200/month (2 seats) and team $500/month (10 seats). Both plans include the 
 `corpus_check`, `score_draft`, `drift_audit`, the apprentice work order and gate, and the
 profile store; team buys seats, not capabilities. The skill content and the open tools stay
 free.
+
+## Privacy and support
+
+The bundled tool server contacts the Code Studio billing service at
+https://billing.codestudioplugin.com for licence checks and checkout. What
+crosses the wire: a licence key, a plugin id, a hashed device identifier, a
+device label (your machine's hostname) and usage counts — never your
+prompts, files or tool inputs. Full policy:
+https://www.codestudioplugin.com/privacy.html
+
+Support: open an issue at
+https://github.com/farssaadeldin7-ux/claude-plugin-suite/issues

@@ -5,12 +5,24 @@
   "author": {
     "name": "Fars Saadeldin"
   },
-  "license": "UNLICENSED",
+  "license": "SEE LICENSE IN LICENSE",
+  "homepage": "https://www.codestudioplugin.com",
+  "repository": "https://github.com/farssaadeldin7-ux/claude-plugin-suite",
   "keywords": [
     "gaming",
     "esports",
     "coaching",
     "matchup",
     "practice"
-  ]
+  ],
+  "userConfig": {
+    "license_key": {
+      "type": "string",
+      "title": "5-Minute Fluency licence key",
+      "description": "Paid-tier licence key from codestudioplugin.com. Leave empty to use the free tools.",
+      "sensitive": true,
+      "required": false,
+      "default": ""
+    }
+  }
 }

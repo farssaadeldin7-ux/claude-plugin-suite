@@ -106,3 +106,15 @@ hypothesis with a test attached — the test is the point.
 the server's `diagnose` tool ranks the candidates with their confirmation tests — but
 running those tests honestly on the actual vehicle, and knowing when a differential does
 not fit what is in front of you, is the mechanic's judgement the plugin cannot supply.
+
+## Privacy and support
+
+The bundled tool server contacts the Code Studio billing service at
+https://billing.codestudioplugin.com for licence checks and checkout. What
+crosses the wire: a licence key, a plugin id, a hashed device identifier, a
+device label (your machine's hostname) and usage counts — never your
+prompts, files or tool inputs. Full policy:
+https://www.codestudioplugin.com/privacy.html
+
+Support: open an issue at
+https://github.com/farssaadeldin7-ux/claude-plugin-suite/issues
